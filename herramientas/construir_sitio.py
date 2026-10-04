@@ -39,7 +39,7 @@ def barra(inicio=False):
     <nav aria-label="Secciones">
       <a href="{b}#como">Cómo funciona</a>
       <a href="/manifiesto">Manifiesto</a>
-      <a href="/blog">Blog</a>
+      <a href="/blog/">Blog</a>
       <a href="/modelo">Modelo</a>
       <a class="siempre" href="/distribuir">Distribuir</a>
       <a class="siempre entrar" href="/entrar" aria-label="Iniciar sesión" title="Iniciar sesión">{PERSONA}</a>
@@ -51,7 +51,7 @@ def barra(inicio=False):
 PIE = '''<footer class="pie">
   <div class="caja">
     <span>La Vela · Torreón, Coahuila, México</span>
-    <span><a href="/manifiesto">Manifiesto</a> · <a href="/blog">Blog</a> · <a href="/distribuir">Quiero distribuir</a> · <a href="/entrar">Iniciar sesión</a></span>
+    <span><a href="/manifiesto">Manifiesto</a> · <a href="/blog/">Blog</a> · <a href="/distribuir">Quiero distribuir</a> · <a href="/entrar">Iniciar sesión</a></span>
   </div>
 </footer>'''
 
@@ -177,13 +177,13 @@ def construir_blog(arts):
             "author": {"@type": "Person", "name": "Ricardo López Reyero"}, "publisher": {"@id": CASA + "/#organizacion"}, "wordCount": a["palabras"],
         }, {"@type": "BreadcrumbList", "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": "Inicio", "item": CASA + "/"},
-            {"@type": "ListItem", "position": 2, "name": "Blog", "item": CASA + "/blog"},
+            {"@type": "ListItem", "position": 2, "name": "Blog", "item": CASA + "/blog/"},
             {"@type": "ListItem", "position": 3, "name": a["titulo"], "item": CASA + ruta}]}]
         cuerpo = f'''<main>
 <!-- RLR · artículo -->
 <article class="seccion articulo" style="border-top:0">
   <div class="caja">
-    <p class="migas"><a href="/">Inicio</a> › <a href="/blog">Blog</a></p>
+    <p class="migas"><a href="/">Inicio</a> › <a href="/blog/">Blog</a></p>
     <p class="etiqueta">{a["para"]}</p>
     <h1>{html.escape(a["titulo"])}</h1>
     <p class="fecha">Por Ricardo López Reyero · <time datetime="{FECHA}">{FECHA_LARGA}</time> · {max(1, round(a["palabras"] / 200))} minutos de lectura</p>
@@ -213,8 +213,8 @@ def construir_blog(arts):
   </div>
 </section>
 </main>'''
-    datos = [ORGANIZACION, {"@type": "Blog", "name": "Blog de La Vela", "url": CASA + "/blog", "inLanguage": "es-MX", "publisher": {"@id": CASA + "/#organizacion"}}]
-    cab = cabeza("Blog · Todo sobre la veladora | La Vela", "Guías sobre veladoras: cuánto duran, cómo funciona el cartucho retornable, cómo venderlas en la tienda y cómo distribuirlas.", "/blog", "blog", datos=datos)
+    datos = [ORGANIZACION, {"@type": "Blog", "name": "Blog de La Vela", "url": CASA + "/blog/", "inLanguage": "es-MX", "publisher": {"@id": CASA + "/#organizacion"}}]
+    cab = cabeza("Blog · Todo sobre la veladora | La Vela", "Guías sobre veladoras: cuánto duran, cómo funciona el cartucho retornable, cómo venderlas en la tienda y cómo distribuirlas.", "/blog/", "blog", datos=datos)
     (SITIO / "blog" / "index.html").write_text(pagina(cab, cuerpo), encoding="utf-8")
 
 
@@ -279,7 +279,7 @@ def construir_paginas(arts):
     <p class="etiqueta">Para saber más</p>
     <h2>Todo sobre la veladora.</h2>
     <ul class="lista-blog">{lista}</ul>
-    <div class="botones"><a class="boton" href="/blog">Ver el blog</a></div>
+    <div class="botones"><a class="boton" href="/blog/">Ver el blog</a></div>
   </div>
 </section>
 ''', '<section class="seccion negra" id="distribuir">')
@@ -307,7 +307,7 @@ def construir_paginas(arts):
 
 
 def mapa(arts):
-    ligas = ["/", "/manifiesto", "/distribuir", "/blog"] + [f"/blog/{a['liga']}" for a in arts]
+    ligas = ["/", "/manifiesto", "/distribuir", "/blog/"] + [f"/blog/{a['liga']}" for a in arts]
     (SITIO / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
                                        + "".join(f"  <url><loc>{CASA}{l}</loc><lastmod>{FECHA}</lastmod></url>\n" for l in ligas) + "</urlset>\n", encoding="utf-8")
     (SITIO / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: {CASA}/sitemap.xml\n", encoding="utf-8")
