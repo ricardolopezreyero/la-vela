@@ -142,3 +142,7 @@ El tablero usa D1: `esquema.sql`, luego `migraciones/0002_tablero.sql`, y los da
 Ing. Ricardo López Reyero · Torreón, Coahuila · Octubre de 2026
 
 <sub>Este archivo lo escribe `herramientas/construir_pagina_modelo.py` a partir del Excel.</sub>
+
+## Login
+
+Este servicio entra con el login único de CapitalTorreon: **[login.capitaltorreon.com](https://login.capitaltorreon.com)**. Todo funciona sin entrar; entrar solo agrega (guardar, recuperar, ser reconocido). El botón se monta solo con dos líneas (`<div data-login-ct>` + `login.js`) y el servidor verifica el pase con `verificar.js`; nunca se agrega un origen en Google Cloud ni se pone un botón de Google propio. El porqué y las reglas, en [El camino del login](https://github.com/ricardolopezreyero/login-capitaltorreon/blob/main/docs/El_Camino_del_Login_v1_2026-10-04_1135.md).
