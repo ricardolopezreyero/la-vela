@@ -320,3 +320,8 @@ button.boton:disabled { opacity: .5; cursor: default; }
 
 /* RLR · el modelo visto dentro del tablero: sin barra ni pie */
 .dentro .barra, .dentro .pie { display: none; }
+
+/* RLR · tabla de palancas: la última columna es texto y se lee de corrido */
+.tabla.palancas td { white-space: normal; }
+.tabla.palancas td:nth-child(3) { white-space: nowrap; font-weight: 600; }
+.tabla.palancas td:nth-child(2), .tabla.palancas td:last-child, .tabla.palancas th:nth-child(2), .tabla.palancas th:last-child { text-align: left; min-width: 13em; }
