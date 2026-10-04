@@ -85,7 +85,6 @@ a { color: inherit; }
 .escena { position: relative; }
 .escena canvas {
   display: block; width: 100%; height: min(68vh, 560px); touch-action: pan-y; cursor: grab;
-  filter: grayscale(1);
 }
 .escena canvas:active { cursor: grabbing; }
 .estados { display: flex; border: 1px solid var(--gris-700); margin-top: var(--e2); }
@@ -125,7 +124,7 @@ a { color: inherit; }
 .casas { display: grid; gap: var(--e4); margin-top: var(--e6); }
 @media (min-width: 900px) { .casas { grid-template-columns: 1fr 1fr; } }
 .casas figure { margin: 0; }
-.casas canvas { display: block; width: 100%; aspect-ratio: 4 / 5; background: var(--gris-300); filter: grayscale(1); }
+.casas canvas { display: block; width: 100%; aspect-ratio: 4 / 5; background: var(--gris-300); }
 .casas figcaption { margin-top: var(--e2); font-size: 0.9rem; color: var(--gris-700); }
 .casas figcaption b { color: var(--tinta); display: block; font-family: var(--titulos); font-weight: 400; font-size: 1.3rem; }
 
@@ -275,3 +274,46 @@ button.boton:disabled { opacity: .5; cursor: default; }
   .tabla th:first-child, .tabla td:first-child { min-width: 7.5em; }
   .tabla thead th { font-size: 0.62rem; letter-spacing: 0.06em; }
 }
+
+/* ───── RLR · blog, preguntas y descargas ───── */
+.migas { font-size: 0.8rem; color: var(--gris-500); }
+.migas a { color: inherit; }
+.articulo h1 { font-size: clamp(2.1rem, 5.4vw, 3.5rem); max-width: 20ch; }
+.titulo-blog { font-size: clamp(2.4rem, 6vw, 4rem); }
+.fecha { font-size: 0.85rem; color: var(--gris-500); max-width: none; }
+.texto { margin-top: var(--e6) !important; max-width: 40rem; }
+.texto > * + * { margin-top: var(--e3); }
+.texto p, .texto li { font-size: 1.05rem; line-height: 1.7; color: #222; max-width: none; }
+.texto h2 { font-size: clamp(1.5rem, 3.4vw, 2rem); margin-top: var(--e6); }
+.texto h3 { margin-top: var(--e4); }
+.texto ul, .texto ol { padding-left: 1.3em; }
+.texto li + li { margin-top: var(--e1); }
+.texto a { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.texto blockquote { margin: var(--e4) 0; padding: var(--e3); border: 2px solid var(--tinta); font-family: var(--titulos); font-size: 1.3rem; line-height: 1.35; }
+.texto .tabla-caja { margin-top: var(--e3) !important; }
+.texto .tabla th, .texto .tabla td { text-align: left; white-space: normal; }
+.articulo .botones { margin-top: var(--e6) !important; }
+
+.lista-blog { list-style: none; margin: var(--e4) 0 0 !important; padding: 0; border-top: var(--linea); }
+.lista-blog li { border-bottom: var(--linea); }
+.lista-blog a { display: block; padding: var(--e3) 0; text-decoration: none; }
+.lista-blog a:hover b { text-decoration: underline; }
+.lista-blog b { display: block; font-family: var(--titulos); font-weight: 400; font-size: 1.4rem; line-height: 1.2; margin-top: 6px; }
+.lista-blog a > span:not(.etiqueta) { display: block; margin-top: var(--e1); color: var(--gris-700); max-width: var(--lectura); }
+.lista-blog.larga b { font-size: clamp(1.5rem, 3.2vw, 2rem); }
+.lista-blog + .botones { margin-top: var(--e4); }
+
+.preguntas { border-top: var(--linea); }
+.preguntas details { border-bottom: var(--linea); margin: 0 !important; }
+.preguntas summary { cursor: pointer; padding: var(--e3) var(--e4) var(--e3) 0; font-family: var(--titulos); font-size: 1.3rem; line-height: 1.2; list-style: none; position: relative; }
+.preguntas summary::-webkit-details-marker { display: none; }
+.preguntas summary::after { content: '+'; position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-family: var(--texto); font-size: 1.5rem; }
+.preguntas details[open] summary::after { content: '–'; }
+.preguntas details p { padding: 0 0 var(--e3); color: var(--gris-700); }
+
+.descargas { list-style: none; margin: var(--e6) 0 0 !important; padding: 0; display: grid; gap: var(--e4); }
+@media (min-width: 760px) { .descargas { grid-template-columns: repeat(3, 1fr); } }
+.descargas li > * + * { margin-top: var(--e2); }
+.descargas img { display: block; width: 100%; height: auto; border: 1px solid var(--tinta); background: var(--blanco); }
+.descargas p { color: var(--gris-700); font-size: 0.95rem; }
+/* RLR */

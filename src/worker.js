@@ -75,7 +75,13 @@ export default {
       try { return await distribuir(req, env); }
       catch (err) { console.error(err); return json({ error: 'No se pudo guardar. Intenta de nuevo.' }, 500); }
     }
-    return env.ASSETS.fetch(req);
+    const r = await env.ASSETS.fetch(req);
+    // El Excel del modelo se descarga, pero no se indexa
+    if (url.pathname.endsWith('.xlsx')) {
+      const h = new Headers(r.headers); h.set('X-Robots-Tag', 'noindex');
+      return new Response(r.body, { status: r.status, headers: h });
+    }
+    return r;
   },
 };
 void _RLR; void _k; void _rev;

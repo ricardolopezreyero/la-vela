@@ -4,7 +4,7 @@ Blanco y negro. Aquí no manda el diseño: manda que la información llegue. Est
 
 ## Principios
 
-1. **Blanco y negro, y nada más.** Sin color de marca, sin degradados de color, sin fotos a color. Si algo necesita destacar, se hace más grande o se pone sobre negro.
+1. **Blanco y negro, y la lumbre.** Sin color de marca, sin degradados de color, sin fotos a color: el único color es el de la flama. Si algo necesita destacar, se hace más grande o se pone sobre negro.
 2. **Primero la frase, luego la explicación.** Cada sección abre con una frase que se entiende sola; el párrafo de abajo es para quien quiere saber más.
 3. **Una idea por sección.** Si una sección dice dos cosas, son dos secciones.
 4. **Letra grande.** La leen tenderos, distribuidores y gente mayor, casi siempre en el teléfono.
@@ -68,8 +68,9 @@ Todos los botones miden al menos 48 px de alto.
 - Medidas en centímetros, tomadas de [02 · Ingeniería](02-ingenieria-de-la-vela.md): vaso de 6 cm de diámetro interior y 17 cm de alto, pared de 3 mm.
 - Tres estados, que son el modelo de negocio: **encendida**, **sale el cartucho**, **entra el nuevo**. Los otros usos del vaso (florero, vaso de agua) se enseñan en el render de la mesa, no en los botones.
 - Los renders se arman con utilería sencilla y texturas pintadas en código (madera, aplanado): nada se descarga. La luz de día entra por una ventana con cruceta que no se ve; solo se ve su sombra.
-- Siempre en escala de grises: materiales neutros y, por seguridad, `filter: grayscale(1)` en el lienzo.
-- La flama es blanca. El vidrio se dibuja con sus reflejos, no con color.
+- **La lumbre es lo único con color.** Azul en la base, amarillo casi blanco al centro, naranja en la orilla y rojo en la punta; su luz calienta la cera y el aluminio que tiene cerca. Todo lo demás sigue en blanco, negro y grises. La misma regla vale en las hojas PDF y en las imágenes de liga.
+- La flama se pinta con un sombreador (`crearFlama` en `vela3d.js`) y se dibuja un poco más grande que la real: es lo que se vende.
+- El vidrio se dibuja con sus reflejos, no con color. El cartucho lleva la marca y el lote grabados en el aluminio.
 - **Por validar:** la altura del cartucho. El modelo lo dibuja como una copa baja de aluminio (2.6 cm) con la columna de cera encima; [08 · Cartucho retornable](08-cartucho-retornable.md) todavía no fija esa medida. Se cambia en la constante `CART` y todo lo demás se ajusta.
 
 ## Voz

@@ -43,15 +43,6 @@ const texturaHalo = () => radial([[0, 'rgba(255,255,255,.6)'], [0.22, 'rgba(255,
 const texturaSombra = () => radial([[0, 'rgba(0,0,0,.5)'], [0.5, 'rgba(0,0,0,.22)'], [1, 'rgba(0,0,0,0)']]);
 const texturaPiso = () => radial([[0, '#ffffff'], [0.1, '#a0a0a0'], [0.22, '#3a3a3a'], [0.36, '#0c0c0c'], [0.5, '#000000'], [1, '#000000']]);
 
-// Flama: transparente junto a la mecha, blanca al centro, se deshace en la punta
-function texturaFlama() {
-  return lienzo(8, 128, (g, w, h) => {
-    const d = g.createLinearGradient(0, h, 0, 0);
-    [[0, 'rgba(255,255,255,.10)'], [0.16, 'rgba(255,255,255,.35)'], [0.34, 'rgba(255,255,255,1)'], [0.78, 'rgba(255,255,255,.95)'], [1, 'rgba(255,255,255,0)']]
-      .forEach(([p, c]) => d.addColorStop(p, c));
-    g.fillStyle = d; g.fillRect(0, 0, w, h);
-  });
-}
 // Cera encendida: brilla arriba, donde está la flama, y se apaga hacia abajo
 function texturaBrilloCera() {
   return lienzo(8, 256, (g, w, h) => {
@@ -59,6 +50,19 @@ function texturaBrilloCera() {
     [[0, '#ffffff'], [0.12, '#b9b9b9'], [0.4, '#4e4e4e'], [1, '#161616']].forEach(([p, c]) => d.addColorStop(p, c));
     g.fillStyle = d; g.fillRect(0, 0, w, h);
   });
+}
+// Grabado del cartucho: la marca y el lote, estampados en la pared de aluminio (docs/15)
+function texturaGrabado() {
+  const t = lienzo(2048, 512, (g, w, h) => {
+    g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#8a8a8a'; g.font = '600 34px Georgia, serif'; g.textBaseline = 'middle';
+    const texto = 'LA VELA  ·  CARTUCHO RETORNABLE  ·  LOTE 0001  ·  ';
+    const paso = g.measureText(texto).width;
+    for (let x = 0; x < w + paso; x += paso) g.fillText(texto, x, h * 0.5);
+    g.fillRect(0, h * 0.5 - 30, w, 2); g.fillRect(0, h * 0.5 + 28, w, 2);
+  });
+  t.wrapS = THREE.RepeatWrapping; t.repeat.x = -1;
+  return t;
 }
 // Madera: vetas largas y onduladas
 function texturaMadera(base = 150, semilla = 7) {
@@ -168,6 +172,77 @@ function crearAgua(alto, brilloEntorno = 1) {
   return g;
 }
 
+/* ───────── RLR · la lumbre: lo único con color en toda la página ─────────
+   Azul abajo, donde arde el gas; un hueco oscuro junto a la mecha; amarillo casi blanco al centro;
+   naranja en la orilla y rojo en la punta. La mueve un ruido que sube, como el aire caliente. */
+function crearFlama() {
+  const geo = new THREE.PlaneGeometry(5.4, 6.8);
+  geo.translate(0, 3.4, 0);
+  const mat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, toneMapped: false,
+    uniforms: { uTiempo: { value: 0 }, uFuerza: { value: 1 } },
+    vertexShader: `
+      varying vec2 vUv;
+      uniform float uFuerza;
+      void main() {
+        vUv = uv;
+        vec4 mv = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+        vec3 arriba = normalize((modelViewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+        vec3 lado = normalize(cross(arriba, vec3(0.0, 0.0, 1.0)));
+        mv.xyz += lado * position.x * (0.55 + 0.45 * uFuerza) + arriba * position.y * uFuerza;
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      varying vec2 vUv;
+      uniform float uTiempo;
+      uniform float uFuerza;
+      float azar(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float ruido(vec2 p) {
+        vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(azar(i), azar(i + vec2(1.0, 0.0)), f.x), mix(azar(i + vec2(0.0, 1.0)), azar(i + vec2(1.0, 1.0)), f.x), f.y);
+      }
+      float nubes(vec2 p) { return ruido(p) * 0.6 + ruido(p * 2.1) * 0.28 + ruido(p * 4.3) * 0.12; }
+      void main() {
+        float y = vUv.y;
+        float x = (vUv.x - 0.5) * 2.0;
+        // el aire caliente sube: el ruido corre hacia arriba y mece más la punta que la base
+        float t = uTiempo;
+        float mece = (nubes(vec2(y * 2.2 - t * 1.7, t * 0.6)) - 0.5) * 0.55 * y * y
+                   + sin(t * 2.3 + y * 3.0) * 0.035 * y;
+        float late = 1.0 + (nubes(vec2(t * 2.4, 3.7)) - 0.5) * 0.16;
+        float yy = clamp(y / (0.9 * late), 0.0, 1.0);
+        // silueta de gota: panza abajo, punta larga arriba
+        float ancho = 0.66 * pow(sin(3.14159 * pow(yy, 0.5)), 1.35) * (1.0 - 0.42 * yy) + 0.02;
+        float borde = (nubes(vec2(x * 3.0, y * 5.0 - t * 3.2)) - 0.5) * 0.16 * y;
+        float d = abs(x - mece) / max(ancho + borde, 0.001);
+
+        float cuerpo = smoothstep(1.0, 0.62, d) * step(yy, 0.999) * smoothstep(0.0, 0.03, y);
+        // colores de una flama de vela
+        vec3 blanco = vec3(1.0, 0.97, 0.86);
+        vec3 amarillo = vec3(1.0, 0.82, 0.32);
+        vec3 naranja = vec3(1.0, 0.47, 0.08);
+        vec3 rojo = vec3(0.86, 0.14, 0.03);
+        vec3 azul = vec3(0.12, 0.34, 1.0);
+        vec3 c = mix(naranja, amarillo, smoothstep(0.95, 0.5, d));
+        c = mix(c, blanco, smoothstep(0.55, 0.05, d) * smoothstep(0.22, 0.42, yy) * smoothstep(0.98, 0.5, yy));
+        c = mix(c, rojo, smoothstep(0.55, 1.0, yy) * smoothstep(0.25, 1.0, d) * 0.85);
+        c = mix(c, naranja, smoothstep(0.8, 1.0, yy) * 0.5);
+        // base azul y el hueco oscuro que rodea la mecha
+        float abajo = smoothstep(0.3, 0.02, yy);
+        c = mix(c, azul, abajo * smoothstep(0.1, 0.75, d + 0.25));
+        float hueco = smoothstep(0.5, 0.0, d) * smoothstep(0.03, 0.1, yy) * smoothstep(0.34, 0.16, yy);
+        float alfa = cuerpo * mix(1.0, 0.62, abajo) * (1.0 - 0.72 * hueco);
+        // velo de calor alrededor
+        float velo = smoothstep(1.9, 0.9, d) * (1.0 - cuerpo) * 0.22 * smoothstep(0.02, 0.2, y) * smoothstep(1.0, 0.6, y);
+        vec3 color = c * 1.25 * cuerpo + mix(naranja, rojo, y) * velo;
+        gl_FragColor = vec4(color, clamp(alfa + velo, 0.0, 1.0) * smoothstep(0.0, 0.25, uFuerza));
+      }`,
+  });
+  const m = new THREE.Mesh(geo, mat);
+  m.renderOrder = 6; m.frustumCulled = false;
+  return m;
+}
+
 /* ───────── RLR · la vela: devuelve el grupo y sus piezas para poder animarlas ───────── */
 export function crearVela({ brilloEntorno = 1, tinte = false } = {}) {
   const vela = new THREE.Group();
@@ -178,7 +253,8 @@ export function crearVela({ brilloEntorno = 1, tinte = false } = {}) {
   const cartucho = new THREE.Group();
   cartucho.position.y = VASO.fondo + 0.02;
   const C = CART;
-  const aluminio = new THREE.MeshStandardMaterial({ color: 0xd8d8d8, metalness: 1, roughness: 0.3, envMapIntensity: brilloEntorno * 1.3 });
+  const grabado = texturaGrabado();
+  const aluminio = new THREE.MeshStandardMaterial({ color: 0xd8d8d8, metalness: 1, roughness: 0.3, envMapIntensity: brilloEntorno * 1.3, map: grabado, bumpMap: grabado, bumpScale: 0.6 });
   const copa = new THREE.Mesh(
     new THREE.LatheGeometry(V2([
       [0, 0], [C.r - 0.3, 0], [C.r - 0.08, 0.08], [C.r, 0.3], [C.r, C.alto],
@@ -192,7 +268,7 @@ export function crearVela({ brilloEntorno = 1, tinte = false } = {}) {
   cartucho.add(copa, ceja);
 
   const matCera = new THREE.MeshPhysicalMaterial({
-    color: 0xf4f4f4, roughness: 0.5, sheen: 0.5, sheenRoughness: 0.6, emissive: 0xffffff, emissiveMap: texturaBrilloCera(),
+    color: 0xf4f4f4, roughness: 0.5, sheen: 0.5, sheenRoughness: 0.6, emissive: 0xffb469, emissiveMap: texturaBrilloCera(),
     emissiveIntensity: 0, envMapIntensity: brilloEntorno * 0.5,
   });
   const cera = new THREE.Mesh(new THREE.CylinderGeometry(CERA.r, CERA.r, CERA.alto, 72, 1, true), matCera);
@@ -202,11 +278,11 @@ export function crearVela({ brilloEntorno = 1, tinte = false } = {}) {
 
   const cima = C.lamina + CERA.alto;
   // Arriba: orilla de cera sólida y, al centro, el charco derretido (hundido y brillante)
-  const matCima = new THREE.MeshPhysicalMaterial({ color: 0xf6f6f6, roughness: 0.45, emissive: 0xffffff, emissiveIntensity: 0, envMapIntensity: brilloEntorno * 0.5 });
+  const matCima = new THREE.MeshPhysicalMaterial({ color: 0xf6f6f6, roughness: 0.45, emissive: 0xffb469, emissiveIntensity: 0, envMapIntensity: brilloEntorno * 0.5 });
   const orilla = new THREE.Mesh(
     new THREE.LatheGeometry(V2([[CERA.r, 0], [CERA.r - 0.1, 0.05], [CERA.r - 0.5, 0], [CERA.r - 0.75, -0.14], [0, -0.2]]), 72), matCima);
   orilla.position.y = cima;
-  const matCharco = new THREE.MeshPhysicalMaterial({ color: 0xe9e9e9, roughness: 0.04, clearcoat: 1, emissive: 0xffffff, emissiveIntensity: 0, envMapIntensity: brilloEntorno * 1.2 });
+  const matCharco = new THREE.MeshPhysicalMaterial({ color: 0xe9e9e9, roughness: 0.04, clearcoat: 1, emissive: 0xffc27a, emissiveIntensity: 0, envMapIntensity: brilloEntorno * 1.2 });
   const charco = new THREE.Mesh(new THREE.CircleGeometry(CERA.r - 0.78, 56), matCharco);
   charco.rotation.x = -Math.PI / 2; charco.position.y = cima - 0.12;
   cartucho.add(orilla, charco);
@@ -220,51 +296,36 @@ export function crearVela({ brilloEntorno = 1, tinte = false } = {}) {
   );
   cartucho.add(mecha);
 
-  // Flama: dos capas torneadas y dos halos
-  const perfilFlama = (alto, ancho) => {
-    const p = [];
-    for (let i = 0; i <= 28; i++) {
-      const t = i / 28;
-      p.push(new THREE.Vector2(Math.max(ancho * Math.pow(Math.sin(Math.PI * Math.pow(t, 0.58)), 1.25) * (1 - 0.3 * t), 0.0001), t * alto));
-    }
-    return p;
-  };
+  // Flama: un plano que siempre mira a la cámara, pintado por un sombreador (ver crearFlama)
   const flama = new THREE.Group();
-  flama.position.set(0.08, cima + 0.5, 0);
-  const tf = texturaFlama();
-  const gota = new THREE.Group();
-  const fuera = new THREE.Mesh(new THREE.LatheGeometry(perfilFlama(2.7, 0.5), 32),
-    new THREE.MeshBasicMaterial({ map: tf, transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending }));
-  const dentro = new THREE.Mesh(new THREE.LatheGeometry(perfilFlama(2.1, 0.33), 32),
-    new THREE.MeshBasicMaterial({ map: tf, transparent: true, depthWrite: false, toneMapped: false }));
-  dentro.position.y = 0.12;
-  fuera.renderOrder = 5; dentro.renderOrder = 6;
-  gota.add(fuera, dentro);
+  flama.position.set(0.1, cima + 0.42, 0);
+  const lumbre = crearFlama();
   const th = texturaHalo();
-  const sprite = (escala, opacidad) => {
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: th, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: opacidad }));
-    s.scale.set(escala, escala, 1); s.position.y = 1.15; s.renderOrder = 7; s.userData.opacidad = opacidad;
+  const sprite = (escala, opacidad, color, y) => {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: th, color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: opacidad }));
+    s.scale.set(escala, escala, 1); s.position.y = y; s.renderOrder = 7; s.userData.opacidad = opacidad;
     return s;
   };
-  const halos = [sprite(3.6, 0.4), sprite(17, 0.5)];
-  const luz = new THREE.PointLight(0xffffff, 260, 0, 2);
-  luz.position.y = 1.3;
-  flama.add(gota, ...halos, luz);
+  const halos = [sprite(8, 0.5, 0xffb347, 2.5), sprite(17, 0.3, 0xff7a1a, 2.6), sprite(3.4, 0.5, 0x3d6bff, 0.4)];
+  const luz = new THREE.PointLight(0xffa24a, 260, 0, 2);
+  luz.position.y = 2.4;
+  flama.add(lumbre, ...halos, luz);
   cartucho.add(flama);
   vela.add(cartucho);
 
-  // RLR · enciende o apaga en proporción f (0 a 1) con un titileo t alrededor de 1
-  const encender = (f, t = 1, fuerza = 260) => {
+  // RLR · enciende o apaga en proporción f (0 a 1) con un titileo t alrededor de 1; seg mueve la lumbre
+  const encender = (f, t = 1, fuerza = 260, seg = 0) => {
     flama.visible = f > 0.02;
-    gota.scale.set(f * (2 - t), f * t, f * (2 - t));
+    lumbre.material.uniforms.uFuerza.value = f;
+    lumbre.material.uniforms.uTiempo.value = seg;
     luz.intensity = fuerza * f * t;
     halos.forEach((h) => { h.material.opacity = h.userData.opacidad * f * (1 + (t - 1) * 2); });
-    matCera.emissiveIntensity = 0.5 * f;
-    matCima.emissiveIntensity = 0.42 * f;
-    matCharco.emissiveIntensity = 0.6 * f;
+    matCera.emissiveIntensity = 0.62 * f * t;
+    matCima.emissiveIntensity = 0.5 * f * t;
+    matCharco.emissiveIntensity = 0.75 * f * t;
   };
   encender(1);
-  return { vela, vaso, cartucho, flama, gota, luz, encender };
+  return { vela, vaso, cartucho, flama, luz, encender };
 }
 
 function nuevoRenderer(canvas, sombras) {
@@ -315,12 +376,12 @@ export function escenario(canvas, { alCambiar } = {}) {
 
   // Hacia dónde va cada estado: altura del cartucho, flama y encuadre
   const METAS = {
-    encendida: { y: 0, flama: 1, mira: 9.2, lejos: 56 },
+    encendida: { y: 0, flama: 1, mira: 10.2, lejos: 52 },
     cartucho: { y: 15.5, flama: 0, mira: 15.5, lejos: 84 },
-    nuevo: { y: 0, flama: 1, mira: 9.2, lejos: 56 },
+    nuevo: { y: 0, flama: 1, mira: 10.2, lejos: 52 },
   };
   let estado = 'encendida';
-  const a = { y: 0, flama: 1, mira: 9.2, lejos: 56 };
+  const a = { y: 0, flama: 1, mira: 10.2, lejos: 52 };
   const base = VASO.fondo + 0.02;
 
   let giro = 0.6, arrastrando = false, x0 = 0, ultimoToque = 0;
@@ -352,8 +413,7 @@ export function escenario(canvas, { alCambiar } = {}) {
     p.cartucho.position.y = base + a.y;
     const s = ahora / 1000;
     const titila = quieto ? 1 : 1 + 0.05 * Math.sin(s * 11) + 0.035 * Math.sin(s * 17.3 + 1) + 0.02 * Math.sin(s * 29.1);
-    p.encender(a.flama, titila);
-    if (!quieto) p.gota.rotation.z = 0.035 * Math.sin(s * 6.1);
+    p.encender(a.flama, titila, 260, quieto ? 2.4 : s);
 
     if (!arrastrando && !quieto && ahora - ultimoToque > 1800) giro += dt * 0.16;
     const alto = canvas.clientHeight / Math.max(canvas.clientWidth, 1);
@@ -474,7 +534,7 @@ export function renderRepisa(canvas) {
   const lija = u.caja(3.42, 0.5, 0.05, u.mate(0x161616, 1), -3.2, 0.78, 6.2); lija.rotation.y = 0.5; lija.translateZ(1.11);
 
   const p = crearVela({ brilloEntorno: 0.7 });
-  p.encender(1, 1, 520);
+  p.encender(1, 1, 520, 2.4);
   p.luz.castShadow = true;
   p.luz.shadow.mapSize.set(2048, 2048); p.luz.shadow.bias = -0.003; p.luz.shadow.normalBias = 0.05;
   p.cartucho.traverse((o) => { if (o.isMesh) o.castShadow = false; });

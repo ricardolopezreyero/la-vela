@@ -31,7 +31,7 @@ Este repositorio junta todo lo que hemos aprendido y decidido sobre el proyecto:
 | 13 | [Fuentes](docs/13-fuentes.md) | De dónde salió cada dato |
 | 14 | [Guía de estilos](docs/14-guia-de-estilos.md) | Blanco y negro: color, letra, piezas y la vela en 3D |
 
-El modelo financiero completo (18 hojas, 36 meses; la versión 2 se genera con `python3 herramientas/construir_modelo.py` a partir de la versión 1 y se recalcula con LibreOffice) está en [`modelo/La_Vela_Modelo_de_Negocio_v2.xlsx`](modelo/La_Vela_Modelo_de_Negocio_v2.xlsx).
+El modelo financiero completo (20 hojas, 36 meses; la versión 3 se genera con `python3 herramientas/construir_modelo.py` a partir de la versión 1 y se recalcula con LibreOffice) está en [`modelo/La_Vela_Modelo_de_Negocio_v3.xlsx`](modelo/La_Vela_Modelo_de_Negocio_v3.xlsx).
 
 ## El sitio
 
@@ -44,6 +44,15 @@ Vive en [`sitio/`](sitio/) y se publica como Worker de Cloudflare en `vela.capit
 | `/modelo` | `modelo.html` | El modelo de negocio explicado con los números del Excel, y la descarga del Excel (`sitio/descargas/`) |
 | `/distribuir` | `distribuir.html` | Solicitud de 8 preguntas; se guarda en D1 (`esquema.sql`, `src/worker.js`) |
 | `/entrar` | `entrar.html` | Inicio de sesión (solo la puerta; aún sin tablero) |
+| `/blog` | `blog/*.html` | Cinco artículos; el texto vive en `contenido/blog/*.md` |
+
+Lo que se repite se genera, no se escribe a mano:
+
+- `python3 herramientas/construir_descargas.py` — las tres hojas PDF tamaño carta (cliente, tienda, distribuidor) y las imágenes de liga de cada página (`sitio/og/`). Usa Chrome sin ventana y falla si alguna hoja no cabe en una sola página carta.
+- `python3 herramientas/construir_sitio.py` — cabecera SEO, barra y pie de todas las páginas, el blog, las preguntas del inicio, la sección de descargas, `sitemap.xml` y `robots.txt`.
+- `python3 herramientas/construir_modelo.py` — el Excel.
+
+La lumbre es lo único con color en todo el sitio (ver la guía de estilos).
 
 Si cambia el Excel, hay que copiarlo de nuevo a `sitio/descargas/` (con versión y fecha en el nombre) y actualizar los números de `modelo.html`. Para desplegar:
 

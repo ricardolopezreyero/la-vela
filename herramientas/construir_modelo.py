@@ -19,7 +19,7 @@ _RLR = "Ricardo López Reyero"; _k = "EYE"; _rev = 181218  # RLR
 
 RAIZ = Path(__file__).resolve().parent.parent
 ORIGEN = RAIZ / "modelo" / "Modelo_Negocio_Velas_Rinde.xlsx"
-DESTINO = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "modelo" / "La_Vela_Modelo_de_Negocio_v2.xlsx"
+DESTINO = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "modelo" / "La_Vela_Modelo_de_Negocio_v3.xlsx"
 
 # ── Guía de estilos (docs/14): negro, blanco y grises ──
 NEGRO, TINTA, G700, G500, G300, G100, BLANCO = "000000", "111111", "444444", "6B6B6B", "C8C8C8", "F3F3F3", "FFFFFF"
@@ -117,7 +117,7 @@ for hoja, ref in (("Supuestos", "B19"), ("Supuestos", "B20"), ("Costeo", "C4"), 
 ini = wb["Inicio"]
 ini["A1"] = "Modelo de negocio · La Vela"
 ini["A2"] = ("Veladora diseñada para durar, con cartucho retornable, distribuida en tiendas y misceláneas a través de "
-             "distribuidores con rutas, más canales directos y línea premium. Modelo a 36 meses en pesos mexicanos. Versión 2 · octubre de 2026.")
+             "distribuidores con rutas, más canales directos y línea premium. Modelo a 36 meses en pesos mexicanos, con el plan de protección y de crecimiento por países. Versión 3 · octubre de 2026.")
 ini["A6"] = "2. Cambia cualquier celda con marco. Todo se recalcula solo. Las de marco grueso son las que más mueven el resultado."
 ini["A8"] = ini["A8"].value  # sin cambio
 for f in range(9, 40):
@@ -139,6 +139,8 @@ HOJAS = [
     ("Cascada", "Quién gana qué en cada pieza, a dónde se va cada peso y economía de canales directos."),
     ("Todos_ganan", "Lo que gana el cliente, la tienda, el distribuidor y nosotros."),
     ("Distribuidor", "NUEVA. Cuánto gana un distribuidor según cuántas tiendas surte, y cómo se califica una solicitud."),
+    ("Proteccion", "NUEVA. Las capas que cuidan el negocio: registros, marcas en el vidrio y el aluminio, contratos, y lo que cuestan."),
+    ("Expansion", "NUEVA. Cómo se crece por países: México, América Latina y Estados Unidos, a 15 años."),
     ("Volumen", "Tiendas, piezas y canales mes a mes."),
     ("Resultados", "Estado de resultados mensual y anual."),
     ("Flujo", "Flujo de efectivo, capital de trabajo, necesidad de capital y recuperación."),
@@ -157,7 +159,7 @@ for f, (a, b) in enumerate(HOJAS, 18):
     celda(ini, f"A{f}", a, negrita=True); celda(ini, f"B{f}", b)
     ini[f"A{f}"].hyperlink = f"#'{a}'!A1"
     ini[f"A{f}"].font = Font(name="Arial", sz=10, b=True, color=NEGRO, u="single")
-for f, t in ((36, "Página del modelo: https://vela.capitaltorreon.com/modelo"), (37, "Ing. Ricardo López Reyero · Torreón, Coahuila")):
+for f, t in ((38, "Página del modelo: https://vela.capitaltorreon.com/modelo"), (39, "Ing. Ricardo López Reyero · Torreón, Coahuila")):
     celda(ini, f"A{f}", t, nota=True); ini[f"A{f}"].alignment = Alignment(wrap_text=False)
 
 sup = wb["Supuestos"]
@@ -370,10 +372,170 @@ for fila in rie.iter_rows(min_row=4):
     if fila[1].value and "artucho" in str(fila[1].value):
         fila[3].value = "Supuestos · sección 17 y hoja Cartucho"
 
+
+# ── 7. Hoja Expansion: México → América Latina → Estados Unidos ──
+ex = wb.create_sheet("Expansion", index=wb.sheetnames.index("Distribuidor") + 1)
+ex.sheet_view.showGridLines = False
+titulo(ex, "Crecer por países", "Primero México, luego América Latina, luego Estados Unidos. Población, consumo y participación son SUPUESTOS para dimensionar: hay que validarlos con datos de cada país antes de decidir.")
+ex.column_dimensions["A"].width = 44
+for col in "BCDEFGHIJ":
+    ex.column_dimensions[col].width = 15
+ex.column_dimensions["K"].width = 34; ex.column_dimensions["L"].width = 70
+seccion(ex, 4, "MERCADOS", 12)
+encabezado(ex, 5, ["Mercado", "Fase", "Año de entrada", "Población (millones)", "Consumo vs México", "Veladoras por persona al año", "Mercado (millones de piezas)",
+                   "Participación meta", "Años para llegar", "Piezas al año en la meta (millones)", "Cómo se entra", "Nota"])
+ex.row_dimensions[5].height = 42
+MERCADOS = [
+    # nombre, fase, entrada, población, consumo relativo, participación, años, precio relativo, cómo, nota
+    ("México · resto del país", 1, 4, 130, 1.0, 0.01, 8, "Distribuidores con exclusividad por zona; maquila regional.",
+     "Mercado: 697 millones de piezas al año (Solunion, 2024). Población: ESTIMADO."),
+    ("Guatemala", 2, 6, 18, 0.8, 0.01, 5, "Distribuidor maestro; se exporta desde México.", "SUPUESTO sin fuente: población y consumo por validar."),
+    ("Colombia", 2, 7, 52, 0.35, 0.005, 5, "Distribuidor maestro o licencia de fabricación.", "SUPUESTO sin fuente: población y consumo por validar."),
+    ("Perú", 2, 8, 34, 0.35, 0.005, 5, "Distribuidor maestro o licencia de fabricación.", "SUPUESTO sin fuente: población y consumo por validar."),
+    ("Estados Unidos · mercado hispano", 3, 9, 65, 0.5, 0.005, 6, "Importador y cadenas del suroeste; cumplir normas ASTM de velas.",
+     "SUPUESTO sin fuente. Normas a cumplir: ASTM F2417 (seguridad contra incendio), F2058 (etiquetado) y F2179 (vasos de vidrio)."),
+]
+celda(ex, "A6", "México · La Laguna (lo que ya está en el modelo)"); celda(ex, "B6", 1, F_ENTERO); celda(ex, "C6", 1, F_ENTERO, entrada=True)
+celda(ex, "G6", 697, F_ENTERO, entrada=True); celda(ex, "H6", "=J6/G6", '0.000%'); celda(ex, "I6", 2, F_ENTERO, entrada=True)
+celda(ex, "J6", "=Palancas!B8/1000000", "0.00"); celda(ex, "K6", "Un distribuidor, 500 tiendas (escenario activo).")
+celda(ex, "L6", "Piezas del año 2 del modelo de 36 meses. El mercado de 697 millones es todo México.", nota=True)
+for f, (nom, fase, ent, pob, rel, part, anos, como, nota) in enumerate(MERCADOS, 7):
+    celda(ex, f"A{f}", nom); celda(ex, f"B{f}", fase, F_ENTERO); celda(ex, f"C{f}", ent, F_ENTERO, entrada=True)
+    celda(ex, f"D{f}", pob, F_ENTERO, entrada=True); celda(ex, f"E{f}", rel, "0.00", entrada=True)
+    celda(ex, f"F{f}", f"=$G$6/$D$7*E{f}", "0.00"); celda(ex, f"G{f}", f"=D{f}*F{f}", "#,##0.0")
+    celda(ex, f"H{f}", part, "0.0%", entrada=True); celda(ex, f"I{f}", anos, F_ENTERO, entrada=True)
+    celda(ex, f"J{f}", f"=G{f}*H{f}", "0.00"); celda(ex, f"K{f}", como); celda(ex, f"L{f}", nota, nota=True)
+for f in range(6, 12):
+    ex[f"L{f}"].alignment = Alignment(wrap_text=False); ex[f"K{f}"].alignment = Alignment(wrap_text=True, vertical="top")
+    ex.row_dimensions[f].height = 28
+ULT = 11
+celda(ex, "A13", "Ingreso neto por pieza hoy (sin IVA)"); celda(ex, "B13", "=Cascada!$B$33", F_PESOS)
+celda(ex, "A14", "Utilidad bruta por pieza hoy"); celda(ex, "B14", "=Cascada!$B$28", F_PESOS)
+celda(ex, "A15", "Precio fuera de México contra el de México"); celda(ex, "B15", 1.0, "0.00", entrada=True)
+celda(ex, "C15", "1.00 = mismo precio en pesos. Súbelo o bájalo para ver el efecto del tipo de cambio y de los aranceles.", nota=True); ex["C15"].alignment = Alignment(wrap_text=False)
+
+seccion(ex, 17, "PIEZAS POR AÑO (millones)", 17)
+encabezado(ex, 18, ["Mercado"] + [f"Año {n}" for n in range(1, 16)] + [""])
+from openpyxl.utils import get_column_letter as L_
+for i, f in enumerate(range(6, ULT + 1)):
+    r = 19 + i
+    celda(ex, f"A{r}", f"=A{f}")
+    for n in range(1, 16):
+        col = L_(n + 1)
+        celda(ex, f"{col}{r}", f"=$J{f}*MIN(1,MAX(0,({n}-$C{f}+1)/$I{f}))", "0.00")
+T = 19 + (ULT - 6) + 1
+celda(ex, f"A{T}", "PIEZAS AL AÑO, TODOS LOS MERCADOS (millones)", resultado=True)
+celda(ex, f"A{T+1}", "Ingresos netos (millones de pesos)", negrita=True)
+celda(ex, f"A{T+2}", "Utilidad bruta (millones de pesos)", negrita=True)
+celda(ex, f"A{T+3}", "Países con venta")
+for n in range(1, 16):
+    col = L_(n + 1)
+    celda(ex, f"{col}{T}", f"=SUM({col}19:{col}{T-1})", "0.00", resultado=True)
+    celda(ex, f"{col}{T+1}", f"=({col}19+{col}20)*$B$13+SUM({col}21:{col}{T-1})*$B$13*$B$15", "#,##0.0", negrita=True)
+    celda(ex, f"{col}{T+2}", f"=({col}19+{col}20)*$B$14+SUM({col}21:{col}{T-1})*($B$13*$B$15-($B$13-$B$14))", "#,##0.0", negrita=True)
+    celda(ex, f"{col}{T+3}", f"=IF({col}19+{col}20>0,1,0)+COUNTIF({col}21:{col}{T-1},\">0\")", F_ENTERO)
+celda(ex, f"A{T+5}", "La utilidad bruta es antes de gastos fijos, fletes de exportación, aranceles y del margen del distribuidor maestro en cada país: es el techo, no el resultado.", nota=True)
+ex[f"A{T+5}"].alignment = Alignment(wrap_text=False)
+
+P = T + 7
+seccion(ex, P, "QUÉ HAY QUE TENER ANTES DE ENTRAR A UN PAÍS", 12)
+for i, t in enumerate([
+    "1. La marca registrada en ese país, a nuestro nombre, por lo menos dos años antes de vender (hoja Proteccion).",
+    "2. El diseño del vaso y del cartucho protegido ahí, o presentado dentro del plazo de prioridad de la solicitud mexicana.",
+    "3. Un distribuidor maestro con contrato: exclusividad a cambio de mínimos, uso de marca con licencia y cartuchos que regresan.",
+    "4. Etiquetado y normas del país. En Estados Unidos: ASTM F2417, F2058 y F2179.",
+    "5. Decidir de dónde sale el producto: exportar desde México o licenciar el llenado local. El cartucho pesa poco; el vaso, mucho.",
+    "6. La prueba de encendido repetida con la cera que se consiga ahí.",
+], P + 1):
+    celda(ex, f"A{i}", t)
+ex.freeze_panes = "B6"
+
+# ── 8. Hoja Proteccion: las capas que cuidan el negocio ──
+pr = wb.create_sheet("Proteccion", index=wb.sheetnames.index("Expansion"))
+pr.sheet_view.showGridLines = False
+titulo(pr, "Cómo se protege el negocio", "Capas que se suman: lo legal, lo que va marcado en el producto y lo que amarra la operación. Todos los costos son ESTIMADOS para presupuestar; hay que cotizarlos con un despacho de propiedad industrial. No es asesoría legal.")
+pr.column_dimensions["A"].width = 46; pr.column_dimensions["B"].width = 44; pr.column_dimensions["C"].width = 30
+for col in "DEF":
+    pr.column_dimensions[col].width = 16
+pr.column_dimensions["G"].width = 16; pr.column_dimensions["H"].width = 70
+seccion(pr, 4, "LAS CAPAS", 8)
+encabezado(pr, 5, ["Capa", "Qué cuida", "Cuánto dura", "Costo de una vez", "Costo al año", "Costo por pieza", "Estado", "Cómo y dónde"])
+CAPAS = [
+    ("Lo legal", None),
+    ("Marca: nombre y logotipo", "Que nadie más venda con nuestro nombre", "10 años, renovable sin límite", 22000, 0, 0, "IMPI, clases 4 (velas), 21 (vasos) y 35 (comercialización). Es lo único que dura 50 años: aquí va la mayor parte del esfuerzo."),
+    ("Frase «…como Dios manda» (aviso comercial)", "La frase con la que se nos reconoce", "10 años, renovable", 7000, 0, 0, "IMPI. Revisar con el abogado si la frase es registrable tal cual."),
+    ("Diseño industrial del vaso y del cartucho", "La forma: que no hagan uno igual", "5 años, renovable hasta 25", 18000, 0, 0, "IMPI. Dos solicitudes. Presentar antes de enseñar el diseño final."),
+    ("Modelo de utilidad del sistema vaso + cartucho", "Cómo embona, se centra y se apaga", "15 años", 25000, 1500, 0, "IMPI. Protege el mecanismo, no la idea de rellenar. Incluye anualidades."),
+    ("Secreto industrial", "Receta, especificación de mecha y protocolo de prueba", "Mientras se guarde", 15000, 0, 0, "No se registra: se cuida. Convenios de confidencialidad y acceso por partes."),
+    ("Lo que va marcado en el producto", None),
+    ("Marca y número de molde en el fondo del vaso", "Reconocer un vaso nuestro a simple vista", "La vida del molde", 0, 0, 0, "Va en relieve en el molde propio del vaso (Capex nivel 3). Hasta entonces, grabado o etiqueta permanente."),
+    ("Marca y lote estampados en el cartucho", "Que la tienda solo reciba cartuchos nuestros", "Cada cartucho", 0, 0, 0.02, "En el troquel del aluminio. Sin marca no se devuelve el depósito."),
+    ("Código único por cartucho", "Contar vueltas, garantía y detectar copias", "Cada cartucho", 0, 0, 0.05, "QR o DataMatrix grabado. El cliente lo escanea para la garantía; nosotros vemos si un código aparece dos veces."),
+    ("Sello de garantía sobre el cartucho lleno", "Saber que lo llenamos nosotros", "Cada llenado", 0, 0, 0.08, "Sello que se rompe al abrir. Un cartucho rellenado por otro no trae sello."),
+    ("Lo que amarra la operación", None),
+    ("Depósito y logística inversa", "Los cartuchos siempre regresan a nosotros", "Siempre", 0, 0, 0, "Ya está en la hoja Cartucho. Quien copie el producto tiene que copiar también la red de regreso."),
+    ("Contratos con distribuidores y maquilador", "Zona, uso de marca, confidencialidad, moldes", "Lo que dure la relación", 30000, 0, 0, "Los moldes y troqueles son nuestros aunque estén en la planta de otro. Sin competir con producto parecido."),
+    ("Dominios y nombres en redes", "Que no los tome alguien más", "Renovación anual", 0, 3000, 0, "El .com, el .mx y las cuentas, antes de anunciar el nombre definitivo."),
+    ("Vigilancia de marca", "Enterarse a tiempo de registros parecidos", "Anual", 0, 6000, 0, "Servicio de alertas del despacho. Oponerse cuesta mucho menos que pelear después."),
+    ("Empresa dueña de la marca y los registros", "Que la propiedad no dependa de la operadora", "Siempre", 40000, 0, 0, "Una sociedad tiene la propiedad intelectual y se la licencia a la que opera. Decidirlo junto con el acuerdo de socios."),
+]
+f = 6
+primera = None
+for capa in CAPAS:
+    if capa[1] is None:
+        for col in range(1, 9):
+            c = pr.cell(f, col); c.fill = relleno(G100); c.font = Font(name="Arial", sz=10, b=True)
+        pr.cell(f, 1).value = capa[0]; f += 1; continue
+    nom, que, dura, unico, anual, pieza, como = capa
+    primera = primera or f
+    celda(pr, f"A{f}", nom, negrita=True); celda(pr, f"B{f}", que); celda(pr, f"C{f}", dura)
+    celda(pr, f"D{f}", unico, F_PESOS0, entrada=True); celda(pr, f"E{f}", anual, F_PESOS0, entrada=True); celda(pr, f"F{f}", pieza, F_PESOS, entrada=True)
+    celda(pr, f"G{f}", "Pendiente", entrada=True); celda(pr, f"H{f}", como, nota=True); pr[f"H{f}"].alignment = Alignment(wrap_text=False)
+    f += 1
+celda(pr, f"A{f}", "TOTAL", resultado=True)
+for col in "BC":
+    pr[f"{col}{f}"].fill = relleno(TINTA)
+celda(pr, f"D{f}", f"=SUM(D{primera}:D{f-1})", F_PESOS0, resultado=True); celda(pr, f"E{f}", f"=SUM(E{primera}:E{f-1})", F_PESOS0, resultado=True)
+celda(pr, f"F{f}", f"=SUM(F{primera}:F{f-1})", F_PESOS, resultado=True)
+TOT = f
+celda(pr, f"A{f+2}", "Piezas del año 2 (escenario activo)"); celda(pr, f"D{f+2}", "=Palancas!B5", F_ENTERO)
+celda(pr, f"A{f+3}", "Costo de marcar las piezas, al año"); celda(pr, f"D{f+3}", f"=F{TOT}*D{f+2}", F_PESOS0)
+celda(pr, f"A{f+4}", "Costo anual de proteger (marcado + cuotas)", negrita=True); celda(pr, f"D{f+4}", f"=D{f+3}+E{TOT}", F_PESOS0, negrita=True)
+celda(pr, f"A{f+5}", "Como parte de los ingresos del año 2"); celda(pr, f"D{f+5}", f"=D{f+4}/Resumen!C5", "0.00%")
+celda(pr, f"A{f+6}", "Estos costos todavía NO están dentro del estado de resultados: son para decidir cuáles se suman.", nota=True); pr[f"A{f+6}"].alignment = Alignment(wrap_text=False)
+
+R = f + 8
+seccion(pr, R, "REGISTROS POR PAÍS (antes de entrar)", 8)
+encabezado(pr, R + 1, ["País", "Qué se registra", "Por dónde", "Costo estimado", "Año de entrada", "Registrar en el año", "Estado", "Nota"])
+PAISES = [
+    ("México", "Marca, frase, diseños y modelo de utilidad", "IMPI", f"=SUM(D{primera}:D{primera+3})", "=Expansion!C6", "Ya: antes de vender. El plazo de novedad corre desde que se enseñó el producto."),
+    ("Guatemala", "Marca y diseños", "Registro nacional", 35000, "=Expansion!C8", "No está en el sistema de Madrid: se presenta directo. CONFIRMAR."),
+    ("Colombia", "Marca y diseños", "Sistema de Madrid o registro nacional", 35000, "=Expansion!C9", "Colombia sí está en Madrid: se puede extender la marca mexicana. CONFIRMAR."),
+    ("Perú", "Marca y diseños", "Registro nacional", 35000, "=Expansion!C10", "CONFIRMAR si ya se puede por Madrid."),
+    ("Estados Unidos", "Marca (2 clases) y patente de diseño", "USPTO, o Madrid para la marca", 60000, "=Expansion!C11", "Presentar con intención de uso. Las normas ASTM de velas se cumplen aparte."),
+]
+for i, (pais, que, via, costo, entrada, nota) in enumerate(PAISES, R + 2):
+    celda(pr, f"A{i}", pais, negrita=True); celda(pr, f"B{i}", que); celda(pr, f"C{i}", via)
+    celda(pr, f"D{i}", costo, F_PESOS0, entrada=not str(costo).startswith("=")); celda(pr, f"E{i}", entrada, F_ENTERO)
+    celda(pr, f"F{i}", f"=MAX(1,E{i}-2)", F_ENTERO); celda(pr, f"G{i}", "Pendiente", entrada=True); celda(pr, f"H{i}", nota, nota=True); pr[f"H{i}"].alignment = Alignment(wrap_text=False)
+celda(pr, f"A{R+7}", "TOTAL DE REGISTROS", resultado=True); celda(pr, f"D{R+7}", f"=SUM(D{R+2}:D{R+6})", F_PESOS0, resultado=True)
+for col in "BC":
+    pr[f"{col}{R+7}"].fill = relleno(TINTA)
+
+A = R + 9
+seccion(pr, A, "TRES COSAS QUE HAY QUE RESOLVER PRIMERO", 8)
+for i, t in enumerate([
+    "1. El nombre. «La Vela» describe el producto: es muy probable que no se pueda registrar como marca de velas. Hace falta un nombre distintivo, o registrar el logotipo con la frase.",
+    "2. El reloj de la novedad. El diseño y el sistema ya se enseñaron en el sitio. En México hay 12 meses para presentar el modelo de utilidad y los diseños; en otros países, ninguno.",
+    "3. Quién es el dueño. La marca y los registros deben quedar a nombre de la sociedad, no de una persona ni del maquilador. Va junto con el acuerdo de socios.",
+], A + 1):
+    celda(pr, f"A{i}", t)
+pr.freeze_panes = "B6"
+
 # Pestañas: negras las que se leen, grises las de trabajo
 for ws in wb:
-    ws.sheet_properties.tabColor = NEGRO if ws.title in ("Inicio", "Resumen", "Cartucho", "Todos_ganan", "Distribuidor") else G300
+    ws.sheet_properties.tabColor = NEGRO if ws.title in ("Inicio", "Resumen", "Cartucho", "Todos_ganan", "Distribuidor", "Proteccion", "Expansion") else G300
 wb.active = 0
-wb.properties.creator = _RLR; wb.properties.title = "La Vela · Modelo de negocio v2"; wb.properties.keywords = f"{_k} {_rev}"
+wb.properties.creator = _RLR; wb.properties.title = "La Vela · Modelo de negocio v3"; wb.properties.keywords = f"{_k} {_rev}"
 wb.save(DESTINO)
 print("guardado", DESTINO)

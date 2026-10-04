@@ -1,6 +1,6 @@
 # 07 · Modelo de negocio
 
-El modelo completo está en [`modelo/La_Vela_Modelo_de_Negocio_v2.xlsx`](../modelo/La_Vela_Modelo_de_Negocio_v2.xlsx): 18 hojas, 36 meses, 5,596 fórmulas (versión 2: estilo en blanco y negro, hoja Cartucho con el retornable y hoja Distribuidor), selectores de escenario en `Supuestos` (D5: Base u Optimizado; D6: Conservador, Medio o Alto).
+El modelo completo está en [`modelo/La_Vela_Modelo_de_Negocio_v3.xlsx`](../modelo/La_Vela_Modelo_de_Negocio_v3.xlsx): 20 hojas, 36 meses, 5,790 fórmulas (versión 3: estilo en blanco y negro y hojas Cartucho, Distribuidor, Proteccion y Expansion), selectores de escenario en `Supuestos` (D5: Base u Optimizado; D6: Conservador, Medio o Alto).
 
 ## El modelo en una frase
 
