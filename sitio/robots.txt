@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /tablero/
+Disallow: /pedir
+Disallow: /acceso
 
 Sitemap: https://vela.capitaltorreon.com/sitemap.xml

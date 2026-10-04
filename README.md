@@ -45,6 +45,14 @@ Vive en [`sitio/`](sitio/) y se publica como Worker de Cloudflare en `vela.capit
 | `/distribuir` | `distribuir.html` | Solicitud de 8 preguntas; se guarda en D1 (`esquema.sql`, `src/worker.js`) |
 | `/entrar` | `entrar.html` | Inicio de sesión (solo la puerta; aún sin tablero) |
 | `/blog` | `blog/*.html` | Cinco artículos; el texto vive en `contenido/blog/*.md` |
+| `/tablero/` | `tablero/*.js` + `src/tablero.js` | El tablero de operación (ver [docs/11](docs/11-tablero-operacion.md)). Pide sesión |
+| `/pedir?d=…` | `pedir.html` + `src/pedir.js` | La liga privada con la que cada distribuidor hace sus pedidos |
+
+### El tablero
+
+- **Acceso:** sin contraseñas. En `/entrar` se pide el correo y llega un enlace (15 minutos, un solo uso). Entra quien esté en la tabla `usuarios`; se administra desde Ajustes, dentro del tablero. La llave de Resend está ligada desde la bóveda de Cloudflare.
+- **Base de datos (D1 `la-vela`):** `esquema.sql` y luego `migraciones/0002_tablero.sql`, una sola vez cada uno. Los datos de arranque salen de los propios documentos: `python3 herramientas/semilla.py > semilla.sql` y se aplican con `npx wrangler d1 execute la-vela --remote --file semilla.sql`.
+- **En la compu:** `npx wrangler dev` con un archivo `.dev.vars` que diga `LOCAL=1`. Así el enlace de acceso aparece en pantalla en lugar de mandarse por correo.
 
 Lo que se repite se genera, no se escribe a mano:
 

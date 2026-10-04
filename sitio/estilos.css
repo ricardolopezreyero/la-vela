@@ -317,3 +317,6 @@ button.boton:disabled { opacity: .5; cursor: default; }
 .descargas img { display: block; width: 100%; height: auto; border: 1px solid var(--tinta); background: var(--blanco); }
 .descargas p { color: var(--gris-700); font-size: 0.95rem; }
 /* RLR */
+
+/* RLR · el modelo visto dentro del tablero: sin barra ni pie */
+.dentro .barra, .dentro .pie { display: none; }

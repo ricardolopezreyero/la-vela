@@ -1,0 +1,109 @@
+<!doctype html>
+<!-- RLR · La Vela — pedidos del distribuidor — Ricardo López Reyero · Torreón, Coahuila · octubre 2026 -->
+<html lang="es-MX" data-k="eye" data-rev="181218">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tus pedidos · La Vela</title>
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta name="author" content="Ricardo López Reyero">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/estilos.css">
+<style>
+.pedir .cajas { display: grid; gap: 0; border-top: var(--linea); margin-top: var(--e4); }
+.pedir .renglon { display: grid; grid-template-columns: 1fr auto; gap: var(--e2); align-items: center; padding: var(--e2) 0; border-bottom: 1px solid var(--gris-300); }
+.pedir .renglon b { display: block; font-family: var(--titulos); font-weight: 400; font-size: 1.25rem; }
+.pedir .renglon small { color: var(--gris-500); font-size: .85rem; }
+.pedir .mas { display: flex; align-items: center; }
+.pedir .mas button { width: 48px; height: 48px; border: 2px solid var(--tinta); background: var(--blanco); font-size: 1.4rem; cursor: pointer; }
+.pedir .mas input { width: 64px; height: 48px; border: 2px solid var(--tinta); border-left: 0; border-right: 0; text-align: center; font: 600 1.1rem var(--texto); border-radius: 0; }
+.pedir textarea { width: 100%; border: 2px solid var(--tinta); padding: 12px; font: 1rem var(--texto); border-radius: 0; }
+.pedir .cuenta { margin-top: var(--e3); }
+.pedir .cuenta div { display: flex; justify-content: space-between; gap: var(--e2); padding: 8px 0; border-bottom: 1px solid var(--gris-300); }
+.pedir .cuenta .total { font-family: var(--titulos); font-size: 1.6rem; border-bottom: var(--linea); }
+.pedir .historia li { display: flex; justify-content: space-between; gap: var(--e2); padding: 12px 0; border-bottom: 1px solid var(--gris-300); }
+.pedir .historia { list-style: none; padding: 0; margin: var(--e3) 0 0; border-top: var(--linea); }
+.pedir .historia span { color: var(--gris-700); text-align: right; }
+</style>
+</head>
+<body>
+<header class="barra"><div class="caja"><span class="marca"><svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.5 6 4 7.5 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>La Vela</span></div></header>
+<main class="pedir">
+<section class="seccion" style="border-top:0"><div class="caja" id="pagina"><p class="grande">Cargando tu catálogo…</p></div></section>
+</main>
+<script>
+/* RLR · la liga privada del distribuidor: pide solo, ve su saldo y repite su último pedido — Ricardo López Reyero */
+(function () {
+  var _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
+  var d = new URLSearchParams(location.search).get('d') || '', pagina = document.getElementById('pagina'), D = null;
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var pesos = function (n) { return (n < 0 ? '−$' : '$') + Math.abs(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  var MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  var fecha = function (iso) { if (!iso) return ''; var p = iso.slice(0, 10).split('-'); return Number(p[2]) + ' ' + MES[Number(p[1]) - 1]; };
+
+  function leer() {
+    var lineas = D.productos.map(function (p) { return { clave: p.clave, cajas: Math.max(0, Math.floor(Number(document.getElementById('c-' + p.clave).value) || 0)) }; });
+    return { lineas: lineas, vacios: Math.max(0, Math.floor(Number(document.getElementById('vacios').value) || 0)) };
+  }
+  function cuenta() {
+    var x = leer(), piezas = 0, cajas = 0, sub = 0;
+    x.lineas.forEach(function (l) { var p = D.productos.filter(function (q) { return q.clave === l.clave; })[0]; cajas += l.cajas; piezas += l.cajas * p.piezas_caja; sub += l.cajas * p.piezas_caja * p.precio_dist; });
+    var total = sub + D.deposito * (piezas - x.vacios);
+    document.getElementById('cuenta').innerHTML = '<div><span>' + piezas + ' piezas en ' + cajas + ' caja(s)</span><b>' + pesos(sub) + '</b></div>'
+      + '<div><span>Depósito de cartuchos (' + piezas + ' × ' + pesos(D.deposito) + ')</span><b>' + pesos(D.deposito * piezas) + '</b></div>'
+      + '<div><span>Cartuchos vacíos que entregas</span><b>' + pesos(-D.deposito * x.vacios) + '</b></div>'
+      + '<div class="total"><span>Total, con IVA</span><b>' + pesos(total) + '</b></div>';
+    document.getElementById('enviar').disabled = cajas < D.minimo;
+  }
+  function pintar() {
+    var ultimo = D.pedidos[0];
+    pagina.innerHTML = '<p class="etiqueta">Tus pedidos</p><h1>' + esc(D.empresa) + '</h1>'
+      + '<p class="grande">Pide por caja de 12. Anota los cartuchos vacíos que nos vas a entregar: se descuentan del pedido.</p>'
+      + (D.saldo > 0 ? '<p>Tu saldo por pagar es de <b>' + pesos(D.saldo) + '</b>' + (D.credito ? ', de un crédito de ' + pesos(D.credito) : '') + '.</p>' : '')
+      + '<form id="forma"><div class="cajas">' + D.productos.map(function (p) {
+        return '<div class="renglon"><div><b>' + esc(p.nombre) + '</b><small>Caja de ' + p.piezas_caja + ' · ' + pesos(p.precio_dist * p.piezas_caja) + ' · ' + pesos(p.precio_dist) + ' por pieza</small></div>'
+          + '<div class="mas"><button type="button" data-m="-1" data-p="c-' + p.clave + '" aria-label="Una caja menos">−</button><input id="c-' + p.clave + '" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Cajas de ' + esc(p.nombre) + '"><button type="button" data-m="1" data-p="c-' + p.clave + '" aria-label="Una caja más">+</button></div></div>';
+      }).join('')
+      + '<div class="renglon"><div><b>Cartuchos vacíos que entregas</b><small>Los recogemos en la misma entrega</small></div><div class="mas"><button type="button" data-m="-12" data-p="vacios" aria-label="Doce menos">−</button><input id="vacios" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Cartuchos vacíos"><button type="button" data-m="12" data-p="vacios" aria-label="Doce más">+</button></div></div></div>'
+      + '<div class="cuenta" id="cuenta"></div>'
+      + '<p style="margin-top:24px"><label>Notas para tu pedido<textarea id="notas" rows="2" maxlength="1000" placeholder="Nombres para las personalizadas, horario de entrega…"></textarea></label></p>'
+      + '<p class="error" id="error" role="alert" hidden></p>'
+      + '<div class="botones" style="margin-top:24px"><button class="boton lleno" id="enviar" type="submit">Hacer el pedido</button>'
+      + (ultimo ? '<button class="boton" type="button" id="repetir">Repetir mi último pedido</button>' : '') + '</div>'
+      + '<p class="nota">Entrega estimada: ' + D.dias_entrega + ' días después de pedir. Pedido mínimo: ' + D.minimo + ' caja(s).</p></form>'
+      + (D.pedidos.length ? '<h2 style="margin-top:64px">Tus pedidos anteriores</h2><ul class="historia">' + D.pedidos.map(function (p) {
+        return '<li><div><b>Pedido #' + p.id + ' · ' + esc(p.estado) + '</b><br><small>' + fecha(p.creado) + ' · ' + p.piezas + ' piezas' + (p.vacios ? ' · regresaste ' + p.vacios + ' vacíos' : '') + '</small></div><span>' + pesos(p.total) + '<br><small>' + (p.cobro === 'Cobrado' ? 'Pagado' : p.entregado_fecha ? 'Por pagar' : 'Entrega: ' + fecha(p.fecha_prometida)) + '</small></span></li>';
+      }).join('') + '</ul>' : '');
+    var forma = document.getElementById('forma');
+    forma.addEventListener('input', cuenta);
+    forma.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button[data-m]');
+      if (!b) return;
+      var campo = document.getElementById(b.dataset.p); campo.value = Math.max(0, (Number(campo.value) || 0) + Number(b.dataset.m)); cuenta();
+    });
+    if (ultimo) document.getElementById('repetir').addEventListener('click', function () {
+      D.productos.forEach(function (p) { var l = ultimo.lineas.filter(function (x) { return x.clave === p.clave; })[0]; document.getElementById('c-' + p.clave).value = l ? l.cajas : 0; });
+      cuenta(); document.getElementById('cuenta').scrollIntoView({ block: 'center' });
+    });
+    forma.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var boton = document.getElementById('enviar'), error = document.getElementById('error'), x = leer();
+      boton.disabled = true; error.hidden = true;
+      fetch('/api/pedir', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ d: d, lineas: x.lineas, vacios: x.vacios, notas: document.getElementById('notas').value }) })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error); return j; }); })
+        .then(function (j) { pagina.innerHTML = '<p class="etiqueta">Pedido #' + j.id + '</p><h1>Recibido. Gracias.</h1><p class="grande">Total: ' + pesos(j.total) + '. Entrega estimada: ' + fecha(j.fecha) + '. Te confirmamos por WhatsApp.</p><div class="botones" style="margin-top:32px"><a class="boton" href="' + location.pathname + '?d=' + encodeURIComponent(d) + '">Ver mis pedidos</a></div>'; window.scrollTo(0, 0); })
+        .catch(function (e) { error.textContent = e.message || 'No se pudo enviar. Intenta de nuevo.'; error.hidden = false; boton.disabled = false; });
+    });
+    cuenta();
+  }
+  fetch('/api/pedir?d=' + encodeURIComponent(d)).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error); return j; }); })
+    .then(function (j) { D = j; pintar(); })
+    .catch(function (e) { pagina.innerHTML = '<h1>Esta liga no está activa</h1><p class="grande">' + esc(e.message || '') + '</p>'; });
+  void _RLR; void _k; void _rev;
+})();
+</script>
+<!-- RLR · Ricardo López Reyero -->
+</body>
+</html>

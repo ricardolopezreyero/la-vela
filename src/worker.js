@@ -1,12 +1,17 @@
 // RLR · La Vela — Worker — Ricardo López Reyero
 // 1) Cualquier otro dominio (la-vela., lavela.) lleva a vela.capitaltorreon.com.
-// 2) POST /api/distribuir guarda la solicitud en D1 con su puntaje A/B/C (docs/10).
-// 3) Todo lo demás son los archivos de sitio/.
+// 2) /api/distribuir guarda la solicitud con su puntaje A/B/C (docs/10) y avisa por correo.
+// 3) Acceso por enlace mágico (src/acceso.js) y, con sesión, el tablero (/tablero/ y /api/t/…).
+// 4) /pedir y /api/pedir: la liga privada con la que cada distribuidor hace sus pedidos.
+// 5) Todo lo demás son los archivos de sitio/.
+import { CASA, escapar, json, mismoOrigen, texto } from './comun.js';
+import { paginaAcceso, pedirEnlace, privado, quienEntra, salir, usarEnlace } from './acceso.js';
+import { avisar, pedir } from './pedir.js';
+import { tablero } from './tablero.js';
+
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
-const CASA = 'vela.capitaltorreon.com';
-
-// Opciones válidas de cada pregunta y los puntos que da cada una (0 = no puntúa)
+// Opciones válidas de cada pregunta y los puntos que da cada una
 const OPCIONES = {
   puntos: { 'Menos de 100': 1, '100–300': 2, '300–1,000': 3, 'Más de 1,000': 3 },
   visita: { 'Cada mes': 1, 'Cada 2 semanas': 2, 'Cada semana': 3 },
@@ -15,11 +20,6 @@ const OPCIONES = {
   pedido: { 'Menos de $10 mil': 1, '$10–50 mil': 2, 'Más de $50 mil': 3 },
 };
 const TIPOS = ['Misceláneas y abarrotes', 'Mayoristas', 'Artículos religiosos', 'Restaurantes y hoteles', 'Otro'];
-
-const json = (cuerpo, status = 200) =>
-  new Response(JSON.stringify(cuerpo), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
-
-const texto = (v, max) => (typeof v === 'string' ? v.trim().replace(/\s+/g, ' ').slice(0, max) : '');
 
 // RLR · calificación interna: 12–15 A, 8–11 B, 5–7 C; más de 10,000 veladoras al mes es A directo
 function calificar(d) {
@@ -30,10 +30,9 @@ function calificar(d) {
   return { puntaje, tipo };
 }
 
-async function distribuir(req, env) {
+async function distribuir(req, env, ctx) {
   if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405);
-  const origen = req.headers.get('origin');
-  if (origen && new URL(origen).host !== new URL(req.url).host) return json({ error: 'Origen no permitido.' }, 403);
+  if (!mismoOrigen(req, env)) return json({ error: 'Origen no permitido.' }, 403);
   let e;
   try { e = await req.json(); } catch { return json({ error: 'No se pudo leer la solicitud.' }, 400); }
   if (!e || typeof e !== 'object') return json({ error: 'No se pudo leer la solicitud.' }, 400);
@@ -56,28 +55,54 @@ async function distribuir(req, env) {
   if (faltan.length) return json({ error: 'Faltan respuestas.', faltan }, 400);
 
   const { puntaje, tipo } = calificar(d);
-  await env.DB.prepare(
+  const r = await env.DB.prepare(
     `INSERT INTO solicitudes (creada, nombre, empresa, whatsapp, zonas, puntos, tipos, visita, veladoras, vehiculos, pedido, puntaje, tipo)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(new Date().toISOString(), d.nombre, d.empresa, d.whatsapp, d.zonas, d.puntos, d.tipos.join(' · '),
     d.visita, d.veladoras, d.vehiculos, d.pedido, puntaje, tipo).run();
+  // Si alguien llena el formulario en ráfaga, las solicitudes se guardan pero ya no se manda un correo por cada una
+  const { n } = await env.DB.prepare('SELECT COUNT(*) n FROM solicitudes WHERE creada > ?').bind(new Date(Date.now() - 3600000).toISOString()).first();
+  if (n > 20) return json({ ok: true });
+  const plazo = tipo === 'A' ? 'Hay que llamarle en menos de 24 horas.' : tipo === 'B' ? 'Videollamada en menos de 72 horas.' : 'Mensaje con catálogo; sin llamada.';
+  ctx.waitUntil(avisar(env, new URL(req.url).origin, `Solicitud nueva · tipo ${tipo} · ${d.empresa}`, `Distribuidor nuevo, tipo ${tipo}`,
+    [`<b>${escapar(d.empresa)}</b> (${escapar(d.nombre)}) quiere distribuir en ${escapar(d.zonas)}.`, `Surte ${escapar(d.puntos)} puntos de venta y los visita ${escapar(d.visita.toLowerCase())}.`, plazo],
+    `/tablero/#/distribuidores/${r.meta.last_row_id}`));
   return json({ ok: true }); // el puntaje no sale de aquí
 }
 
 export default {
-  async fetch(req, env) {
-    const url = new URL(req.url);
+  async fetch(req, env, ctx) {
+    const url = new URL(req.url), p = url.pathname;
     if (url.hostname !== CASA && url.hostname.endsWith('.capitaltorreon.com')) {
       url.hostname = CASA; url.protocol = 'https:'; url.port = '';
       return Response.redirect(url.toString(), 301);
     }
-    if (url.pathname === '/api/distribuir') {
-      try { return await distribuir(req, env); }
-      catch (err) { console.error(err); return json({ error: 'No se pudo guardar. Intenta de nuevo.' }, 500); }
+    try {
+      if (p === '/api/distribuir') return await distribuir(req, env, ctx);
+      if (p === '/api/entrar') return await pedirEnlace(req, env, ctx);
+      if (p === '/api/salir') return await salir(req, env);
+      if (p === '/api/pedir') return await pedir(req, env, ctx);
+      if (p === '/acceso') return req.method === 'POST' ? await usarEnlace(req, env) : await paginaAcceso(req, env);
+      if (p.startsWith('/api/t/')) {
+        const yo = await quienEntra(req, env);
+        if (!yo) return json({ error: 'Tu sesión terminó. Vuelve a entrar.' }, 401);
+        return await tablero(req, env, ctx, yo, p.slice(7));
+      }
+      if (p.startsWith('/api/')) return json({ error: 'No existe.' }, 404);
+      if (p === '/tablero' || p.startsWith('/tablero/')) {
+        if (!(await quienEntra(req, env))) return Response.redirect(`${url.origin}/entrar`, 302);
+        return privado(await env.ASSETS.fetch(req));
+      }
+      if (p === '/entrar' && (await quienEntra(req, env))) return Response.redirect(`${url.origin}/tablero/`, 302);
+      if (p === '/pedir') return privado(await env.ASSETS.fetch(req));
+    } catch (err) {
+      console.error(err);
+      if (p.startsWith('/api/')) return json({ error: 'Algo falló. Intenta de nuevo.' }, 500);
+      throw err;
     }
     const r = await env.ASSETS.fetch(req);
     // El Excel del modelo se descarga, pero no se indexa
-    if (url.pathname.endsWith('.xlsx')) {
+    if (p.endsWith('.xlsx')) {
       const h = new Headers(r.headers); h.set('X-Robots-Tag', 'noindex');
       return new Response(r.body, { status: r.status, headers: h });
     }

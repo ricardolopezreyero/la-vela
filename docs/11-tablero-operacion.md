@@ -1,5 +1,33 @@
 # 11 · Tablero de operación (dashboard)
 
+## Cómo quedó construido (octubre de 2026)
+
+Vive en `vela.capitaltorreon.com/tablero/` y se entra desde el ícono de persona del sitio, con un enlace que llega al correo (sin contraseña). Todo está en una sola aplicación: nada abre otra página.
+
+| Pantalla | Qué resuelve | De qué módulo es |
+|---|---|---|
+| **Hoy** | Lo que pide atención, de lo más urgente a lo menos; la fase y su métrica; las temporadas que vienen | 7 |
+| **Distribuidores** | Cada solicitud del sitio entra sola, ya calificada A/B/C y con su plazo (A: 24 h, B: 72 h). Tablero por etapas o tabla; WhatsApp con el mensaje escrito; zona y exclusividad; próxima acción; bitácora | 2 |
+| **Pedidos** | Del pedido al cobro en nueve etapas. El total incluye el depósito de cartuchos y descuenta los vacíos | 4 |
+| **Liga de pedidos** | `/pedir?d=…`: liga privada por distribuidor, con catálogo por caja, saldo, historial y «repetir mi último pedido» | 3 |
+| **Producción** | Qué fabricar según los pedidos confirmados, material que hace falta, compra sugerida, inventario con mínimos y lotes con su prueba | 5 |
+| **Cartuchos** | Cuántos andan fuera, cuántos regresan, por distribuidor, y el saldo de depósitos | 6 |
+| **Indicadores** | Venta de la semana contra la meta, recompra, embudo, cobranza por antigüedad, entregas a tiempo | 7 |
+| **Proyecto** | El checklist (docs/05), los supuestos por validar (docs/12) y los pasos de protección, como tarjetas | 1 |
+| **Receta** | Las recetas, editables en pantalla, y las pruebas de encendido con sus gramos por hora y horas proyectadas | — |
+| **Modelo** | El modelo de negocio y la descarga del Excel | — |
+
+Lo que se automatizó:
+
+- Una solicitud nueva o un pedido hecho desde la liga manda un correo a los administradores.
+- Al pasar un pedido a «Curando» baja del inventario la cera, los vasos, las mechas, los cartuchos, las etiquetas y las cajas, según la receta activa.
+- Al entregarse, los cartuchos vacíos que regresa el distribuidor entran al inventario.
+- Cada cambio de etapa queda en la bitácora con quién lo hizo.
+
+Pendiente: aviso por WhatsApp (hoy es por correo), fotos para las personalizadas y registros de garantía por QR.
+
+---
+
 **Principio:** todo nace de un evento, el **pedido**. De ahí salen producción, compras, ruta, cobranza y regreso de cartuchos. Los distribuidores se atienden solos y el equipo solo ve excepciones.
 
 ## Los 7 módulos

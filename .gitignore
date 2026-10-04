@@ -4,3 +4,4 @@ node_modules
 .tmp_descargas
 privado
 __pycache__
+.dev.vars

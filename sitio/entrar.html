@@ -47,7 +47,7 @@
 </header>
 
 <main>
-<!-- RLR · inicio de sesión: solo la puerta; el tablero todavía no existe -->
+<!-- RLR · inicio de sesión: sin contraseña, con un enlace que llega al correo -->
 <section class="negra acceso">
   <div class="caja">
     <div class="tarjeta">
@@ -55,7 +55,7 @@
       <h1>Iniciar sesión</h1>
       <form id="acceso" novalidate>
         <label>Correo<input name="correo" type="email" autocomplete="email" inputmode="email" maxlength="160" required></label>
-        <button class="boton lleno" type="submit">Entrar</button>
+        <button class="boton lleno" type="submit">Mandarme el enlace</button>
         <p class="aviso" id="aviso" role="status" aria-live="polite"></p>
       </form>
       <p class="aviso">¿Quieres distribuir La Vela? <a href="/distribuir">Llena la solicitud</a>.</p>
@@ -71,16 +71,23 @@
   </div>
 </footer>
 <script>
-/* RLR · por ahora el acceso llega hasta aquí — Ricardo López Reyero */
+/* RLR · pedir el enlace mágico — Ricardo López Reyero */
 (function () {
   var _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
-  var forma = document.getElementById('acceso'), aviso = document.getElementById('aviso');
+  var forma = document.getElementById('acceso'), aviso = document.getElementById('aviso'), boton = forma.querySelector('button');
   forma.addEventListener('submit', function (ev) {
     ev.preventDefault();
     var correo = forma.correo.value.trim();
-    aviso.textContent = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)
-      ? 'El tablero todavía no está abierto. Cuando abra, entrarás desde aquí.'
-      : 'Escribe tu correo.';
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) { aviso.textContent = 'Escribe tu correo.'; return; }
+    boton.disabled = true; aviso.textContent = 'Enviando…';
+    fetch('/api/entrar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ correo: correo }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        aviso.textContent = 'Si tu correo tiene acceso, te acaba de llegar un enlace. Dura 15 minutos y sirve una sola vez.';
+        if (j.enlace) { var a = document.createElement('a'); a.href = j.enlace; a.textContent = ' Entrar (solo en pruebas locales)'; aviso.appendChild(a); }
+      })
+      .catch(function () { aviso.textContent = 'No se pudo enviar. Revisa tu conexión e intenta de nuevo.'; })
+      .then(function () { boton.disabled = false; });
   });
   void _RLR; void _k; void _rev;
 })();
