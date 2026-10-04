@@ -35,7 +35,17 @@ El modelo financiero completo (16 hojas, 36 meses) está en [`modelo/Modelo_Nego
 
 ## El sitio
 
-Por ahora es una sola página, el Home, en [`sitio/`](sitio/): `index.html`, `estilos.css` y `vela3d.js` (la vela en 3D y los dos renders en casa, con Three.js). Se publica como Worker de Cloudflare en `vela.capitaltorreon.com`:
+Vive en [`sitio/`](sitio/) y se publica como Worker de Cloudflare en `vela.capitaltorreon.com` (`la-vela.` y `lavela.` redirigen ahí):
+
+| Página | Archivo | Qué es |
+|---|---|---|
+| `/` | `index.html` + `vela3d.js` | Home con la vela en 3D y los dos renders en casa |
+| `/manifiesto` | `manifiesto.html` | El manifiesto firmado |
+| `/modelo` | `modelo.html` | El modelo de negocio explicado con los números del Excel, y la descarga del Excel (`sitio/descargas/`) |
+| `/distribuir` | `distribuir.html` | Solicitud de 8 preguntas; se guarda en D1 (`esquema.sql`, `src/worker.js`) |
+| `/entrar` | `entrar.html` | Inicio de sesión (solo la puerta; aún sin tablero) |
+
+Si cambia el Excel, hay que copiarlo de nuevo a `sitio/descargas/` y actualizar los números de `modelo.html`. Para desplegar:
 
 ```bash
 npx wrangler deploy

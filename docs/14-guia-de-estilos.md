@@ -55,6 +55,10 @@ Las secciones alternan blanco → gris → blanco, con una negra cuando hay algo
 | Dos columnas | `.dos` | Frase a la izquierda, explicación a la derecha. En teléfono se apilan. |
 | Cita | `.cita` | Una frase dicha por alguien, entre comillas angulares «». |
 | Columnas con línea | `.ganan` | Tres partes que se comparan lado a lado. |
+| Tabla | `.tabla` | Números alineados a la derecha; la primera columna es el nombre. En teléfono se desliza de lado. |
+| Cifras | `.cifras` | Un número grande con patines y una línea que dice qué es. |
+| Barras | `.barras` | Lista con barra negra proporcional y total al final. |
+| Reparto del peso | `.peso` | Barra apilada en grises: quién se queda con qué de cada precio. |
 
 Todos los botones miden al menos 48 px de alto.
 
@@ -74,4 +78,4 @@ Las reglas de copy están en [10 · Sitio web](10-sitio-web.md). Las que más im
 - «Diseñada para durar lo más posible», no «la que más dura». Nada de «7 días» hasta que las pruebas lo confirmen.
 - «Vaso y base 100% reciclables», no «100% reciclable».
 - Frases cortas, en segunda persona, sin signos de admiración.
-- No se publican precios ni márgenes.
+- No se publican precios ni márgenes, salvo en la página **Modelo** (`/modelo`), que es para socios: lleva `noindex` y está pensada para ocultarse después.
