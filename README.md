@@ -1,84 +1,144 @@
 # La Vela · como Dios manda
 
-**Ver en vivo:** https://vela.capitaltorreon.com
+**Ver en vivo:** https://vela.capitaltorreon.com · **El modelo de negocio, con números:** https://vela.capitaltorreon.com/modelo
 
-Este repositorio junta todo lo que hemos aprendido y decidido sobre el proyecto: desde la receta de la cera hasta el modelo de negocio, el sitio web y el tablero de operación.
+Una veladora mexicana hecha con ingeniería. El vaso se compra una vez y se queda en casa; lo que se compra cada semana es un cartucho de aluminio con la cera y la mecha, que regresa vacío a la misma tienda y se vuelve a llenar.
 
-**Qué es:** una veladora mexicana hecha con ingeniería. Está diseñada para durar lo más posible, se rellena con un cartucho retornable, el vaso se queda en casa como vaso de agua, y el vaso, la base y el cartucho son 100% reciclables. Se distribuye de forma masiva en tienditas y misceláneas a través de distribuidores con rutas.
-
-**Origen:** en un recorrido por la bodega de un distribuidor que surte a ~1,000 tiendas y misceláneas, Ricardo preguntó cuál era el producto que más vendía. La respuesta fue: **"las velas"**.
-
-**Autor:** Ing. Ricardo López Reyero · Torreón, Coahuila · Octubre 2026
+Empezó con una pregunta en la bodega de un distribuidor que surte a cerca de mil tiendas: ¿cuál es el producto que más se vende? La respuesta fue **«las velas»**.
 
 ---
 
-## Índice
+## La idea en cuatro pasos
 
-| # | Archivo | De qué trata |
+1. **El cliente compra la vela con vaso.** Una sola vez. El vaso se queda en su casa.
+2. **Cuando se acaba, compra solo el cartucho.** Cuesta menos, porque ya no paga el vaso.
+3. **Lo compra en la misma tienda.** Ahí entrega el cartucho vacío y le descuentan el depósito.
+4. **Y vuelve la semana siguiente.** La tienda vende más, el distribuidor surte más, nosotros producimos más.
+
+En México se venden 697 millones de velas y veladoras al año: un mercado de $5,484 millones de pesos. No hay que convencer a nadie de comprar velas. Hay que darle una razón para comprar esta, y para volver.
+
+---
+
+## Todos ganan
+
+De los $55 que paga el cliente por una vela con vaso, así se reparte cada peso:
+
+|  | Vela con vaso | Cartucho |
 |---|---|---|
-| 01 | [Origen y visión](docs/01-origen-y-vision.md) | La historia, la tesis y los principios del proyecto |
-| 02 | [Ingeniería de la vela](docs/02-ingenieria-de-la-vela.md) | Ceras, recetas, mecha, duración máxima, la Vela Récord, el vaso y el sistema de recarga |
-| 03 | [Pruebas de encendido](docs/03-pruebas-de-encendido.md) | El protocolo para validar duración, mecha y receta |
-| 04 | [Proveedores y kit de arranque](docs/04-proveedores-arranque.md) | Qué comprar para los prototipos y dónde |
-| 05 | [Checklist del proyecto](docs/05-checklist-proyecto.md) | Todas las secciones y tareas, de prototipo a fábrica nivel 3 |
-| 06 | [Go-to-market](docs/06-go-to-market.md) | El atajo, los 10 canales y la economía alrededor de la vela |
-| 07 | [Modelo de negocio](docs/07-modelo-de-negocio.md) | Productos, precios, márgenes, escenarios y palancas de eficiencia |
-| 08 | [Cartucho retornable](docs/08-cartucho-retornable.md) | El repuesto que regresa a la tienda y se rellena sin lavar |
-| 09 | [Manifiesto](docs/09-manifiesto.md) | La vela, como Dios manda |
-| 10 | [Sitio web](docs/10-sitio-web.md) | Copy de Home, Manifiesto y Quiero distribuir, formulario y calificación de distribuidores |
-| 11 | [Tablero de operación](docs/11-tablero-operacion.md) | Los 7 módulos del dashboard, flujos y bases de datos |
-| 12 | [Riesgos y supuestos por validar](docs/12-riesgos-y-supuestos.md) | Qué falta confirmar antes de escalar |
-| 13 | [Fuentes](docs/13-fuentes.md) | De dónde salió cada dato |
-| 14 | [Guía de estilos](docs/14-guia-de-estilos.md) | Blanco y negro: color, letra, piezas y la vela en 3D |
+| El cliente paga | $55 | $34 |
+| La tienda gana | $14.85 | $9.18 |
+| El distribuidor gana | $6.83 | $4.22 |
+| IVA | $4.60 | $2.84 |
+| Cuesta hacerla | $20.17 | $14.77 |
+| **Nosotros ganamos** | **$8.56** | **$2.98** |
 
-El modelo financiero completo (21 hojas, 36 meses; la versión 4 se genera con `python3 herramientas/construir_modelo.py` a partir de la versión 1 y se recalcula con LibreOffice) está en [`modelo/La_Vela_Modelo_de_Negocio_v4.xlsx`](modelo/La_Vela_Modelo_de_Negocio_v4.xlsx).
+### La tienda · $551 al mes y un cliente que vuelve
 
-## El sitio
+- Se queda con **27% del precio**: más que el 22.5% que le deja un refresco de marca.
+- Con 38 piezas al mes gana **$551**, sin refrigerador, sin caducidad y sin poner un peso: el exhibidor llega sin costo y lo que no se venda se cambia.
+- Lo que más le conviene no está en esa cuenta: el depósito del cartucho se descuenta donde se compró, así que **el cliente regresa a esa tienda cada semana**.
 
-Vive en [`sitio/`](sitio/) y se publica como Worker de Cloudflare en `vela.capitaltorreon.com` (`la-vela.` y `lavela.` redirigen ahí):
+### El distribuidor · $126,540 al mes en las rutas que ya recorre
 
-| Página | Archivo | Qué es |
-|---|---|---|
-| `/` | `index.html` + `vela3d.js` | Home con la vela en 3D y los dos renders en casa |
-| `/manifiesto` | `manifiesto.html` | El manifiesto firmado |
-| `/modelo` | `modelo.html` | El modelo de negocio explicado con los números del Excel, y la descarga del Excel (`sitio/descargas/`) |
-| `/distribuir` | `distribuir.html` | Solicitud de 8 preguntas; se guarda en D1 (`esquema.sql`, `src/worker.js`) |
-| `/entrar` | `entrar.html` | Inicio de sesión (solo la puerta; aún sin tablero) |
-| `/blog` | `blog/*.html` | Cinco artículos; el texto vive en `contenido/blog/*.md` |
-| `/tablero/` | `tablero/*.js` + `src/tablero.js` | El tablero de operación (ver [docs/11](docs/11-tablero-operacion.md)). Pide sesión |
-| `/pedir?d=…` | `pedir.html` + `src/pedir.js` | La liga privada con la que cada distribuidor hace sus pedidos |
+- Gana **$6.83 por cada vela con vaso y $4.22 por cada cartucho**, sin abrir rutas ni comprar camiones.
+- Recibe exclusividad de su zona a cambio de volumen, exhibidores para sus tiendas, venta garantizada y las temporadas ya armadas.
+- Los cartuchos vacíos regresan en su mismo camión, sin flete extra.
 
-### El tablero
+| Según su tamaño | Chico | Mediano | Grande |
+|---|---|---|---|
+| Tiendas que surte | 100 | 300 | 1,000 |
+| Piezas por tienda por semana | 5 | 8 | 8 |
+| **El distribuidor gana al mes** | **$14,380** | **$69,022** | **$230,073** |
+| Cada una de sus tiendas gana al mes | $313 | $501 | $501 |
 
-- **Acceso:** sin contraseñas. En `/entrar` se pide el correo y llega un enlace (15 minutos, un solo uso). Entra quien esté en la tabla `usuarios`; se administra desde Ajustes, dentro del tablero. La llave de Resend está ligada desde la bóveda de Cloudflare.
-- **Base de datos (D1 `la-vela`):** `esquema.sql` y luego `migraciones/0002_tablero.sql`, una sola vez cada uno. Los datos de arranque salen de los propios documentos: `python3 herramientas/semilla.py > semilla.sql` y se aplican con `npx wrangler d1 execute la-vela --remote --file semilla.sql`.
-- **En la compu:** `npx wrangler dev` con un archivo `.dev.vars` que diga `LOCAL=1`. Así el enlace de acceso aparece en pantalla en lugar de mandarse por correo.
+### Nosotros, los dueños · $151,647 al mes en el segundo año
 
-Lo que se repite se genera, no se escribe a mano:
+- Cada pieza nos deja **$9.22 en promedio**: de $2.98 un cartucho a $26.47 una vela personalizada.
+- En el año 2 quedan **$1.82 M antes de impuestos** y $1.09 M de utilidad neta.
+- Lo máximo que hay que poner son **$416 mil**, y se recupera en el **mes 14**.
+- No hay planta ni renta: al principio las velas las llena una fábrica que ya existe.
+- Donde más se gana es vendiendo directo: un regalo corporativo deja $166 por pieza; un cartucho a una parroquia, $21.43.
 
-- `python3 herramientas/construir_descargas.py` — las tres hojas PDF tamaño carta (cliente, tienda, distribuidor) y las imágenes de liga de cada página (`sitio/og/`). Usa Chrome sin ventana y falla si alguna hoja no cabe en una sola página carta.
-- `python3 herramientas/construir_sitio.py` — cabecera SEO, barra y pie de todas las páginas, el blog, las preguntas del inicio, la sección de descargas, `sitemap.xml` y `robots.txt`.
-- `python3 herramientas/construir_modelo.py` — el Excel.
+### Y el cliente · paga lo mismo y deja de tirar el vaso
 
-La lumbre es lo único con color en todo el sitio (ver la guía de estilos).
+Quien prende una veladora cada semana gasta $1,815 al año con la de siempre y $1,789 con La Vela. Casi lo mismo. Lo que recibe a cambio es una vela que dura lo que dice, un vaso limpio que se queda en su casa y nada que tirar.
 
-Si cambia el Excel, hay que copiarlo de nuevo a `sitio/descargas/` (con versión y fecha en el nombre) y actualizar los números de `modelo.html`. Para desplegar:
+---
+
+## El plan en números
+
+Escenario «Rentable · volumen Medio»: 500 tiendas que venden 8 piezas por semana.
+
+|  | Año 1 | Año 2 | Año 3 |
+|---|---|---|---|
+| Velas producidas | 151,370 | 245,806 | 268,669 |
+| Ingresos | $5.97 M | $9.25 M | $9.91 M |
+| Lo que queda antes de impuestos | $583 mil | $1.82 M | $2.02 M |
+| Utilidad neta | $346 mil | $1.09 M | $1.21 M |
+
+| Si el volumen sale… | Año 2 | Capital máximo | Se recupera |
+|---|---|---|---|
+| Conservador (300 tiendas × 5 piezas) | $599 mil | $445 mil | mes 15 |
+| **Medio (500 × 8)** | **$1.82 M** | **$416 mil** | **mes 14** |
+| Alto (800 × 12) | $4.55 M | $523 mil | mes 11 |
+
+El negocio es de temporada: un mes normal deja entre $69 mil y $100 mil; noviembre y diciembre, cerca de $433 mil cada uno.
+
+## Lo que falta comprobar
+
+Nada de esto está validado todavía. Son estimados que hay que confirmar en este orden:
+
+1. **El precio de la parafina**, con tres cotizaciones por tonelada.
+2. **Los gramos de cera por hora**, con las pruebas de encendido. De ahí sale la duración; no se promete «7 días» antes.
+3. **El costo del vaso**, por millar.
+4. **Los márgenes reales del canal**, preguntándole al distribuidor.
+5. **El precio de la vela con vaso**: el modelo no sabe si a $55 se vende igual que a $49. Se prueba en el piloto con dos precios.
+6. **Si la gente regresa por el cartucho**: piloto de 50 tiendas durante 4 semanas.
+
+---
+
+## Qué hay aquí
+
+| | |
+|---|---|
+| [`docs/`](docs/) | Los 14 documentos del proyecto: [origen](docs/01-origen-y-vision.md) · [ingeniería de la vela](docs/02-ingenieria-de-la-vela.md) · [pruebas de encendido](docs/03-pruebas-de-encendido.md) · [proveedores](docs/04-proveedores-arranque.md) · [checklist](docs/05-checklist-proyecto.md) · [salida al mercado](docs/06-go-to-market.md) · [modelo de negocio](docs/07-modelo-de-negocio.md) · [cartucho retornable](docs/08-cartucho-retornable.md) · [manifiesto](docs/09-manifiesto.md) · [sitio](docs/10-sitio-web.md) · [tablero](docs/11-tablero-operacion.md) · [riesgos](docs/12-riesgos-y-supuestos.md) · [fuentes](docs/13-fuentes.md) · [guía de estilos](docs/14-guia-de-estilos.md) |
+| [`modelo/`](modelo/) | El Excel del modelo (21 hojas, 36 meses, tres escenarios) y `escenarios.json` |
+| [`sitio/`](sitio/) | El sitio público, la liga de pedidos de los distribuidores y el tablero de operación |
+| [`src/`](src/) | El Worker de Cloudflare: solicitudes, acceso por enlace mágico, tablero y pedidos |
+| [`herramientas/`](herramientas/) | Los programas que generan todo lo que se repite |
+| [`contenido/blog/`](contenido/blog/) | Los artículos del blog |
+
+### Las páginas
+
+| Página | Qué es |
+|---|---|
+| [`/`](https://vela.capitaltorreon.com/) | La vela en 3D y cómo funciona |
+| [`/modelo`](https://vela.capitaltorreon.com/modelo) | El modelo de negocio explicado con los números del Excel, y la descarga del Excel |
+| [`/manifiesto`](https://vela.capitaltorreon.com/manifiesto) | La vela, como Dios manda |
+| [`/distribuir`](https://vela.capitaltorreon.com/distribuir) | La solicitud para distribuidores y las tres hojas para imprimir |
+| [`/blog/`](https://vela.capitaltorreon.com/blog/) | Cinco artículos sobre la veladora |
+| `/tablero/` | La operación: distribuidores, pedidos, producción, cartuchos, indicadores, proyecto y receta. Pide sesión |
+| `/pedir?d=…` | La liga privada con la que cada distribuidor hace sus pedidos |
+
+### Cómo se actualiza
+
+Ningún número se escribe a mano. Si cambia un supuesto, se cambia en el Excel y se corre esto:
 
 ```bash
-npx wrangler deploy
+python3 herramientas/construir_modelo.py          # arma el Excel y lo recalcula con LibreOffice
+python3 herramientas/escenarios.py                # corre cada escenario → modelo/escenarios.json
+python3 herramientas/construir_pagina_modelo.py   # escribe la página Modelo, este README y docs/07
+python3 herramientas/construir_descargas.py       # las tres hojas PDF tamaño carta y las imágenes de liga
+python3 herramientas/construir_sitio.py           # cabeceras, barra, pie, blog y mapa del sitio
+npx wrangler deploy                               # publica
 ```
+
+El tablero usa D1: `esquema.sql`, luego `migraciones/0002_tablero.sql`, y los datos de arranque salen de `herramientas/semilla.py`. Se entra con un enlace que llega al correo; en la compu, `npx wrangler dev` con un archivo `.dev.vars` que diga `LOCAL=1` enseña ese enlace en pantalla. La lumbre es lo único con color en todo el sitio (ver la [guía de estilos](docs/14-guia-de-estilos.md)).
 
 ---
 
-## Lo más importante en 10 líneas
+**Ver en vivo:** https://vela.capitaltorreon.com · **El modelo de negocio, con números:** https://vela.capitaltorreon.com/modelo
 
-1. **El producto masivo no es la vela premium.** La Vela Récord (cera de abeja y vidrio de borosilicato de doble pared) es la marca premium; a las tiendas va una veladora de parafina con mecha optimizada, a precio de miscelánea.
-2. **El negocio es la recompra.** El vaso se compra una vez; el cartucho se compra cada semana en la misma tienda.
-3. **El cartucho retornable** se mete completo al vaso, se regresa vacío a la tienda con depósito y se rellena en planta sin lavar.
-4. **Con los precios y márgenes de la primera propuesta, el negocio pierde dinero** (−$2.45 por pieza) una vez que se descuenta el IVA y se usa el precio real de la parafina.
-5. **Optimizado, gana +$7.21 por pieza:** precio Semanal $49, Cartucho $34, tienda 27%, distribuidor 17%, parafina por tonelada, mecha de 2.3 g/h, vaso de $4.20.
-6. **Escenario medio (500 tiendas × 8 piezas por semana):** EBITDA ~$1 M en el año 2, capital máximo ~$763 mil, se recupera en el mes 19.
-7. **No construir planta propia** hasta pasar ~47 mil piezas al mes: antes, maquilar es más barato.
-8. **El argumento de venta es la duración garantizada, no el precio:** "7 días o te damos otra", comprobado con pruebas contra la competencia.
-9. **El atajo comercial:** vender a quien compra por cientos (distribuidores, regalos corporativos, parroquias, restaurantes), no vela por vela.
-10. **Lo que hay que validar ya:** precio de parafina por tonelada, gramos por hora reales, costo del vaso, márgenes reales del canal y cuota de maquila.
+Ing. Ricardo López Reyero · Torreón, Coahuila · Octubre de 2026
+
+<sub>Este archivo lo escribe `herramientas/construir_pagina_modelo.py` a partir del Excel.</sub>

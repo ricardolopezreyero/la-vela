@@ -325,3 +325,11 @@ button.boton:disabled { opacity: .5; cursor: default; }
 .tabla.palancas td { white-space: normal; }
 .tabla.palancas td:nth-child(3) { white-space: nowrap; font-weight: 600; }
 .tabla.palancas td:nth-child(2), .tabla.palancas td:last-child, .tabla.palancas th:nth-child(2), .tabla.palancas th:last-child { text-align: left; min-width: 13em; }
+@media (min-width: 900px) { .pasos.seis { grid-template-columns: repeat(3, 1fr); gap: var(--e4); } }
+.modelo h3 { font-size: 1.5rem; }
+/* RLR · cifras y texto sobre negro */
+.negra .cifras { border-top-color: var(--blanco); }
+.negra .cifras > div { border-color: var(--gris-700); }
+.negra .cifras b, .negra .cifras span { color: var(--blanco); }
+.negra .cifras small { color: var(--gris-300); }
+.modelo .seccion.negra > .caja > p:not(.etiqueta):not(.grande) { color: var(--gris-300); }

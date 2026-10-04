@@ -1,5 +1,6 @@
 <!doctype html>
 <!-- RLR · La Vela, como Dios manda — Ricardo López Reyero · Torreón, Coahuila · octubre 2026 -->
+<!-- Esta página la escribe herramientas/construir_pagina_modelo.py a partir del Excel: no se edita a mano. -->
 <html lang="es-MX" data-k="eye" data-rev="181218">
 <head>
 <meta charset="utf-8">
@@ -48,19 +49,27 @@
 </header>
 
 <main class="modelo">
-<!-- RLR · el modelo de negocio, de arriba hacia abajo; números del Excel (Optimizado · Medio) -->
+<!-- RLR · el modelo de negocio, de arriba hacia abajo; números del Excel (Rentable · Medio) -->
 <section class="negra inicio">
   <div class="caja" style="display:block">
     <div class="dicho">
       <p class="etiqueta">El modelo de negocio</p>
       <h1>El vaso se vende una vez. El cartucho, cada semana.</h1>
-      <p class="grande">Esta página explica, con números, cómo gana dinero La Vela: cuánto cuesta hacerla, cuánto gana la tienda, cuánto gana el distribuidor, cuánto ganamos nosotros y por qué crece.</p>
-      <div class="botones"><a class="boton lleno" href="/descargas/La_Vela_Modelo_de_Negocio_v4_2026-10-04_0903.xlsx" download>Descargar el Excel</a><a class="boton" href="#idea">Leer la explicación</a></div>
-      <p class="aviso">Todos los números salen del Excel, en su escenario «Optimizado · volumen Medio». Son estimados: todavía hay que comprobarlos con cotizaciones y pruebas reales.</p>
+      <p class="grande">Aquí está, con números, cómo gana dinero La Vela: cuánto cuesta hacerla, cuánto gana la tienda, cuánto gana el distribuidor, cuánto ganamos nosotros y por qué crece.</p>
+      <div class="botones"><a class="boton lleno" href="/descargas/La_Vela_Modelo_de_Negocio_v4_2026-10-04_1012.xlsx" download>Descargar el Excel</a><a class="boton" href="#idea">Leer la explicación</a></div>
+      <p class="aviso">Todos los números salen del Excel, en su escenario «Rentable · volumen Medio»: 500 tiendas que venden 8 piezas por semana. Son estimados: todavía hay que comprobarlos con cotizaciones, pruebas y un piloto.</p>
     </div>
   </div>
 </section>
-<section class="seccion " id="idea">
+<section class="seccion " id="vistazo">
+  <div class="caja">
+    <p class="etiqueta">En una pantalla</p>
+    <h2>Tres negocios ganan con la misma vela.</h2>
+<div class="cifras"><div><b>$551</b><span>gana cada tienda al mes</span><small>Con 38 piezas. Le queda 27% del precio.</small></div><div><b>$126,540</b><span>gana el distribuidor al mes</span><small>Con 19,052 piezas, en las rutas que ya recorre.</small></div><div><b>$151,647</b><span>nos queda a nosotros al mes</span><small>Promedio del segundo año, antes de impuestos.</small></div><div><b>Mes 14</b><span>se recupera lo invertido</span><small>Lo máximo que hay que poner son $416 mil.</small></div></div>
+    <p class="grande">Y el cliente paga lo mismo que hoy: $1,789 al año con nosotros contra $1,815 con la veladora de siempre. La diferencia es que ya no tira el vaso.</p>
+  </div>
+</section>
+<section class="seccion gris" id="idea">
   <div class="caja">
     <p class="etiqueta">1 · La idea</p>
     <h2>Un cliente que regresa a la misma tienda cada semana.</h2>
@@ -73,151 +82,179 @@
     <p class="grande">En México se venden 697 millones de velas y veladoras al año: un mercado de $5,484 millones de pesos. No hay que convencer a nadie de comprar velas. Hay que darle una razón para comprar la nuestra, y para volver.</p>
   </div>
 </section>
-<section class="seccion gris" id="productos">
+<section class="seccion " id="productos">
   <div class="caja">
     <p class="etiqueta">2 · Lo que se vende</p>
     <h2>Cuatro productos en la tienda.</h2>
     <p class="grande">Los cuatro llevan la misma cera y la misma mecha. Lo que cambia es el vaso, la etiqueta y el precio.</p>
-<div class="tabla-caja"><table class="tabla "><thead><tr><th>Producto</th><th>Qué es</th><th>Precio al público</th><th>De cada 100 piezas</th></tr></thead><tbody><tr><th scope="row">Semanal</th><td>Vaso + cartucho. La primera compra.</td><td>$49</td><td>35</td></tr><tr><th scope="row">Cartucho</th><td>El repuesto, sin vaso. La recompra.</td><td>$34</td><td>40</td></tr><tr><th scope="row">Temporada</th><td>San Judas, Guadalupe, Día de Muertos.</td><td>$65</td><td>18</td></tr><tr><th scope="row">Personalizada</th><td>Con foto, nombre o intención. Se pide por WhatsApp.</td><td>$99</td><td>7</td></tr></tbody></table></div>
-    <p>Como referencia, una veladora semanal de la competencia cuesta $34.90 en tienda. La nuestra cuesta más la primera vez y lo mismo de ahí en adelante.</p>
+<div class="tabla-caja"><table class="tabla "><thead><tr><th>Producto</th><th>Qué es</th><th>Precio al público</th><th>De cada 100 piezas</th></tr></thead><tbody><tr><th scope="row">Semanal</th><td>Vaso + cartucho. La primera compra.</td><td>$55</td><td>32</td></tr><tr><th scope="row">Cartucho</th><td>El repuesto, sin vaso. La recompra.</td><td>$34</td><td>40</td></tr><tr><th scope="row">Temporada</th><td>San Judas, Guadalupe, Día de Muertos.</td><td>$69</td><td>18</td></tr><tr><th scope="row">Personalizada</th><td>Con foto, nombre o intención. Se pide por WhatsApp.</td><td>$99</td><td>10</td></tr></tbody></table></div>
+    <p>Una veladora semanal de la competencia cuesta $34.90 en tienda. La nuestra cuesta más la primera vez, porque incluye un vaso que se queda, y lo mismo de ahí en adelante: el cartucho vale $34.</p>
   </div>
 </section>
-<section class="seccion " id="costo">
+<section class="seccion gris" id="costo">
   <div class="caja">
     <p class="etiqueta">3 · Lo que cuesta</p>
     <h2>Hacer una vela nos cuesta $20.17.</h2>
     <p class="grande">Más de la mitad es cera. Por eso la mecha importa tanto: una mecha que quema menos gramos por hora necesita menos cera para durar lo mismo.</p>
 <ul class="barras"><li><span class="b-nombre">Cera<small>398 gramos de parafina a $29.52 el kilo</small></span><span class="b-pista"><i style="width:100.0%"></i></span><span class="b-valor">$11.75</span></li><li><span class="b-nombre">Vaso de vidrio<small>comprado por millar</small></span><span class="b-pista"><i style="width:35.7%"></i></span><span class="b-valor">$4.20</span></li><li><span class="b-nombre">Maquila<small>una fábrica de veladoras la llena por nosotros</small></span><span class="b-pista"><i style="width:18.7%"></i></span><span class="b-valor">$2.20</span></li><li><span class="b-nombre">Etiqueta</span><span class="b-pista"><i style="width:6.4%"></i></span><span class="b-valor">$0.75</span></li><li><span class="b-nombre">Mecha y base</span><span class="b-pista"><i style="width:3.4%"></i></span><span class="b-valor">$0.40</span></li><li><span class="b-nombre">Caja</span><span class="b-pista"><i style="width:3.0%"></i></span><span class="b-valor">$0.35</span></li><li><span class="b-nombre">Merma<small>1.5% que se rompe o sale mal</small></span><span class="b-pista"><i style="width:2.3%"></i></span><span class="b-valor">$0.27</span></li><li><span class="b-nombre">Flete a la bodega</span><span class="b-pista"><i style="width:2.1%"></i></span><span class="b-valor">$0.25</span></li><li class="b-total"><span class="b-nombre">Costo de la Semanal</span><span class="b-pista"></span><span class="b-valor">$20.17</span></li></ul>
-<div class="cifras"><div><b>$14.77</b><span>cuesta el Cartucho</span><small>Lleva la misma cera, pero no lleva vaso ni etiqueta.</small></div><div><b>58%</b><span>del costo es cera</span><small>En el cartucho, 80%.</small></div><div><b>2.3 g</b><span>de cera por hora</span><small>La meta de la mecha. Con 2.6 g la vela cuesta $1.53 más.</small></div></div>
+<div class="cifras"><div><b>$14.77</b><span>cuesta el Cartucho</span><small>Lleva la misma cera, pero no lleva vaso ni etiqueta.</small></div><div><b>58%</b><span>del costo es cera</span><small>En el cartucho, 80%.</small></div><div><b>2.3 g</b><span>de cera por hora</span><small>La meta de la mecha. Hay que comprobarla en las pruebas de encendido.</small></div></div>
   </div>
 </section>
-<section class="seccion gris" id="peso">
+<section class="seccion " id="peso">
   <div class="caja">
     <p class="etiqueta">4 · Quién gana qué</p>
     <h2>A dónde se va cada peso que paga el cliente.</h2>
     <p class="grande">El precio baja como una cascada: la tienda se queda con su parte, luego el distribuidor, luego el IVA. Lo que llega a nosotros es el 52% del precio. De ahí sale el costo, y lo que sobra es nuestra utilidad.</p>
     <div class="pesos">
-<figure class="peso"><figcaption>Semanal · el cliente paga <b>$49</b></figcaption><div class="peso-barra" role="img" aria-label="Reparto de los $49 de la Semanal"><i class="s0" style="width:27.00%" title="La tienda: $13.23"></i><i class="s1" style="width:12.41%" title="El distribuidor: $6.08"></i><i class="s2" style="width:8.37%" title="IVA: $4.10"></i><i class="s3" style="width:41.16%" title="Costo de hacerla: $20.17"></i><i class="s4" style="width:11.08%" title="Nosotros: $5.43"></i></div><ul class="peso-ley"><li><i class="s0"></i><span>La tienda</span><b>$13.23</b><em>27%</em></li><li><i class="s1"></i><span>El distribuidor</span><b>$6.08</b><em>12%</em></li><li><i class="s2"></i><span>IVA</span><b>$4.10</b><em>8%</em></li><li><i class="s3"></i><span>Costo de hacerla</span><b>$20.17</b><em>41%</em></li><li><i class="s4"></i><span>Nosotros</span><b>$5.43</b><em>11%</em></li></ul></figure><figure class="peso"><figcaption>Cartucho · el cliente paga <b>$34</b></figcaption><div class="peso-barra" role="img" aria-label="Reparto de los $34 de la Cartucho"><i class="s0" style="width:27.00%" title="La tienda: $9.18"></i><i class="s1" style="width:12.41%" title="El distribuidor: $4.22"></i><i class="s2" style="width:8.35%" title="IVA: $2.84"></i><i class="s3" style="width:43.44%" title="Costo de hacerlo: $14.77"></i><i class="s4" style="width:8.76%" title="Nosotros: $2.98"></i></div><ul class="peso-ley"><li><i class="s0"></i><span>La tienda</span><b>$9.18</b><em>27%</em></li><li><i class="s1"></i><span>El distribuidor</span><b>$4.22</b><em>12%</em></li><li><i class="s2"></i><span>IVA</span><b>$2.84</b><em>8%</em></li><li><i class="s3"></i><span>Costo de hacerlo</span><b>$14.77</b><em>43%</em></li><li><i class="s4"></i><span>Nosotros</span><b>$2.98</b><em>9%</em></li></ul></figure>
+<figure class="peso"><figcaption>Semanal · el cliente paga <b>$55</b></figcaption><div class="peso-barra" role="img" aria-label="Reparto de los $55 de la Semanal"><i class="s0" style="width:27.00%" title="La tienda: $14.85"></i><i class="s1" style="width:12.41%" title="El distribuidor: $6.83"></i><i class="s2" style="width:8.36%" title="IVA: $4.60"></i><i class="s3" style="width:36.66%" title="Costo de hacerla: $20.17"></i><i class="s4" style="width:15.57%" title="Nosotros: $8.56"></i></div><ul class="peso-ley"><li><i class="s0"></i><span>La tienda</span><b>$14.85</b><em>27%</em></li><li><i class="s1"></i><span>El distribuidor</span><b>$6.83</b><em>12%</em></li><li><i class="s2"></i><span>IVA</span><b>$4.60</b><em>8%</em></li><li><i class="s3"></i><span>Costo de hacerla</span><b>$20.17</b><em>37%</em></li><li><i class="s4"></i><span>Nosotros</span><b>$8.56</b><em>16%</em></li></ul></figure><figure class="peso"><figcaption>Cartucho · el cliente paga <b>$34</b></figcaption><div class="peso-barra" role="img" aria-label="Reparto de los $34 de la Cartucho"><i class="s0" style="width:27.00%" title="La tienda: $9.18"></i><i class="s1" style="width:12.41%" title="El distribuidor: $4.22"></i><i class="s2" style="width:8.36%" title="IVA: $2.84"></i><i class="s3" style="width:43.46%" title="Costo de hacerlo: $14.77"></i><i class="s4" style="width:8.78%" title="Nosotros: $2.98"></i></div><ul class="peso-ley"><li><i class="s0"></i><span>La tienda</span><b>$9.18</b><em>27%</em></li><li><i class="s1"></i><span>El distribuidor</span><b>$4.22</b><em>12%</em></li><li><i class="s2"></i><span>IVA</span><b>$2.84</b><em>8%</em></li><li><i class="s3"></i><span>Costo de hacerlo</span><b>$14.77</b><em>43%</em></li><li><i class="s4"></i><span>Nosotros</span><b>$2.98</b><em>9%</em></li></ul></figure>
     </div>
-<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Por pieza</th><th>Semanal</th><th>Cartucho</th><th>Temporada</th><th>Personalizada</th></tr></thead><tbody><tr><th scope="row">El cliente paga</th><td>$49</td><td>$34</td><td>$65</td><td>$99</td></tr><tr><th scope="row">La tienda gana</th><td>$13.23</td><td>$9.18</td><td>$17.55</td><td>$26.73</td></tr><tr><th scope="row">El distribuidor gana</th><td>$6.08</td><td>$4.22</td><td>$8.07</td><td>$12.29</td></tr><tr><th scope="row">Nos llega, sin IVA</th><td>$25.59</td><td>$17.76</td><td>$33.95</td><td>$51.71</td></tr><tr><th scope="row">Nos cuesta</th><td>$20.17</td><td>$14.77</td><td>$21.38</td><td>$25.24</td></tr><tr><th scope="row">Nosotros ganamos</th><td>$5.43</td><td>$2.98</td><td>$12.57</td><td>$26.47</td></tr><tr><th scope="row">Nuestro margen</th><td>21%</td><td>17%</td><td>37%</td><td>51%</td></tr></tbody></table></div>
-    <p>La tienda gana 27% del precio. El distribuidor gana 17% de lo que le vende a la tienda. Con la mezcla normal de productos, nos quedan <b>$7.21 por pieza</b> en promedio.</p>
+<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Por pieza</th><th>Semanal</th><th>Cartucho</th><th>Temporada</th><th>Personalizada</th></tr></thead><tbody><tr><th scope="row">El cliente paga</th><td>$55</td><td>$34</td><td>$69</td><td>$99</td></tr><tr><th scope="row">La tienda gana</th><td>$14.85</td><td>$9.18</td><td>$18.63</td><td>$26.73</td></tr><tr><th scope="row">El distribuidor gana</th><td>$6.83</td><td>$4.22</td><td>$8.56</td><td>$12.29</td></tr><tr><th scope="row">Nos llega, sin IVA</th><td>$28.73</td><td>$17.76</td><td>$36.04</td><td>$51.71</td></tr><tr><th scope="row">Nos cuesta</th><td>$20.17</td><td>$14.77</td><td>$21.38</td><td>$25.24</td></tr><tr><th scope="row">Nosotros ganamos</th><td>$8.56</td><td>$2.98</td><td>$14.66</td><td>$26.47</td></tr><tr><th scope="row">Nuestro margen</th><td>30%</td><td>17%</td><td>41%</td><td>51%</td></tr></tbody></table></div>
+    <p>La tienda gana 27% del precio. El distribuidor gana 17% de lo que le vende a la tienda. Con la mezcla normal de productos, nos quedan <b>$9.22 por pieza</b> en promedio.</p>
   </div>
 </section>
-<section class="seccion " id="mes">
+<section class="seccion gris" id="tienda">
   <div class="caja">
-    <p class="etiqueta">5 · Todos ganan</p>
-    <h2>Lo que gana cada quien en un mes.</h2>
-    <p class="grande">Con 500 tiendas vendiendo 8 piezas a la semana cada una, en el segundo año:</p>
-<div class="cifras"><div><b>$508</b><span>gana cada tienda al mes</span><small>Vende unas 38 piezas. Gana 27%, más que el 22–23% que le deja un refresco de marca.</small></div><div><b>$116,752</b><span>gana el distribuidor al mes</span><small>Mueve 19,052 piezas en las rutas que ya recorre.</small></div><div><b>$82,263</b><span>nos queda a nosotros al mes</span><small>Después de pagar producción, sueldos y todos los gastos. Antes de impuestos.</small></div><div><b>$32</b><span>ahorra el cliente al año</span><small>Si compra una a la semana: $1,783 con nosotros contra $1,815 con la competencia.</small></div></div>
-    <p>El cliente casi no ahorra dinero: paga prácticamente lo mismo. Lo que recibe a cambio es una vela que dura lo que dice y un vaso que no tira. <b>El argumento de venta es la duración garantizada, no el precio.</b></p>
+    <p class="etiqueta">5 · Lo que gana la tienda</p>
+    <h2>$551 al mes, y un cliente que vuelve.</h2>
+    <div class="dos"><div>
+      <p class="grande">Por cada vela con vaso la tienda gana $14.85; por cada cartucho, $9.18. Le queda 27% del precio: más que el 22.5% que le deja un refresco de marca.</p>
+    </div><div>
+      <p>Con 38 piezas al mes son <b>$551</b>, sin refrigerador, sin caducidad y sin poner un peso: el exhibidor y los carteles llegan sin costo, y lo que no se venda se cambia.</p>
+      <p style="margin-top:16px">Pero lo que más le conviene no está en esa cuenta. El depósito del cartucho se descuenta donde se compró, así que <b>el cliente regresa a esa tienda cada semana</b>, y cada vez que entra se lleva algo más.</p>
+      <p style="margin-top:16px">Los cartuchos vacíos no le estorban: se guardan en una caja de 24 y el distribuidor se la lleva en su visita.</p>
+    </div></div>
   </div>
 </section>
-<section class="seccion negra" id="recompra">
+<section class="seccion " id="distribuidor">
   <div class="caja">
-    <p class="etiqueta">6 · El cartucho</p>
+    <p class="etiqueta">6 · Lo que gana el distribuidor</p>
+    <h2>$126,540 al mes, en las rutas que ya recorre.</h2>
+    <p class="grande">Gana $6.83 por cada vela con vaso y $4.22 por cada cartucho. No abre rutas nuevas ni compra camiones: mete un producto más en la visita que ya hace.</p>
+<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Según su tamaño</th><th>Chico</th><th>Mediano</th><th>Grande</th></tr></thead><tbody><tr><th scope="row">Tiendas que surte</th><td>100</td><td>300</td><td>1,000</td></tr><tr><th scope="row">Piezas por tienda por semana</th><td>5</td><td>8</td><td>8</td></tr><tr><th scope="row">Piezas al mes</th><td>2,165</td><td>10,392</td><td>34,640</td></tr><tr><th scope="row">El distribuidor gana al mes</th><td><b>$14,380</b></td><td><b>$69,022</b></td><td><b>$230,073</b></td></tr><tr><th scope="row">Cada una de sus tiendas gana al mes</th><td>$313</td><td>$501</td><td>$501</td></tr></tbody></table></div>
+    <p>Además recibe <b>exclusividad de su zona</b> a cambio de volumen, exhibidores sin costo para sus tiendas, venta garantizada y las temporadas ya armadas. Los cartuchos vacíos regresan en su mismo camión, sin flete extra, y como no llevan vidrio caben más piezas por tarima y se rompe menos.</p>
+    <p>Lo que se le pide: visitar cada tienda cada semana, recoger los vacíos y reportar las piezas por tienda.</p>
+  </div>
+</section>
+<section class="seccion negra" id="nosotros">
+  <div class="caja">
+    <p class="etiqueta">7 · Lo que ganamos nosotros</p>
+    <h2>$151,647 al mes en el segundo año.</h2>
+<div class="cifras"><div><b>$9.22</b><span>nos deja cada pieza, en promedio</span><small>De $2.98 un cartucho a $26.47 una personalizada.</small></div><div><b>$1.82 M</b><span>queda en el año 2, antes de impuestos</span><small>20% de lo que se vende.</small></div><div><b>$1.09 M</b><span>de utilidad neta en el año 2</span><small>$90,717 al mes, ya pagados los impuestos.</small></div><div><b>$416 mil</b><span>es lo máximo que hay que poner</span><small>Se recupera en el mes 14 y ya no vuelve a quedar abajo.</small></div></div>
+    <p>Un mes normal deja entre $69 mil y $100 mil. Octubre, noviembre y diciembre son otra cosa: $239 mil, $469 mil y $397 mil.</p>
+    <p>No hay planta ni renta: al principio las velas las llena una fábrica que ya existe. Y los sueldos de quien dirige y de quien vende ya están descontados antes de esa utilidad.</p>
+  </div>
+</section>
+<section class="seccion " id="cliente">
+  <div class="caja">
+    <p class="etiqueta">8 · Lo que gana el cliente</p>
+    <h2>Paga lo mismo, y deja de tirar el vaso.</h2>
+    <div class="dos"><div>
+      <p class="grande">Quien prende una veladora cada semana gasta $1,815 al año con la de siempre. Con La Vela gasta $1,789: una Semanal y 51 cartuchos.</p>
+    </div><div>
+      <p>Ahorra $26: casi nada. Lo que recibe a cambio es una vela que dura lo que dice, un vaso limpio que se queda en su casa y nada que tirar a la basura.</p>
+      <p style="margin-top:16px"><b>El argumento de venta es la duración comprobada, no el precio.</b> Por eso cada lote se pesa y se prueba antes de salir.</p>
+    </div></div>
+  </div>
+</section>
+<section class="seccion gris" id="recompra">
+  <div class="caja">
+    <p class="etiqueta">9 · El cartucho</p>
     <h2>El cartucho deja menos. Y es lo más importante.</h2>
     <div class="dos"><div>
-      <p class="grande">Por cada cartucho ganamos $2.98, contra $5.43 de una vela con vaso. No está ahí la ganancia: está en que el cliente no se va.</p>
+      <p class="grande">Por cada cartucho ganamos $2.98, contra $8.56 de una vela con vaso. No está ahí la ganancia: está en que el cliente no se va.</p>
     </div><div>
-      <p>Un cliente que compra una vela a la semana nos deja unos <b>$158 de utilidad al año</b>: una Semanal y 51 cartuchos.</p>
-      <p style="margin-top:16px">Abrir una tienda nos cuesta <b>$370</b> entre el exhibidor y el material. Esa tienda nos deja <b>$275 al mes</b>. El exhibidor se paga en menos de mes y medio.</p>
+      <p>Un cliente que compra una vela a la semana nos deja unos <b>$161 de utilidad al año</b>.</p>
+      <p style="margin-top:16px">Abrir una tienda nos cuesta <b>$370</b> entre el exhibidor y el material. Esa tienda nos deja <b>$351 al mes</b>: el exhibidor se paga en un mes.</p>
       <p style="margin-top:16px">El número que dice si el modelo funciona es uno solo: <b>qué porcentaje de las piezas vendidas son cartuchos</b>. Si la gente regresa por el repuesto, todo lo demás se sostiene.</p>
     </div></div>
   </div>
 </section>
 <section class="seccion " id="directos">
   <div class="caja">
-    <p class="etiqueta">7 · Sin intermediarios</p>
+    <p class="etiqueta">10 · Sin intermediarios</p>
     <h2>Donde más se gana es vendiendo directo.</h2>
     <p class="grande">En la tienda se reparte el precio entre tres. Cuando vendemos directo, la parte de la tienda y la del distribuidor se quedan con nosotros.</p>
-<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Canal</th><th>Precio</th><th>Nos cuesta</th><th>Ganamos</th><th>Margen</th></tr></thead><tbody><tr><th scope="row">Cartucho a parroquias</th><td>$42</td><td>$14.77</td><td>$21.43</td><td>59%</td></tr><tr><th scope="row">Cartucho a restaurantes y hoteles</th><td>$40</td><td>$14.77</td><td>$19.71</td><td>57%</td></tr><tr><th scope="row">Recaudación con colegios y parroquias <small>ellos venden y se quedan 30%</small></th><td>$49</td><td>$20.17</td><td>$9.40</td><td>32%</td></tr><tr><th scope="row">Regalo corporativo con logo</th><td>$249</td><td>$48.38</td><td>$166.27</td><td>77%</td></tr><tr><th scope="row">Vela Récord <small>premium, cera de abeja</small></th><td>$850</td><td>$320</td><td>$412.76</td><td>56%</td></tr><tr><th scope="row">Recarga de la Vela Récord</th><td>$320</td><td>$120</td><td>$155.86</td><td>56%</td></tr><tr><th scope="row">Taller de velas <small>por persona</small></th><td>$750</td><td>$265</td><td>$381.55</td><td>59%</td></tr><tr><th scope="row">Insumos en línea <small>por pedido</small></th><td>$329</td><td>$235.32</td><td>$48.30</td><td>17%</td></tr></tbody></table></div>
-    <p>En el segundo año, las tiendas traen el 74% del ingreso y los canales directos el 26%. Las tiendas dan el volumen; los directos, el margen.</p>
+<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Canal</th><th>Precio</th><th>Nos cuesta</th><th>Ganamos</th><th>Margen</th></tr></thead><tbody><tr><th scope="row">Cartucho a parroquias</th><td>$42</td><td>$14.77</td><td>$21.43</td><td>59%</td></tr><tr><th scope="row">Cartucho a restaurantes y hoteles</th><td>$40</td><td>$14.77</td><td>$19.71</td><td>57%</td></tr><tr><th scope="row">Recaudación con colegios y parroquias <small>ellos venden y se quedan 30%</small></th><td>$55</td><td>$20.17</td><td>$13.02</td><td>39%</td></tr><tr><th scope="row">Regalo corporativo con logo</th><td>$249</td><td>$48.38</td><td>$166.27</td><td>77%</td></tr><tr><th scope="row">Vela Récord <small>premium, cera de abeja</small></th><td>$850</td><td>$320.00</td><td>$412.76</td><td>56%</td></tr><tr><th scope="row">Recarga de la Vela Récord</th><td>$320</td><td>$120.00</td><td>$155.86</td><td>56%</td></tr><tr><th scope="row">Taller de velas <small>por persona</small></th><td>$750</td><td>$265.00</td><td>$381.55</td><td>59%</td></tr><tr><th scope="row">Insumos en línea <small>por pedido</small></th><td>$329</td><td>$235.32</td><td>$48.30</td><td>17%</td></tr></tbody></table></div>
+    <p>En el segundo año, las tiendas traen el 71% del ingreso y los canales directos el 29%. Las tiendas dan el volumen; los directos, el margen. Los regalos corporativos de fin de año son los que más pesan: diez pedidos de 120 piezas en noviembre y otros diez en diciembre.</p>
   </div>
 </section>
 <section class="seccion gris" id="fijos">
   <div class="caja">
-    <p class="etiqueta">8 · Lo que cuesta existir</p>
-    <h2>$109,250 al mes, se venda o no se venda.</h2>
+    <p class="etiqueta">11 · Lo que cuesta existir</p>
+    <h2>$101,150 al mes, se venda o no se venda.</h2>
     <p class="grande">Estos gastos no dependen de cuántas velas se vendan. Son el piso que hay que cubrir cada mes.</p>
-<ul class="barras"><li><span class="b-nombre">Dirección y comercial<small>dos sueldos, con carga social</small></span><span class="b-pista"><i style="width:100.0%"></i></span><span class="b-valor">$60,750</span></li><li><span class="b-nombre">Diseño y contenido</span><span class="b-pista"><i style="width:26.7%"></i></span><span class="b-valor">$16,200</span></li><li><span class="b-nombre">Atención por WhatsApp<small>pedidos personalizados y garantías</small></span><span class="b-pista"><i style="width:22.2%"></i></span><span class="b-valor">$13,500</span></li><li><span class="b-nombre">Contador</span><span class="b-pista"><i style="width:8.2%"></i></span><span class="b-valor">$5,000</span></li><li><span class="b-nombre">Servicios</span><span class="b-pista"><i style="width:6.6%"></i></span><span class="b-valor">$4,000</span></li><li><span class="b-nombre">Software</span><span class="b-pista"><i style="width:4.9%"></i></span><span class="b-valor">$3,000</span></li><li><span class="b-nombre">Viáticos</span><span class="b-pista"><i style="width:4.9%"></i></span><span class="b-valor">$3,000</span></li><li><span class="b-nombre">Pruebas de calidad</span><span class="b-pista"><i style="width:3.3%"></i></span><span class="b-valor">$2,000</span></li><li><span class="b-nombre">Seguros y Protección Civil</span><span class="b-pista"><i style="width:3.0%"></i></span><span class="b-valor">$1,800</span></li><li class="b-total"><span class="b-nombre">Gastos fijos al mes</span><span class="b-pista"></span><span class="b-valor">$109,250</span></li></ul>
-    <p>No hay renta ni planta: al principio las velas las llena una fábrica que ya existe. Arrancar cuesta $83,000 una sola vez (marca, empaque, legal, fotos y prototipos).</p>
+<ul class="barras"><li><span class="b-nombre">Dirección y comercial<small>dos sueldos, con carga social</small></span><span class="b-pista"><i style="width:100.0%"></i></span><span class="b-valor">$60,750</span></li><li><span class="b-nombre">Atención por WhatsApp<small>pedidos personalizados y garantías</small></span><span class="b-pista"><i style="width:22.2%"></i></span><span class="b-valor">$13,500</span></li><li><span class="b-nombre">Diseño y contenido<small>por proyecto, sin plaza fija</small></span><span class="b-pista"><i style="width:13.3%"></i></span><span class="b-valor">$8,100</span></li><li><span class="b-nombre">Contador</span><span class="b-pista"><i style="width:8.2%"></i></span><span class="b-valor">$5,000</span></li><li><span class="b-nombre">Servicios</span><span class="b-pista"><i style="width:6.6%"></i></span><span class="b-valor">$4,000</span></li><li><span class="b-nombre">Software</span><span class="b-pista"><i style="width:4.9%"></i></span><span class="b-valor">$3,000</span></li><li><span class="b-nombre">Viáticos</span><span class="b-pista"><i style="width:4.9%"></i></span><span class="b-valor">$3,000</span></li><li><span class="b-nombre">Pruebas de calidad</span><span class="b-pista"><i style="width:3.3%"></i></span><span class="b-valor">$2,000</span></li><li><span class="b-nombre">Seguros y Protección Civil</span><span class="b-pista"><i style="width:3.0%"></i></span><span class="b-valor">$1,800</span></li><li class="b-total"><span class="b-nombre">Gastos fijos al mes</span><span class="b-pista"></span><span class="b-valor">$101,150</span></li></ul>
+    <p>No hay renta ni planta. Arrancar cuesta $83,000 una sola vez: marca, empaque, legal, fotos y prototipos.</p>
   </div>
 </section>
 <section class="seccion " id="escala">
   <div class="caja">
-    <p class="etiqueta">9 · Por qué escala</p>
+    <p class="etiqueta">12 · Por qué escala</p>
     <h2>Cada vela extra deja lo mismo. Los gastos fijos no crecen.</h2>
-    <p class="grande">Después de producirla y de pagar garantías y marketing, cada pieza vendida en tienda deja <b>$6.09</b>. Los gastos fijos son $109,250 al mes, con 100 tiendas o con 1,000. Entre más piezas, menos gasto fijo carga cada una.</p>
-<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Tiendas × piezas por semana</th><th>Piezas al mes</th><th>Gasto fijo por pieza</th><th>Lo que deja cada pieza</th><th>Resultado del mes</th></tr></thead><tbody><tr><th scope="row">300 × 5</th><td>6,495</td><td>$16.82</td><td>$6.09</td><td>−$69,705</td></tr><tr><th scope="row">500 × 8</th><td>17,320</td><td>$6.31</td><td>$6.09</td><td>−$3,798</td></tr><tr><th scope="row">700 × 10</th><td>30,310</td><td>$3.60</td><td>$6.09</td><td>+$75,291</td></tr><tr><th scope="row">1,000 × 12</th><td>51,960</td><td>$2.10</td><td>$6.09</td><td>+$207,106</td></tr><tr><th scope="row">1,000 × 15</th><td>64,950</td><td>$1.68</td><td>$6.09</td><td>+$286,195</td></tr></tbody></table></div>
-    <p>Esa tabla es solo el canal de tiendas, cargando con todos los gastos fijos. A volumen medio las tiendas apenas pagan la operación, y la utilidad la ponen los canales directos. Contando lo que aportan los directos, el punto de equilibrio baja a <b>5,541 piezas al mes</b> en tiendas; el plan del segundo año es vender 19,052.</p>
-    <p><b>Lo que crece con el volumen no es el margen por pieza</b>, que se queda cerca de 38%. Lo que crece es lo que sobra después de los gastos fijos: de −1% del ingreso en el primer año a 12% en el segundo y 13% en el tercero.</p>
-    <p>El siguiente escalón llega arriba de <b>47 mil piezas al mes</b>: ahí conviene planta propia y llenar cada vela baja de $2.20 a $1.24. Antes de ese volumen, la planta cuesta $318 mil más al año que maquilar.</p>
+    <p class="grande">Después de producirla y de pagar garantías y marketing, cada pieza vendida en tienda deja <b>$8.02</b>. Los gastos fijos son $101,150 al mes, con 100 tiendas o con 1,000. Entre más piezas, menos gasto fijo carga cada una.</p>
+<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Tiendas × piezas por semana</th><th>Piezas al mes</th><th>Gasto fijo por pieza</th><th>Lo que deja cada pieza</th><th>Resultado del mes</th></tr></thead><tbody><tr><th scope="row">300 × 5</th><td>6,495</td><td>$15.57</td><td>$8.02</td><td>−$49,051</td></tr><tr><th scope="row">500 × 8</th><td>17,320</td><td>$5.84</td><td>$8.02</td><td>+$37,781</td></tr><tr><th scope="row">700 × 10</th><td>30,310</td><td>$3.34</td><td>$8.02</td><td>+$141,980</td></tr><tr><th scope="row">1,000 × 12</th><td>51,960</td><td>$1.95</td><td>$8.02</td><td>+$315,644</td></tr><tr><th scope="row">1,000 × 15</th><td>64,950</td><td>$1.56</td><td>$8.02</td><td>+$419,842</td></tr></tbody></table></div>
+    <p>Esa tabla es solo el canal de tiendas, cargando con todos los gastos fijos. Como los canales directos ya pagan casi todos esos gastos, el punto de equilibrio en tiendas baja a <b>147 piezas al mes</b>; el plan del segundo año es vender 19,052.</p>
+    <p><b>Lo que crece con el volumen no es el margen por pieza</b>, que se queda cerca de 42%. Lo que crece es lo que sobra después de los gastos fijos: 10% del ingreso en el primer año y 20% en el segundo.</p>
+    <p>El siguiente escalón llega arriba de <b>47 mil piezas al mes</b>: ahí conviene planta propia y llenar cada vela baja de $2.20 a $1.24. Antes de ese volumen, la planta cuesta $310 mil más al año que maquilar.</p>
   </div>
 </section>
 <section class="seccion gris" id="proyeccion">
   <div class="caja">
-    <p class="etiqueta">10 · La proyección</p>
+    <p class="etiqueta">13 · La proyección</p>
     <h2>Tres años, mes por mes.</h2>
-    <p class="grande">El primer año se abre la red y sale tablas. El segundo ya deja cerca de un millón.</p>
+    <p class="grande">El primer año ya deja $583 mil. El segundo, $1.82 M.</p>
     <figure class="grafica"><div id="grafica"></div><figcaption><span><i class="g-ing"></i>Ingresos del mes</span><span><i class="g-eb"></i>Lo que queda después de todos los gastos (EBITDA)</span></figcaption></figure>
-<div class="tabla-caja"><table class="tabla fin"><thead><tr><th></th><th>Año 1</th><th>Año 2</th><th>Año 3</th></tr></thead><tbody><tr><th scope="row">Velas producidas</th><td>144,687</td><td>237,215</td><td>260,077</td></tr><tr><th scope="row">Ingresos</th><td>$5,217,947</td><td>$8,243,816</td><td>$8,853,273</td></tr><tr><th scope="row">Costo de producir</th><td>$3,173,198</td><td>$5,105,551</td><td>$5,537,205</td></tr><tr><th scope="row">Gastos que suben con la venta <small>marketing, envíos, garantía, exhibidores</small></th><td>$722,545</td><td>$840,112</td><td>$866,491</td></tr><tr><th scope="row">Gastos fijos</th><td>$1,367,000</td><td>$1,311,000</td><td>$1,311,000</td></tr><tr><th scope="row">Lo que queda (EBITDA)</th><td>−$44,797</td><td>$987,152</td><td>$1,138,577</td></tr><tr><th scope="row">Como % del ingreso</th><td>−1%</td><td>12%</td><td>13%</td></tr><tr><th scope="row">Utilidad neta, después de impuestos</th><td>−$50,222</td><td>$609,125</td><td>$683,146</td></tr></tbody></table></div>
-<div class="cifras"><div><b>$763 mil</b><span>es lo máximo que hay que poner</span><small>Para aguantar el arranque, el inventario y los 30 días que tarda en pagar el distribuidor.</small></div><div><b>Mes 19</b><span>se recupera lo invertido</span></div><div><b>$499 mil</b><span>de flujo acumulado al mes 36</span></div></div>
-    <p>Los picos son de octubre a diciembre: Día de Muertos, Guadalupe y Navidad. Solo octubre y noviembre traen cerca del 27% de la venta del año. Hay que producir antes, de junio a septiembre.</p>
+<div class="tabla-caja"><table class="tabla fin"><thead><tr><th></th><th>Año 1</th><th>Año 2</th><th>Año 3</th></tr></thead><tbody><tr><th scope="row">Velas producidas</th><td>151,370</td><td>245,806</td><td>268,669</td></tr><tr><th scope="row">Ingresos</th><td>$5,969,856</td><td>$9,253,871</td><td>$9,911,927</td></tr><tr><th scope="row">Costo de producir</th><td>$3,352,649</td><td>$5,327,344</td><td>$5,762,025</td></tr><tr><th scope="row">Gastos que suben con la venta <small>marketing, envíos, garantía, exhibidores</small></th><td>$764,885</td><td>$892,959</td><td>$921,070</td></tr><tr><th scope="row">Gastos fijos</th><td>$1,269,800</td><td>$1,213,800</td><td>$1,213,800</td></tr><tr><th scope="row">Lo que queda (EBITDA)</th><td>$582,521</td><td>$1,819,768</td><td>$2,015,033</td></tr><tr><th scope="row">Como % del ingreso</th><td>10%</td><td>20%</td><td>20%</td></tr><tr><th scope="row">Utilidad neta, después de impuestos</th><td>$346,258</td><td>$1,088,606</td><td>$1,209,020</td></tr></tbody></table></div>
+<div class="cifras"><div><b>$416 mil</b><span>es lo máximo que hay que poner</span><small>Para aguantar el arranque, el inventario y los 30 días que tarda en pagar el distribuidor.</small></div><div><b>Mes 14</b><span>se recupera lo invertido</span><small>Y el flujo ya no vuelve a quedar en negativo.</small></div><div><b>$1.83 M</b><span>de flujo acumulado al mes 36</span></div></div>
+    <p>Los picos son de octubre a diciembre: Día de Muertos, Guadalupe y Navidad. Solo octubre y noviembre traen cerca del 27% de la venta del año, así que hay que producir antes, de junio a septiembre.</p>
   </div>
 </section>
 <section class="seccion " id="escenarios">
   <div class="caja">
-    <p class="etiqueta">11 · Si sale mejor o peor</p>
+    <p class="etiqueta">14 · Si sale mejor o peor</p>
     <h2>Tres volúmenes, mismos precios.</h2>
-<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Escenario</th><th>Año 1</th><th>Año 2</th><th>Año 3</th><th>Capital máximo</th><th>Se recupera</th></tr></thead><tbody><tr><th scope="row">Conservador <small>300 tiendas × 5 piezas</small></th><td>−$490 mil</td><td>$41 mil</td><td>$98 mil</td><td>$826 mil</td><td>después del mes 36</td></tr><tr><th scope="row"><b>Medio</b> <small>500 tiendas × 8 piezas</small></th><td><b>−$45 mil</b></td><td><b>$987 mil</b></td><td><b>$1.14 M</b></td><td><b>$763 mil</b></td><td><b>mes 19</b></td></tr><tr><th scope="row">Alto <small>800 tiendas × 12 piezas</small></th><td>$964 mil</td><td>$3.1 M</td><td>$3.5 M</td><td>$969 mil</td><td>mes 15</td></tr></tbody></table></div>
+<div class="tabla-caja"><table class="tabla fin"><thead><tr><th>Escenario</th><th>Año 1</th><th>Año 2</th><th>Año 3</th><th>Capital máximo</th><th>Se recupera</th></tr></thead><tbody><tr><th scope="row">Conservador <small>300 tiendas × 5 piezas</small></th><td>−$19 mil</td><td>$599 mil</td><td>$673 mil</td><td>$445 mil</td><td>mes 15</td></tr><tr><th scope="row"><b>Medio</b> <small>500 tiendas × 8 piezas</small></th><td><b>$583 mil</b></td><td><b>$1.82 M</b></td><td><b>$2.02 M</b></td><td>$416 mil</td><td>mes 14</td></tr><tr><th scope="row">Alto <small>800 tiendas × 12 piezas</small></th><td>$1.93 M</td><td>$4.55 M</td><td>$5.02 M</td><td>$523 mil</td><td>mes 11</td></tr></tbody></table></div>
     <p>Las cifras son lo que queda cada año después de todos los gastos. El distribuidor con el que empezó todo surte a cerca de 1,000 tiendas: el escenario medio supone llegar a la mitad.</p>
   </div>
 </section>
 <section class="seccion gris" id="palancas">
   <div class="caja">
-    <p class="etiqueta">12 · De dónde sale la utilidad</p>
-    <h2>La primera cuenta perdía dinero.</h2>
-    <p class="grande">Con los primeros precios y márgenes que platicamos, cada pieza perdía $2.45: faltaba descontar el IVA y la parafina estaba más cara de lo que creíamos. Estas son las correcciones que la llevan a ganar $7.21, y lo que vale cada una al año.</p>
-<ul class="barras"><li><span class="b-nombre">Subir precios<small>Semanal de $45 a $49, Cartucho de $32 a $34</small></span><span class="b-pista"><i style="width:100.0%"></i></span><span class="b-valor">$500,468</span></li><li><span class="b-nombre">Comprar parafina por tonelada</span><span class="b-pista"><i style="width:75.9%"></i></span><span class="b-valor">$380,073</span></li><li><span class="b-nombre">Mecha que quema menos<small>de 2.6 a 2.3 gramos por hora</small></span><span class="b-pista"><i style="width:72.6%"></i></span><span class="b-valor">$363,548</span></li><li><span class="b-nombre">Margen de la tienda<small>de 30% a 27%; sigue ganando más que con refresco</small></span><span class="b-pista"><i style="width:48.0%"></i></span><span class="b-valor">$240,469</span></li><li><span class="b-nombre">Margen del distribuidor<small>de 20% a 17%, a cambio de exclusividad de zona</small></span><span class="b-pista"><i style="width:42.3%"></i></span><span class="b-valor">$211,497</span></li><li><span class="b-nombre">Vaso por millar<small>de $5.50 a $4.20</small></span><span class="b-pista"><i style="width:39.4%"></i></span><span class="b-valor">$197,347</span></li><li><span class="b-nombre">Menos merma</span><span class="b-pista"><i style="width:12.6%"></i></span><span class="b-valor">$62,979</span></li><li><span class="b-nombre">Menos cera sin quemar</span><span class="b-pista"><i style="width:10.8%"></i></span><span class="b-valor">$54,120</span></li><li><span class="b-nombre">Mecha, etiqueta y caja</span><span class="b-pista"><i style="width:10.6%"></i></span><span class="b-valor">$53,132</span></li><li><span class="b-nombre">Flete</span><span class="b-pista"><i style="width:7.2%"></i></span><span class="b-valor">$35,843</span></li><li><span class="b-nombre">Más personalizadas</span><span class="b-pista"><i style="width:7.1%"></i></span><span class="b-valor">$35,624</span></li><li class="b-total"><span class="b-nombre">Total al año, aproximado</span><span class="b-pista"></span><span class="b-valor">$2,135,100</span></li></ul>
-    <p>Cada una de estas es una negociación o una prueba que todavía hay que ganar.</p>
+    <p class="etiqueta">15 · De dónde sale la utilidad</p>
+    <h2>La primera cuenta perdía dinero. La tercera gana bien.</h2>
+    <p class="grande">El modelo se corrigió dos veces, y cada versión está en el Excel como un escenario: lo que platicamos, el optimizado y el rentable.</p>
+    <h3 style="margin-top:48px">Paso uno: de perder $2.45 por pieza a ganar $7.21</h3>
+    <p>Con los primeros precios y márgenes que platicamos, cada pieza perdía dinero: faltaba descontar el IVA y la parafina estaba más cara de lo que creíamos. Estas son las correcciones, y lo que vale cada una al año:</p>
+<ul class="barras"><li><span class="b-nombre">Subir precios<small>primera corrección: Semanal de $45 a $49, Cartucho de $32 a $34</small></span><span class="b-pista"><i style="width:100.0%"></i></span><span class="b-valor">$519,164</span></li><li><span class="b-nombre">Comprar parafina por tonelada</span><span class="b-pista"><i style="width:75.9%"></i></span><span class="b-valor">$393,838</span></li><li><span class="b-nombre">Mecha que quema menos<small>de 2.6 a 2.3 gramos por hora</small></span><span class="b-pista"><i style="width:72.6%"></i></span><span class="b-valor">$376,715</span></li><li><span class="b-nombre">Margen de la tienda<small>de 30% a 27%; sigue ganando más que con refresco</small></span><span class="b-pista"><i style="width:46.3%"></i></span><span class="b-valor">$240,469</span></li><li><span class="b-nombre">Margen del distribuidor<small>de 20% a 17%, a cambio de exclusividad de zona</small></span><span class="b-pista"><i style="width:40.7%"></i></span><span class="b-valor">$211,497</span></li><li><span class="b-nombre">Vaso por millar<small>de $5.50 a $4.20</small></span><span class="b-pista"><i style="width:39.4%"></i></span><span class="b-valor">$204,757</span></li><li><span class="b-nombre">Menos merma</span><span class="b-pista"><i style="width:12.6%"></i></span><span class="b-valor">$65,260</span></li><li><span class="b-nombre">Menos cera sin quemar</span><span class="b-pista"><i style="width:10.8%"></i></span><span class="b-valor">$56,080</span></li><li><span class="b-nombre">Mecha, etiqueta y caja</span><span class="b-pista"><i style="width:10.6%"></i></span><span class="b-valor">$55,127</span></li><li><span class="b-nombre">Flete</span><span class="b-pista"><i style="width:7.2%"></i></span><span class="b-valor">$37,189</span></li><li><span class="b-nombre">Más personalizadas</span><span class="b-pista"><i style="width:6.9%"></i></span><span class="b-valor">$35,624</span></li><li class="b-total"><span class="b-nombre">Total al año, aproximado</span><span class="b-pista"></span><span class="b-valor">$2,195,719</span></li></ul>
+    <h3 style="margin-top:64px">Paso dos: de $987 mil a $1.82 M al año</h3>
+    <p>Sin tocar el costo ni el número de tiendas. Son siete cambios: tres se deciden y cuatro se venden.</p>
+<div class="tabla-caja"><table class="tabla fin palancas"><thead><tr><th>Palanca</th><th>Cambio</th><th>Vale al año</th><th>De qué depende</th></tr></thead><tbody><tr><th scope="row">La vela con vaso, más cara</th><td>Semanal de $49 a $55</td><td>+$244 mil</td><td>Decisión. El vaso se compra una vez: el cliente paga $6 más una sola vez.</td></tr><tr><th scope="row">Más regalos corporativos</th><td>De 5 a 10 pedidos en noviembre y en diciembre</td><td>+$176 mil</td><td>Venta. Es lo que más deja por pieza: $166.</td></tr><tr><th scope="row">Más personalizadas</th><td>De 7% a 10% de las piezas</td><td>+$120 mil</td><td>Venta. Cada una deja 3 veces lo que una Semanal.</td></tr><tr><th scope="row">La edición de temporada, más cara</th><td>De $65 a $69</td><td>+$108 mil</td><td>Decisión. No tiene comparación directa en el anaquel.</td></tr><tr><th scope="row">Diseño por proyecto</th><td>De $12 mil a $6 mil al mes</td><td>+$97 mil</td><td>Decisión. Sin plaza fija hasta que el volumen la pida.</td></tr><tr><th scope="row">Más parroquias, restaurantes y hoteles</th><td>El doble de clientes directos</td><td>+$52 mil</td><td>Venta. Compran cartuchos cada semana, sin intermediario.</td></tr><tr><th scope="row">Más campañas de recaudación</th><td>El doble, con colegios y parroquias</td><td>+$38 mil</td><td>Venta. Ellos venden y se quedan 30%.</td></tr></tbody></table></div><div class="tabla-caja"><table class="tabla fin"><thead><tr><th></th><th>Antes de estos cambios</th><th>El plan de hoy</th></tr></thead><tbody><tr><th scope="row">Lo que queda en el año 1</th><td>−$45 mil</td><td>$583 mil</td></tr><tr><th scope="row">Lo que queda en el año 2</th><td>$987 mil</td><td>$1.82 M</td></tr><tr><th scope="row">Lo que queda en el año 3</th><td>$1.14 M</td><td>$2.02 M</td></tr><tr><th scope="row">Utilidad neta del año 2</th><td>$609 mil</td><td>$1.09 M</td></tr><tr><th scope="row">Lo máximo que hay que poner</th><td>$763 mil</td><td>$416 mil</td></tr><tr><th scope="row">Se recupera lo invertido</th><td>Mes 19; en firme, mes 26</td><td>Mes 14</td></tr><tr><th scope="row">Flujo acumulado al mes 36</th><td>$499 mil</td><td>$1.83 M</td></tr></tbody></table></div>
+    <p><b>Si solo se toman las tres decisiones</b> y nada de lo que hay que salir a vender, el año 2 deja $1.44 M y la inversión se recupera en el mes 15.</p>
+    <p><b>Lo que se dejó fuera a propósito.</b> Subir el cartucho de $34 a $39 valdría otros $208 mil al año, pero el cliente pagaría unos $229 más al año que con la veladora de la competencia: solo se sostiene si las pruebas demuestran que la nuestra dura más. Bajar el margen de la tienda de 27% a 25% valdría $174 mil, pero la tienda es quien decide si la exhibe. Con esas dos y el cartucho retornable, el techo del año 2 es de $2.24 M.</p>
   </div>
 </section>
 <section class="seccion " id="riesgos">
   <div class="caja">
-    <p class="etiqueta">13 · Lo que falta comprobar</p>
-    <h2>Cinco números sostienen todo lo demás.</h2>
+    <p class="etiqueta">16 · Lo que falta comprobar</p>
+    <h2>Seis números sostienen todo lo demás.</h2>
     <p class="grande">Nada de esto está validado todavía. Antes de enseñarle números a un distribuidor hay que confirmar:</p>
-    <ol class="pasos cinco">
-      <li><span class="n">1</span><div><h3>El precio de la parafina.</h3><p>Tres cotizaciones por tonelada. A $38 el kilo, la Semanal deja $2 en vez de $5.43.</p></div></li>
-      <li><span class="n">2</span><div><h3>Los gramos por hora.</h3><p>Prueba de encendido de los prototipos. A 3.5 g por hora ya se pierde dinero.</p></div></li>
+    <ol class="pasos seis">
+      <li><span class="n">1</span><div><h3>El precio de la parafina.</h3><p>Tres cotizaciones por tonelada. A $38 el kilo, la Semanal deja $5.14 en vez de $8.56.</p></div></li>
+      <li><span class="n">2</span><div><h3>Los gramos por hora.</h3><p>Prueba de encendido de los prototipos. A 3.5 g por hora, la Semanal deja $2.34.</p></div></li>
       <li><span class="n">3</span><div><h3>El costo del vaso.</h3><p>Tres cotizaciones de vidrieras, por millar.</p></div></li>
       <li><span class="n">4</span><div><h3>Los márgenes del canal.</h3><p>Preguntarle al distribuidor cuánto gana él y cuánto la tienda hoy.</p></div></li>
-      <li><span class="n">5</span><div><h3>Si la gente regresa.</h3><p>Piloto de 50 tiendas por 4 semanas: piezas por tienda y cuántas son cartuchos.</p></div></li>
+      <li><span class="n">5</span><div><h3>El precio de la Semanal.</h3><p>El modelo no sabe si a $55 se vende igual que a $49. Piloto con dos precios: mitad de las tiendas con cada uno.</p></div></li>
+      <li><span class="n">6</span><div><h3>Si la gente regresa.</h3><p>Piloto de 50 tiendas por 4 semanas: piezas por tienda y cuántas son cartuchos.</p></div></li>
     </ol>
-    <p>El cartucho retornable ya está en el Excel, en su propia hoja, con un interruptor. Con los estimados de hoy cada llenado cuesta casi nada ($0.02) solo si el depósito que nadie reclama llega hasta nosotros; si se queda en la tienda, cuesta $0.88, el doble que la funda de $0.45. Por eso los números de esta página siguen calculados con funda, hasta medir cuántos cartuchos regresan.</p>
+    <p>El cartucho retornable está en el Excel, en su propia hoja, con un interruptor. Con los estimados de hoy cada llenado cuesta casi nada solo si el depósito que nadie reclama llega hasta nosotros; si se queda en la tienda, cuesta el doble que la funda. Por eso los números de esta página siguen calculados con funda, hasta medir cuántos cartuchos regresan.</p>
     <p>Y la promesa de «7 días» no se dice hasta que las pruebas la confirmen.</p>
   </div>
 </section>
-<!-- AUTO:rentable -->
-<section class="seccion gris" id="rentable">
-  <div class="caja">
-    <p class="etiqueta">14 · Cómo se vuelve más rentable</p>
-    <h2>Las mismas velas, mejor cobradas y mejor vendidas.</h2>
-    <p class="grande">Sin tocar el costo ni el número de tiendas, lo que queda en el año 2 pasa de $987 mil a $1.82 millones. Son siete cambios: tres se deciden y cuatro se venden.</p>
-<div class="tabla-caja"><table class="tabla fin palancas"><thead><tr><th>Palanca</th><th>Cambio</th><th>Vale al año</th><th>De qué depende</th></tr></thead><tbody><tr><th scope="row">La vela con vaso, más cara</th><td>Semanal de $49 a $55</td><td>+$244 mil</td><td>Decisión. El vaso se compra una vez: el cliente paga $6 más una sola vez.</td></tr><tr><th scope="row">Más regalos corporativos</th><td>De 5 a 10 pedidos en noviembre y en diciembre</td><td>+$176 mil</td><td>Venta. Es lo que más deja por pieza: $166.</td></tr><tr><th scope="row">Más personalizadas</th><td>De 7% a 10% de las piezas</td><td>+$120 mil</td><td>Venta. Cada una deja casi cinco veces lo que una Semanal.</td></tr><tr><th scope="row">La edición de temporada, más cara</th><td>De $65 a $69</td><td>+$108 mil</td><td>Decisión. No tiene comparación directa en el anaquel.</td></tr><tr><th scope="row">Diseño por proyecto</th><td>De $12 mil a $6 mil al mes</td><td>+$97 mil</td><td>Decisión. Sin plaza fija hasta que el volumen la pida.</td></tr><tr><th scope="row">Más parroquias, restaurantes y hoteles</th><td>El doble de clientes directos</td><td>+$52 mil</td><td>Venta. Compran cartuchos cada semana, sin intermediario.</td></tr><tr><th scope="row">Más campañas de recaudación</th><td>El doble, con colegios y parroquias</td><td>+$38 mil</td><td>Venta. Ellos venden y se quedan 30%.</td></tr></tbody></table></div>
-<div class="tabla-caja"><table class="tabla fin"><thead><tr><th></th><th>Como estaba</th><th>Rentable</th></tr></thead><tbody><tr><th scope="row">Lo que queda en el año 1</th><td>−$45 mil</td><td>$583 mil</td></tr><tr><th scope="row">Lo que queda en el año 2</th><td>$987 mil</td><td>$1.82 M</td></tr><tr><th scope="row">Lo que queda en el año 3</th><td>$1.14 M</td><td>$2.02 M</td></tr><tr><th scope="row">Utilidad neta del año 2, después de impuestos</th><td>$609 mil</td><td>$1.09 M</td></tr><tr><th scope="row">Lo máximo que hay que poner</th><td>$763 mil</td><td>$416 mil</td></tr><tr><th scope="row">Se recupera lo invertido</th><td>Mes 19; en firme, mes 26</td><td>Mes 14</td></tr><tr><th scope="row">Flujo acumulado al mes 36</th><td>$499 mil</td><td>$1.83 M</td></tr></tbody></table></div>
-    <p><b>Si solo se toman las tres decisiones</b> y nada de lo que hay que salir a vender, el año 2 deja $1.44 millones y la inversión se recupera en el mes 15.</p>
-    <p><b>Lo que se dejó fuera a propósito.</b> Subir el cartucho de $34 a $39 valdría otros $208 mil al año, pero el cliente pagaría unos $223 más al año que con la veladora de la competencia: solo se sostiene si las pruebas demuestran que la nuestra dura más. Bajar el margen de la tienda de 27% a 25% valdría $161 mil, pero la tienda es quien decide si la exhibe. Con esas dos y el cartucho retornable, el techo del año 2 es de $2.24 millones.</p>
-    <p><b>Lo que el modelo no sabe:</b> supone que se venden las mismas piezas a $55 que a $49. Por eso el piloto debe correr con dos precios, mitad de las tiendas con cada uno, antes de decidir.</p>
-  </div>
-</section>
-<!-- /AUTO:rentable -->
 <section class="seccion negra" id="descargar">
   <div class="caja">
     <p class="etiqueta">El entregable</p>
     <h2>Todo esto vive en un Excel.</h2>
-    <p class="grande">21 hojas, 36 meses y tres escenarios. Incluye el cartucho retornable, lo que gana un distribuidor según su tamaño, las capas que protegen el negocio y el plan para crecer por países: México, América Latina y Estados Unidos. Cambias cualquier celda con marco —el precio, la parafina, las tiendas— y todo se recalcula. En la hoja «Supuestos» eliges el escenario.</p>
-    <div class="botones"><a class="boton lleno" href="/descargas/La_Vela_Modelo_de_Negocio_v4_2026-10-04_0903.xlsx" download>Descargar el Excel</a></div>
+    <p class="grande">21 hojas, 36 meses y tres escenarios. Incluye el cartucho retornable, lo que gana un distribuidor según su tamaño, las capas que protegen el negocio y el plan para crecer por países. Cambias cualquier celda con marco —el precio, la parafina, las tiendas— y todo se recalcula.</p>
+    <div class="botones"><a class="boton lleno" href="/descargas/La_Vela_Modelo_de_Negocio_v4_2026-10-04_1012.xlsx" download>Descargar el Excel</a><a class="boton" href="/distribuir">Quiero distribuir</a></div>
   </div>
 </section>
 </main>
@@ -232,11 +269,12 @@
 /* RLR · gráfica de 36 meses — Ricardo López Reyero */
 (function () {
   var _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
-  var ING = [248807, 254980, 189197, 281095, 370182, 462699, 516254, 518566, 481714, 482426, 505452, 906573, 1266446, 1055357, 516642, 541050, 589867, 614275, 589867, 516642, 516642, 516642, 541050, 979336, 1361492, 1130393, 553497, 580209, 633632, 660344, 633632, 553497, 553497, 553497, 580209, 1059375], EB = [-77411, 33435, -84631, -58001, -36923, -13714, -2001, -3134, 15652, 16013, 21966, 143950, 295360, 236877, 24282, 30370, 42545, 48633, 42545, 24282, 24282, 24282, 30370, 163325, 320669, 256857, 32982, 39613, 52876, 59507, 52876, 32982, 32982, 32982, 39613, 184638];
-  var W = 720, H = 300, izq = 46, aba = 34, arr = 10, n = ING.length, max = 1400000, min = -200000;
+  var ING = [386464, 411231, 212533, 310391, 406931, 506725, 565100, 567860, 527827, 529250, 554743, 990800, 1495922, 1270056, 566987, 593326, 646005, 672345, 646005, 566987, 566987, 566987, 593326, 1068936, 1597988, 1350634, 606932, 635768, 693440, 722276, 693440, 606932, 606932, 606932, 635768, 1154886], EB = [26976, 143709, -61456, -29895, -2553, 26763, 42386, 41378, 57045, 57766, 65649, 214754, 469403, 397391, 68906, 76720, 92348, 100162, 92348, 68906, 68906, 68906, 76720, 239049, 501137, 422444, 80368, 88899, 105959, 114489, 105959, 80368, 80368, 80368, 88899, 265773];
+  var W = 720, H = 300, izq = 46, aba = 34, arr = 10, n = ING.length, max = 1600000, min = -200000;
   var y = function (v) { return arr + (H - arr - aba) * (1 - (v - min) / (max - min)); };
   var paso = (W - izq) / n, s = '';
-  [0, 500000, 1000000].forEach(function (v) {
+  [0, 500000, 1000000, 1500000].forEach(function (v) {
+    if (v > max) return;
     s += '<line x1="' + izq + '" x2="' + W + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + (v ? '#c8c8c8' : '#111') + '" stroke-width="1"/>' +
       '<text x="' + (izq - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + (v ? '$' + v / 1e6 + ' M' : '$0') + '</text>';
   });
@@ -247,7 +285,7 @@
     if (a) s += '<line x1="' + x + '" x2="' + x + '" y1="' + arr + '" y2="' + (H - aba + 6) + '" stroke="#111" stroke-dasharray="3 4"/>';
     s += '<text x="' + (x + 6) + '" y="' + (H - 10) + '">' + t + '</text>';
   });
-  document.getElementById('grafica').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Ingresos y EBITDA de los 36 meses. Los ingresos suben de 250 mil pesos al mes a picos de 1.3 millones cada fin de año.">' + s + '</svg>';
+  document.getElementById('grafica').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Ingresos y EBITDA de los 36 meses, con picos cada fin de año.">' + s + '</svg>';
   void _RLR; void _k; void _rev;
 })();
 </script>

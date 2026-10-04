@@ -189,7 +189,7 @@ export const ajustes = {
         ${S.productos.map((p) => html`<tr><th>${campo('productos', p.clave, 'nombre', p.nombre)}</th><td>${campo('productos', p.clave, 'piezas_caja', p.piezas_caja, { tipo: 'number', paso: '1' })}</td>
           <td>${campo('productos', p.clave, 'precio_dist', p.precio_dist, { tipo: 'number' })}</td><td>${campo('productos', p.clave, 'precio_publico', p.precio_publico, { tipo: 'number' })}</td>
           <td>${campo('productos', p.clave, 'lleva_vaso', p.lleva_vaso, { tipo: 'checkbox' })}</td><td>${campo('productos', p.clave, 'activo', p.activo, { tipo: 'checkbox' })}</td></tr>`)}</tbody></table></div>
-        <p class="tenue">Los precios al distribuidor llevan IVA y salen del modelo (escenario Optimizado). Cambiarlos aquí cambia los pedidos nuevos, no los que ya existen.</p></section>
+        <p class="tenue">Los precios al distribuidor llevan IVA y salen del modelo (escenario Rentable). Cambiarlos aquí cambia los pedidos nuevos, no los que ya existen.</p></section>
       <section class="bloque doble"><h2>Quién entra al tablero</h2>
         <div class="tabla-caja"><table class="tabla ${admin ? 'editable' : ''}"><thead><tr><th>Correo</th><th>Nombre</th><th>Acceso</th><th></th></tr></thead><tbody>
           ${S.usuarios.map((u) => html`<tr><th>${u.correo}</th><td>${admin ? campo('usuarios', u.correo, 'nombre', u.nombre) : u.nombre}</td>

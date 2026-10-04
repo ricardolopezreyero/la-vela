@@ -39,7 +39,7 @@ for linea in (RAIZ / "docs" / "05-checklist-proyecto.md").read_text(encoding="ut
 
 for linea in (RAIZ / "docs" / "12-riesgos-y-supuestos.md").read_text(encoding="utf-8").split("\n"):
     m = re.match(r"\| (\d+) \| (.+?) \| (Alto|Medio) \| (.+?) \|", linea)
-    if m:
+    if m and int(m.group(1)) <= 20:  # los riesgos nuevos van al final (EXTRAS), para no recorrer los números de tarea
         n, supuesto, impacto, como = int(m.group(1)), limpio(m.group(2)), m.group(3), limpio(m.group(4))
         fase = 2 if n in (5, 6, 10, 15, 18) else 3 if n == 17 else 1
         tareas.append((f"Validar: {supuesto[0].lower() + supuesto[1:]}", "Validar", fase, "Alta" if impacto == "Alto" else "Media", como))
@@ -53,6 +53,11 @@ for t, nota in [
     ("Decidir la empresa dueña de la marca y los registros", "Va junto con el acuerdo de socios."),
 ]:
     tareas.append((t, "Protección", 1, "Alta", nota))
+
+# Lo que se agregó después: siempre al final
+tareas.append(("Validar: el precio de la Semanal, con un piloto a dos precios", "Validar", 2, "Alta", "Mitad de las tiendas con la Semanal a $49 y mitad a $55. Medir piezas por tienda y cuántos regresan por el cartucho."))
+tareas.append(("Cerrar 10 pedidos corporativos para noviembre y 10 para diciembre", "Comercialización", 2, "Alta", "Es lo que más deja por pieza. Sale de la red de colegios, universidades y parques industriales; cerrar antes del 15 de noviembre."))
+tareas.append(("Poner el QR de personalizadas en el exhibidor", "Comercialización", 2, "Media", "El plan supone que 10% de las piezas son personalizadas: el QR abre el pedido por WhatsApp."))
 
 for i, (titulo, sec, fase, prio, notas) in enumerate(tareas, 1):
     sql.append(f"INSERT OR IGNORE INTO tareas (id, titulo, seccion, fase, prioridad, notas, creada) VALUES ({i}, {q(titulo)}, {q(sec)}, {fase}, {q(prio)}, {q(notas)}, {q(AHORA)});")
@@ -115,10 +120,10 @@ PRUEBAS = [(1, f"Masiva · {n}", d, 168) for n, d in [
 for i, (receta, nombre, detalle, meta) in enumerate(PRUEBAS, 1):
     sql.append(f"INSERT OR IGNORE INTO pruebas (id, receta_id, nombre, detalle, meta_horas, creada) VALUES ({i}, {receta}, {q(nombre)}, {q(detalle)}, {meta}, {q(AHORA)});")
 
-# ───────── Catálogo, inventario y ajustes (del Excel, escenario Optimizado) ─────────
+# ───────── Catálogo, inventario y ajustes (del Excel, escenario Rentable) ─────────
 for i, (clave, nombre, dist, pub, vaso) in enumerate([
-    ("semanal", "Semanal (vaso + cartucho)", 29.69, 49, 1), ("cartucho", "Cartucho (repuesto)", 20.60, 34, 0),
-    ("temporada", "Temporada", 39.38, 65, 1), ("personalizada", "Personalizada", 59.98, 99, 1),
+    ("semanal", "Semanal (vaso + cartucho)", 33.32, 55, 1), ("cartucho", "Cartucho (repuesto)", 20.60, 34, 0),
+    ("temporada", "Temporada", 41.81, 69, 1), ("personalizada", "Personalizada", 59.98, 99, 1),
 ], 1):
     sql.append(f"INSERT OR IGNORE INTO productos (clave, nombre, piezas_caja, precio_dist, precio_publico, lleva_vaso, orden) VALUES ({q(clave)}, {q(nombre)}, 12, {dist}, {pub}, {vaso}, {i});")
 for clave, nombre, unidad, costo in [

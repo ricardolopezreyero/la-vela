@@ -24,6 +24,7 @@ Los estimados que más mueven el resultado están en amarillo en el Excel. Valid
 | 18 | La competencia baja precio | Medio | Monitoreo mensual |
 | 19 | Cartucho retornable: vueltas, tasa de retorno, estética | Alto | Prototipo + piloto |
 | 20 | Afirmaciones publicitarias ("la que más dura", "100% reciclable") | Medio | Solo publicar lo comprobable |
+| 21 | Precio de la Semanal: el modelo supone que a $55 se vende igual que a $49 | Alto | Piloto con dos precios: mitad de las tiendas con cada uno |
 
 ## Errores ya corregidos
 

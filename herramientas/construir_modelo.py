@@ -538,7 +538,7 @@ pr.freeze_panes = "B6"
 # ── 9. Escenario 3 · Rentable: las mismas piezas, mejor cobradas y mejor vendidas ──
 re_ = wb.create_sheet("Rentable", index=wb.sheetnames.index("Supuestos") + 1)
 re_.sheet_view.showGridLines = False
-titulo(re_, "El escenario Rentable", "Es el Optimizado con doce cambios. Ninguno toca el costo ni el volumen de tiendas: suben dos precios, cambia la mezcla y crecen los canales donde no hay intermediario. Se activa con un 3 en Supuestos D5.")
+titulo(re_, "El escenario Rentable", "Es el plan vigente. Parte del Optimizado y le cambia doce supuestos; ninguno toca el costo ni el volumen de tiendas: suben dos precios, cambia la mezcla y crecen los canales donde no hay intermediario. Es el 3 de Supuestos D5.")
 re_.column_dimensions["A"].width = 50
 for col in "BCDE":
     re_.column_dimensions[col].width = 17
@@ -628,6 +628,7 @@ sup["B5"] = "ESCENARIO DE COSTOS Y PRECIOS (1 = Base: lo que platicamos · 2 = O
 sup["C5"] = "1 / 2 / 3"
 sup["F5"] = '=CHOOSE(D5,"Base","Optimizado","Rentable")'
 sup["G5"] = "Cambia este número y todo el modelo se recalcula. El 3 usa los costos del Optimizado y los cambios de la hoja Rentable."
+sup["D5"] = 3  # el plan vigente es el Rentable
 wb["Resumen"]["A2"] = '="Escenario activo: "&CHOOSE(sel_costos,"Base (lo que platicamos)","Optimizado","Rentable")&" · Volumen: "&CHOOSE(sel_vol,"Conservador","Medio","Alto")'
 
 # Pestañas: negras las que se leen, grises las de trabajo
@@ -636,4 +637,6 @@ for ws in wb:
 wb.active = 0
 wb.properties.creator = _RLR; wb.properties.title = "La Vela · Modelo de negocio v4"; wb.properties.keywords = f"{_k} {_rev}"
 wb.save(DESTINO)
-print("guardado", DESTINO)
+from hoja import recalcular
+recalcular(DESTINO)
+print("guardado y recalculado", DESTINO)
