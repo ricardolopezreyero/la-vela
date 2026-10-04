@@ -1,0 +1,231 @@
+<!doctype html>
+<!-- RLR · La Vela, como Dios manda — Ricardo López Reyero · Torreón, Coahuila · octubre 2026 -->
+<html lang="es-MX" data-k="eye" data-rev="181218">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Vela, como Dios manda</title>
+<meta name="description" content="Una veladora mexicana hecha con ingeniería: diseñada para durar lo más posible, se rellena con un cartucho retornable y el vaso se queda en tu casa como vaso.">
+<meta name="author" content="Ricardo López Reyero">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="La Vela, como Dios manda">
+<meta property="og:description" content="Hecha para durar lo más posible, rellenarse y quedarse en tu casa como vaso.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://vela.capitaltorreon.com/">
+<link rel="canonical" href="https://vela.capitaltorreon.com/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="estilos.css">
+<link rel="modulepreload" href="vendor/three.module.min.js">
+</head>
+<body>
+
+<header class="barra">
+  <div class="caja">
+    <a class="marca" href="#inicio" aria-label="La Vela, inicio">
+      <svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.5 6 4 7.5 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>
+      La Vela
+    </a>
+    <nav aria-label="Secciones">
+      <a href="#como">Cómo funciona</a>
+      <a href="#cartucho">El cartucho</a>
+      <a href="#casa">En casa</a>
+      <a href="#ganan">Todos ganan</a>
+      <a class="siempre" href="#distribuir">Distribuir</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- RLR · inicio: lo que es, y la vela en 3D -->
+<section class="negra inicio" id="inicio">
+  <div class="caja">
+    <div class="dicho">
+      <p class="etiqueta">Veladora mexicana · hecha con ingeniería</p>
+      <h1>La vela, como Dios manda.</h1>
+      <p class="grande">Hecha para durar lo más posible, rellenarse y quedarse en tu casa como vaso.</p>
+      <div class="botones">
+        <a class="boton lleno" href="#como">Cómo funciona</a>
+        <a class="boton" href="#distribuir">Quiero distribuir</a>
+      </div>
+    </div>
+    <div class="escena">
+      <canvas id="vela" role="img" aria-label="Modelo en tres dimensiones de la vela: un vaso de vidrio con un cartucho de aluminio, cera blanca, mecha y flama."></canvas>
+      <div class="estados" role="group" aria-label="Ver la vela">
+        <button type="button" data-estado="encendida" aria-pressed="true">1 · Encendida</button>
+        <button type="button" data-estado="cartucho" aria-pressed="false">2 · Sale el cartucho</button>
+        <button type="button" data-estado="vaso" aria-pressed="false">3 · Vaso de agua</button>
+      </div>
+      <p class="pie-escena" id="pie-escena" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="somos">
+  <div class="caja dos">
+    <div>
+      <p class="etiqueta">Qué somos</p>
+      <p class="cita">Pregunté cuál era el producto que más se vendía. La respuesta fue: «las velas».</p>
+    </div>
+    <div>
+      <p class="grande">Somos una marca mexicana que decidió hacer bien algo que se hace todos los días: la vela. Con ingeniería, buena cera y un vaso que no se tira.</p>
+      <p>Todo empezó en la bodega de un distribuidor que surte a cerca de mil tiendas y misceláneas. En millones de hogares mexicanos una vela acompaña un rezo, una promesa, una ausencia o una fiesta. Y sin embargo se ha fabricado como si no importara: vasos que se tiran, ceras que no duran lo que prometen, llamas que ahúman. Decidimos hacerla como siempre debió de ser.</p>
+    </div>
+  </div>
+</section>
+
+<section class="seccion gris" id="como">
+  <div class="caja">
+    <p class="etiqueta">Cómo funciona</p>
+    <h2>Cuatro pasos. Un solo vaso.</h2>
+    <ol class="pasos">
+      <li><span class="n">1</span><div><h3>Enciéndela.</h3><p>Una mecha diseñada para aprovechar cada gramo de cera.</p></div></li>
+      <li><span class="n">2</span><div><h3>Rellénala.</h3><p>Cuando se acaba, compras solo el repuesto. El vaso sigue contigo.</p></div></li>
+      <li><span class="n">3</span><div><h3>Úsala de vaso.</h3><p>Cuando decidas, se queda en tu mesa para el agua de todos los días.</p></div></li>
+      <li><span class="n">4</span><div><h3>Recíclala.</h3><p>Vaso y base son 100% reciclables.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- RLR · el corazón del modelo: el repuesto que regresa a la tienda -->
+<section class="seccion" id="cartucho">
+  <div class="caja">
+    <p class="etiqueta">El repuesto</p>
+    <h2>Un cartucho que va y regresa, como el refresco retornable.</h2>
+    <p class="grande">El vaso se compra una vez. Lo que se compra después es el cartucho: una copa de aluminio con la cera y la mecha ya puestas.</p>
+    <ol class="pasos">
+      <li><span class="n">1</span><div><h3>Entra completo.</h3><p>Metes el cartucho al vaso y lo prendes. La cera arde dentro del aluminio y el vaso no se ensucia.</p></div></li>
+      <li><span class="n">2</span><div><h3>Regresa vacío.</h3><p>Lo llevas a la misma tienda y te descuentan el depósito en el siguiente.</p></div></li>
+      <li><span class="n">3</span><div><h3>Viaja en la ruta.</h3><p>La tienda junta los vacíos y el distribuidor se los lleva en su visita de siempre.</p></div></li>
+      <li><span class="n">4</span><div><h3>Se vuelve a llenar.</h3><p>Mecha nueva, cera nueva. Cuando ya no sirve, el aluminio se recicla.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="seccion negra" id="dura">
+  <div class="caja dos">
+    <div>
+      <p class="etiqueta">Por qué dura más</p>
+      <h2>No adivinamos: medimos.</h2>
+    </div>
+    <div>
+      <p class="grande">Probamos mecha, cera y vaso hasta encontrar la combinación que da la mayor cantidad de horas por gramo.</p>
+      <p>Cada vela de prueba se pesa antes de encenderla y al terminar cada sesión. Así sabemos cuántos gramos quema por hora, y no lo que creemos que quema. Cada lote se pesa y se prueba antes de salir.</p>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="casa">
+  <div class="caja">
+    <p class="etiqueta">En casa</p>
+    <h2>De noche es una vela. De día es un vaso.</h2>
+    <div class="casas">
+      <figure>
+        <canvas id="repisa" role="img" aria-label="Render: la vela encendida sobre una repisa, de noche, junto a un retrato enmarcado, unos libros y un florero."></canvas>
+        <figcaption><b>En la repisa.</b>Encendida junto al retrato de siempre. Render 3D del modelo.</figcaption>
+      </figure>
+      <figure>
+        <canvas id="mesa" role="img" aria-label="Render: el mismo vaso, ya sin cartucho y lleno de agua, sobre la mesa de día, junto a una jarra y un plato con pan."></canvas>
+        <figcaption><b>En la mesa.</b>El mismo vaso, sin el cartucho, con el agua de todos los días. Render 3D del modelo.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="seccion gris" id="planeta">
+  <div class="caja dos">
+    <div>
+      <p class="etiqueta">Bueno para el planeta</p>
+      <h2>Un vaso que se rellena es un vaso que no termina en la basura.</h2>
+    </div>
+    <div>
+      <p class="grande">Menos vidrio tirado, menos desperdicio, misma luz.</p>
+      <p>El vaso es de vidrio y el cartucho es de aluminio: los dos se reciclan. La cera es lo único que se gasta, porque es lo que se quema.</p>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="ganan">
+  <div class="caja">
+    <p class="etiqueta">Todos ganan</p>
+    <h2>Así debió ser siempre.</h2>
+    <div class="ganan">
+      <div><h3>Tú</h3><p>Recibes más horas de luz por tu dinero, y un vaso que se queda en casa.</p></div>
+      <div><h3>La tiendita de tu colonia</h3><p>Gana más y te ve regresar: el repuesto se compra donde se compró el vaso.</p></div>
+      <div><h3>El distribuidor</h3><p>Mueve un producto del que se siente orgulloso, y que vuelve a pedirse solo.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="seccion gris" id="donde">
+  <div class="caja dos">
+    <div>
+      <p class="etiqueta">Dónde encontrarla</p>
+      <h2>En la tienda de tu colonia.</h2>
+    </div>
+    <div>
+      <p class="grande">Búscala en las tiendas de tu colonia. ¿No la ves? Pídesela a tu tendero.</p>
+      <p>Estamos en pruebas de encendido. Primero medimos; después llega a las tiendas.</p>
+    </div>
+  </div>
+</section>
+
+<section class="seccion negra" id="distribuir">
+  <div class="caja">
+    <p class="etiqueta">Para distribuidores</p>
+    <h2>¿Tienes rutas, tiendas o clientes?</h2>
+    <p class="grande">La veladora es de lo que más se vende en una tienda. Hicimos una que se rellena y que regresa al cliente a la misma tienda.</p>
+    <p class="aviso">La página para distribuidores abre pronto.</p>
+  </div>
+</section>
+</main>
+
+<footer class="pie">
+  <div class="caja">
+    <span>La Vela · Torreón, Coahuila, México</span>
+    <span>Octubre de 2026</span>
+  </div>
+</footer>
+
+<script type="module">
+/* RLR · arranque del 3D — Ricardo López Reyero */
+import { escenario, renderRepisa, renderMesa } from './vela3d.js';
+const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
+
+const PIES = {
+  encendida: 'Arrástrala para girarla. La cera arde dentro del cartucho de aluminio; el vidrio no se mancha.',
+  cartucho: 'Cuando se acaba, el cartucho sale completo y regresa a la tienda. Entra uno nuevo.',
+  vaso: 'Sin el cartucho, es un vaso limpio: el de agua de todos los días.',
+};
+const pie = document.getElementById('pie-escena');
+const botones = [...document.querySelectorAll('.estados button')];
+const pintarEstado = (e) => {
+  pie.textContent = PIES[e];
+  botones.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.estado === e)));
+};
+pintarEstado('encendida');
+
+try {
+  const vela = escenario(document.getElementById('vela'), { alCambiar: pintarEstado });
+  botones.forEach((b) => b.addEventListener('click', () => vela.poner(b.dataset.estado)));
+  window.__vela = vela;
+  // Los renders de casa se pintan cuando se acercan a la pantalla
+  const pendientes = { repisa: renderRepisa, mesa: renderMesa };
+  const ojo = new IntersectionObserver((vistas) => {
+    for (const v of vistas) {
+      if (!v.isIntersecting) continue;
+      ojo.unobserve(v.target);
+      try { pendientes[v.target.id](v.target); } catch (err) { console.error(err); }
+    }
+  }, { rootMargin: '600px' });
+  ojo.observe(document.getElementById('repisa'));
+  ojo.observe(document.getElementById('mesa'));
+} catch (err) {
+  console.error(err);
+  pie.textContent = 'Tu navegador no pudo dibujar la vela en 3D.';
+  document.querySelector('.estados').hidden = true;
+}
+void _RLR; void _k; void _rev;
+</script>
+<!-- RLR · Ricardo López Reyero -->
+</body>
+</html>

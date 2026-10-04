@@ -1,0 +1,146 @@
+/* RLR · La Vela — guía de estilos en código (ver docs/14-guia-de-estilos.md)
+   Ricardo López Reyero · blanco y negro, nada más. */
+
+:root {
+  /* Color: negro, blanco y cuatro grises. Ningún otro. */
+  --negro: #000;
+  --tinta: #111;
+  --gris-700: #444;
+  --gris-500: #6b6b6b;
+  --gris-300: #c8c8c8;
+  --gris-100: #f3f3f3;
+  --blanco: #fff;
+
+  /* Letra: una con patines para decir, una sin patines para explicar */
+  --titulos: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --texto: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Espacio: múltiplos de 8 */
+  --e1: 8px; --e2: 16px; --e3: 24px; --e4: 32px; --e6: 48px; --e8: 64px; --e12: 96px;
+  --ancho: 1120px;
+  --lectura: 62ch;
+  --linea: 1px solid var(--tinta);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { font-size: 18px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (min-width: 900px) { html { font-size: 20px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0; background: var(--blanco); color: var(--tinta);
+  font-family: var(--texto); line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: var(--titulos); font-weight: 400; line-height: 1.08; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(2.6rem, 7.2vw, 5rem); }
+h2 { font-size: clamp(1.9rem, 4.6vw, 3rem); }
+h3 { font-size: 1.3rem; line-height: 1.2; }
+p { margin: 0; max-width: var(--lectura); text-wrap: pretty; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+
+.caja { width: 100%; max-width: var(--ancho); margin: 0 auto; padding: 0 var(--e3); }
+.seccion { padding: var(--e8) 0; border-top: var(--linea); }
+@media (min-width: 900px) { .seccion { padding: var(--e12) 0; } }
+.seccion > .caja > * + * { margin-top: var(--e3); }
+.negra { background: var(--negro); color: var(--blanco); border-top: 0; }
+.gris { background: var(--gris-100); }
+
+/* Etiqueta: la palabra chica que nombra cada sección */
+.etiqueta {
+  font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600;
+  color: var(--gris-500);
+}
+.negra .etiqueta { color: var(--gris-300); }
+.grande { font-size: 1.25rem; line-height: 1.5; }
+
+/* Botones: dos, y no más */
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 52px;
+  padding: 0 var(--e3); border: 2px solid currentColor; border-radius: 0;
+  font: 600 1rem/1 var(--texto); text-decoration: none; cursor: pointer;
+  background: transparent; color: inherit; transition: background .15s, color .15s;
+}
+.boton.lleno { background: var(--tinta); color: var(--blanco); border-color: var(--tinta); }
+.negra .boton.lleno { background: var(--blanco); color: var(--negro); border-color: var(--blanco); }
+.boton:hover { background: var(--gris-700); color: var(--blanco); border-color: var(--gris-700); }
+.negra .boton:hover { background: var(--gris-300); color: var(--negro); border-color: var(--gris-300); }
+.botones { display: flex; flex-wrap: wrap; gap: var(--e2); }
+
+/* Barra de arriba */
+.barra { background: var(--negro); color: var(--blanco); }
+.barra .caja { display: flex; align-items: center; justify-content: space-between; gap: var(--e3); min-height: 64px; }
+.marca { font-family: var(--titulos); font-size: 1.35rem; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
+.marca svg { width: 15px; height: 24px; }
+.barra nav { display: flex; gap: var(--e3); font-size: 0.85rem; }
+.barra nav a { text-decoration: none; color: var(--gris-300); padding: var(--e1) 0; }
+.barra nav a:hover { color: var(--blanco); text-decoration: underline; }
+@media (max-width: 760px) { .barra nav a:not(.siempre) { display: none; } }
+
+/* Inicio: texto y vela */
+.inicio { padding: var(--e4) 0 var(--e6); }
+.inicio .caja { display: grid; gap: var(--e4); align-items: center; }
+.inicio .dicho > * + * { margin-top: var(--e3); }
+.inicio .dicho p { color: var(--gris-300); }
+.escena { position: relative; }
+.escena canvas {
+  display: block; width: 100%; height: min(68vh, 560px); touch-action: pan-y; cursor: grab;
+  filter: grayscale(1);
+}
+.escena canvas:active { cursor: grabbing; }
+.estados { display: flex; border: 1px solid var(--gris-700); margin-top: var(--e2); }
+.estados button {
+  flex: 1; min-height: 48px; padding: 0 var(--e1); border: 0; border-left: 1px solid var(--gris-700);
+  background: transparent; color: var(--gris-300); font: 600 0.8rem/1.15 var(--texto); cursor: pointer;
+}
+.estados button:first-child { border-left: 0; }
+.estados button[aria-pressed="true"] { background: var(--blanco); color: var(--negro); }
+.pie-escena { margin-top: var(--e2); font-size: 0.85rem; color: var(--gris-300); min-height: 3.2em; max-width: none; }
+@media (min-width: 900px) {
+  .inicio { padding: var(--e6) 0 var(--e8); }
+  .inicio .caja { grid-template-columns: 1.05fr 0.95fr; gap: var(--e8); }
+  .escena canvas { height: min(72vh, 640px); }
+}
+
+/* Pasos numerados */
+.pasos { list-style: none; margin: var(--e6) 0 0; padding: 0; display: grid; gap: 0; border-top: var(--linea); }
+.pasos li { padding: var(--e3) 0; border-bottom: var(--linea); display: grid; grid-template-columns: 3.2rem 1fr; gap: var(--e2); align-items: baseline; }
+.pasos .n { font-family: var(--titulos); font-size: 2.2rem; line-height: 1; }
+.pasos h3 + p { margin-top: var(--e1); color: var(--gris-700); }
+@media (min-width: 900px) {
+  .pasos { grid-template-columns: repeat(4, 1fr); border-top: 0; gap: var(--e4); }
+  .pasos li { display: block; border-top: var(--linea); border-bottom: 0; padding: var(--e3) 0 0; }
+  .pasos .n { display: block; margin-bottom: var(--e3); font-size: 3rem; }
+}
+
+/* Dos columnas: título a la izquierda, texto a la derecha */
+.dos { display: grid; gap: var(--e3); }
+@media (min-width: 900px) { .dos { grid-template-columns: 1fr 1fr; gap: var(--e8); } }
+.dos > div > * + * { margin-top: var(--e3); }
+
+/* Cita */
+.cita { font-family: var(--titulos); font-size: clamp(1.5rem, 3.6vw, 2.3rem); line-height: 1.22; max-width: 24ch; }
+
+/* Renders en casa */
+.casas { display: grid; gap: var(--e4); margin-top: var(--e6); }
+@media (min-width: 900px) { .casas { grid-template-columns: 1fr 1fr; } }
+.casas figure { margin: 0; }
+.casas canvas { display: block; width: 100%; aspect-ratio: 4 / 5; background: var(--gris-300); filter: grayscale(1); }
+.casas figcaption { margin-top: var(--e2); font-size: 0.9rem; color: var(--gris-700); }
+.casas figcaption b { color: var(--tinta); display: block; font-family: var(--titulos); font-weight: 400; font-size: 1.3rem; }
+
+/* Todos ganan */
+.ganan { display: grid; gap: 0; margin-top: var(--e6); border-top: var(--linea); }
+.ganan > div { padding: var(--e3) 0; border-bottom: var(--linea); }
+.ganan h3 + p { margin-top: var(--e1); color: var(--gris-700); }
+@media (min-width: 900px) {
+  .ganan { grid-template-columns: repeat(3, 1fr); }
+  .ganan > div { padding: var(--e4) var(--e4) var(--e4) 0; border-bottom: 0; border-right: var(--linea); }
+  .ganan > div + div { padding-left: var(--e4); }
+  .ganan > div:last-child { border-right: 0; }
+}
+
+.pie { background: var(--negro); color: var(--gris-300); font-size: 0.8rem; padding: var(--e4) 0; }
+.pie .caja { display: flex; flex-wrap: wrap; gap: var(--e1) var(--e3); justify-content: space-between; }
+.aviso { font-size: 0.85rem; color: var(--gris-300); }
+/* RLR */

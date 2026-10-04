@@ -1,0 +1,10 @@
+// RLR · La Vela en vela.capitaltorreon.com — Ricardo López Reyero
+// Sólo publica la carpeta sitio/. Desplegar: npx wrangler deploy
+{
+  "name": "la-vela",
+  "compatibility_date": "2026-09-01",
+  "assets": { "directory": "./sitio" },
+  "routes": [{ "pattern": "vela.capitaltorreon.com", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false
+}
