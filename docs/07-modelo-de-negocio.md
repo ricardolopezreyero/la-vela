@@ -1,6 +1,6 @@
 # 07 · Modelo de negocio
 
-El modelo completo está en [`modelo/La_Vela_Modelo_de_Negocio_v3.xlsx`](../modelo/La_Vela_Modelo_de_Negocio_v3.xlsx): 20 hojas, 36 meses, 5,790 fórmulas (versión 3: estilo en blanco y negro y hojas Cartucho, Distribuidor, Proteccion y Expansion), selectores de escenario en `Supuestos` (D5: Base u Optimizado; D6: Conservador, Medio o Alto).
+El modelo completo está en [`modelo/La_Vela_Modelo_de_Negocio_v4.xlsx`](../modelo/La_Vela_Modelo_de_Negocio_v4.xlsx): 21 hojas, 36 meses, 5,819 fórmulas (versión 4: estilo en blanco y negro y hojas Rentable, Cartucho, Distribuidor, Proteccion y Expansion), selectores de escenario en `Supuestos` (D5: Base, Optimizado o Rentable; D6: Conservador, Medio o Alto).
 
 ## El modelo en una frase
 
@@ -92,6 +92,33 @@ Volumen del canal distribuidor: Conservador 300 tiendas × 5 piezas/semana; Medi
 Optimizado · Medio, promedio mensual del año 2: cada tienda gana ~$508, el distribuidor ~$117 mil, nosotros ~$82 mil de EBITDA.
 
 **El peso del negocio son los gastos fijos (~$109 mil al mes):** dirección y comercial, diseño, atención por WhatsApp, contador, servicios, software, seguros, pruebas y viáticos. Con volumen conservador no se cubren.
+
+## Escenario Rentable (versión 4)
+
+El Optimizado con siete cambios que no tocan el costo ni el número de tiendas. Se activa con un 3 en `Supuestos!D5`; el detalle está en la hoja `Rentable`.
+
+| Palanca | Cambio | Vale al año (año 2) | Tipo |
+|---|---|---|---|
+| Semanal más cara | $49 → $55 | +$244 mil | Decisión |
+| Corporativos | 5 → 10 pedidos en noviembre y diciembre | +$176 mil | Venta |
+| Personalizadas | 7% → 10% de las piezas | +$120 mil | Venta |
+| Temporada más cara | $65 → $69 | +$108 mil | Decisión |
+| Diseño por proyecto | $12 mil → $6 mil al mes | +$97 mil | Decisión |
+| Parroquias, restaurantes y hoteles | El doble | +$52 mil | Venta |
+| Recaudación | El doble de campañas | +$38 mil | Venta |
+
+| | Optimizado · Medio | Rentable · Medio |
+|---|---|---|
+| EBITDA año 1 / 2 / 3 | −$45 mil / $987 mil / $1.14 M | $583 mil / $1.82 M / $2.02 M |
+| Capital máximo | $763 mil | $416 mil |
+| Se recupera | mes 19 (en firme, mes 26) | mes 14 |
+| Flujo acumulado al mes 36 | $499 mil | $1.83 M |
+
+Solo las tres decisiones: año 2 de $1.44 M, recuperación en el mes 15. Rentable con volumen Conservador: año 2 de $599 mil. Con volumen Alto: $4.55 M.
+
+Quedaron fuera: cartucho a $39 (+$208 mil, pero el cliente pagaría ~$223 más al año que con la competencia), margen de tienda a 25% (+$161 mil) y cartucho retornable (+$35 mil). Con las tres, el techo del año 2 es $2.24 M.
+
+**Límite del modelo:** las piezas por tienda no cambian con el precio. El piloto debe correr con dos precios de Semanal ($49 y $55) para medirlo.
 
 ## Palancas de eficiencia (impacto anual estimado, año 2, Optimizado · Medio)
 

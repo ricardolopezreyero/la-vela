@@ -19,7 +19,7 @@ _RLR = "Ricardo López Reyero"; _k = "EYE"; _rev = 181218  # RLR
 
 RAIZ = Path(__file__).resolve().parent.parent
 ORIGEN = RAIZ / "modelo" / "Modelo_Negocio_Velas_Rinde.xlsx"
-DESTINO = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "modelo" / "La_Vela_Modelo_de_Negocio_v3.xlsx"
+DESTINO = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "modelo" / "La_Vela_Modelo_de_Negocio_v4.xlsx"
 
 # ── Guía de estilos (docs/14): negro, blanco y grises ──
 NEGRO, TINTA, G700, G500, G300, G100, BLANCO = "000000", "111111", "444444", "6B6B6B", "C8C8C8", "F3F3F3", "FFFFFF"
@@ -117,7 +117,8 @@ for hoja, ref in (("Supuestos", "B19"), ("Supuestos", "B20"), ("Costeo", "C4"), 
 ini = wb["Inicio"]
 ini["A1"] = "Modelo de negocio · La Vela"
 ini["A2"] = ("Veladora diseñada para durar, con cartucho retornable, distribuida en tiendas y misceláneas a través de "
-             "distribuidores con rutas, más canales directos y línea premium. Modelo a 36 meses en pesos mexicanos, con el plan de protección y de crecimiento por países. Versión 3 · octubre de 2026.")
+             "distribuidores con rutas, más canales directos y línea premium. Modelo a 36 meses en pesos mexicanos, con el plan de protección, el de crecimiento por países y el escenario Rentable. Versión 4 · octubre de 2026.")
+ini["A5"] = "1. En 'Supuestos', celda D5: elige 1 = Base (lo que platicamos), 2 = Optimizado o 3 = Rentable. Celda D6: volumen Conservador, Medio o Alto."
 ini["A6"] = "2. Cambia cualquier celda con marco. Todo se recalcula solo. Las de marco grueso son las que más mueven el resultado."
 ini["A8"] = ini["A8"].value  # sin cambio
 for f in range(9, 40):
@@ -134,6 +135,7 @@ ini["A17"] = "Hojas"; ini["A17"].font = Font(name="Arial", sz=11, b=True)
 HOJAS = [
     ("Resumen", "Resultados por año, capital, punto de equilibrio y comparación Base vs Optimizado."),
     ("Supuestos", "Todos los datos editables con su fuente. Selectores de escenario."),
+    ("Rentable", "NUEVA. El escenario 3: las palancas que casi duplican la utilidad, cuánto vale cada una y de qué depende."),
     ("Costeo", "Costo por pieza de cada producto, de la cera a la caja."),
     ("Cartucho", "NUEVA. El cartucho retornable: cuánto cuesta cada llenado, cuántos hay que comprar y qué cambia contra la funda."),
     ("Cascada", "Quién gana qué en cada pieza, a dónde se va cada peso y economía de canales directos."),
@@ -159,7 +161,7 @@ for f, (a, b) in enumerate(HOJAS, 18):
     celda(ini, f"A{f}", a, negrita=True); celda(ini, f"B{f}", b)
     ini[f"A{f}"].hyperlink = f"#'{a}'!A1"
     ini[f"A{f}"].font = Font(name="Arial", sz=10, b=True, color=NEGRO, u="single")
-for f, t in ((38, "Página del modelo: https://vela.capitaltorreon.com/modelo"), (39, "Ing. Ricardo López Reyero · Torreón, Coahuila")):
+for f, t in ((39, "Página del modelo: https://vela.capitaltorreon.com/modelo"), (40, "Ing. Ricardo López Reyero · Torreón, Coahuila")):
     celda(ini, f"A{f}", t, nota=True); ini[f"A{f}"].alignment = Alignment(wrap_text=False)
 
 sup = wb["Supuestos"]
@@ -532,10 +534,106 @@ for i, t in enumerate([
     celda(pr, f"A{i}", t)
 pr.freeze_panes = "B6"
 
+
+# ── 9. Escenario 3 · Rentable: las mismas piezas, mejor cobradas y mejor vendidas ──
+re_ = wb.create_sheet("Rentable", index=wb.sheetnames.index("Supuestos") + 1)
+re_.sheet_view.showGridLines = False
+titulo(re_, "El escenario Rentable", "Es el Optimizado con doce cambios. Ninguno toca el costo ni el volumen de tiendas: suben dos precios, cambia la mezcla y crecen los canales donde no hay intermediario. Se activa con un 3 en Supuestos D5.")
+re_.column_dimensions["A"].width = 50
+for col in "BCDE":
+    re_.column_dimensions[col].width = 17
+re_.column_dimensions["F"].width = 92
+seccion(re_, 4, "LAS PALANCAS", 6)
+encabezado(re_, 5, ["Palanca", "Optimizado", "Rentable", "Unidad", "Vale al año (estimado)", "De qué depende"])
+PAL = [
+    # fila en Supuestos, nombre, valor rentable, formato, unidad, fórmula de impacto, de qué depende
+    (19, "Precio de la Semanal (vaso + cartucho)", 55, F_PESOS, "$ al público",
+     "=(C{f}-B{f})*(1-m_tienda)*(1-m_dist)/(1+iva)*Palancas!B9",
+     "DECISIÓN. El vaso se compra una vez: el cliente paga $6 más una sola vez y su gasto del año casi no cambia. Probar en el piloto: mitad de las tiendas a $49 y mitad a $55."),
+    (21, "Precio de la Temporada", 69, F_PESOS, "$ al público",
+     "=(C{f}-B{f})*(1-m_tienda)*(1-m_dist)/(1+iva)*Palancas!B11",
+     "DECISIÓN. Edición limitada con manga propia; no tiene comparación directa en el anaquel."),
+    (84, "Personalizadas en la mezcla normal", 0.10, F_PCT, "% de las piezas",
+     "=(C{f}-B{f})*Palancas!B8*(Cascada!E14-Cascada!B14)",
+     "VENTA. Deja casi 5 veces lo que una Semanal. Se empuja con un QR en el exhibidor que abre el pedido por WhatsApp."),
+    (81, "Semanal en la mezcla normal", "=B{f}-(C{a}-B{a})", F_PCT, "% de las piezas", None, "Baja lo mismo que suben las personalizadas, para que la mezcla siga sumando 100%."),
+    (88, "Personalizadas en temporada alta", 0.10, F_PCT, "% de las piezas", None, "Incluido en la fila de personalizadas."),
+    (85, "Semanal en temporada alta", "=B{f}-(C{a}-B{a})", F_PCT, "% de las piezas", None, "Baja lo mismo que suben las personalizadas."),
+    (107, "Pedidos corporativos al mes (noviembre y diciembre)", 10, F_ENTERO, "pedidos",
+     "=(C{f}-B{f})*pzas_pedido_corp*2*Cascada!E41",
+     "VENTA. Es el canal que más deja por pieza. Sale de tu red: colegios, universidades y parques industriales. Cerrar antes del 15 de noviembre."),
+    (104, "Campañas de recaudación al mes (temporada normal)", 4, F_ENTERO, "campañas",
+     "=(C{f}-B{f})*pzas_campana*9*Cascada!E40", "VENTA. Colegios y parroquias venden y se quedan 30%."),
+    (105, "Campañas de recaudación al mes (temporada alta)", 8, F_ENTERO, "campañas",
+     "=(C{f}-B{f})*pzas_campana*3*Cascada!E40", "VENTA. Posadas, kermeses y Día de Muertos."),
+    (93, "Parroquias de la diócesis que adoptan el repuesto", 0.5, F_PCT, "% de 51",
+     "=(C{f}-B{f})*parroquias_total*rep_sem_parr*52*Cascada!E38", "VENTA. Entrar por la oficina diocesana, con un piloto de 3."),
+    (97, "Restaurantes y hoteles con contrato", 40, F_ENTERO, "clientes",
+     "=(C{f}-B{f})*mesas_rest*horas_noche*noches_mes/horas_gar*12*Cascada!E39", "VENTA. Repuestos por suscripción."),
+    (136, "Diseño y contenido: sueldo mensual", 6000, F_PESOS0, "$ al mes",
+     "=(B{f}-C{f})*carga_social*12", "DECISIÓN. Diseño por proyecto en lugar de plaza fija, hasta que el volumen lo pida."),
+]
+f0 = 6
+fila_de = {}
+for i, (r, nombre_, valor, fmt, unidad, impacto, depende) in enumerate(PAL):
+    f = f0 + i
+    fila_de[r] = f
+for i, (r, nombre_, valor, fmt, unidad, impacto, depende) in enumerate(PAL):
+    f = f0 + i
+    celda(re_, f"A{f}", nombre_, negrita=bool(impacto)); celda(re_, f"B{f}", f"=Supuestos!E{r}", fmt)
+    if isinstance(valor, str):
+        a = fila_de[84] if r == 81 else fila_de[88]
+        celda(re_, f"C{f}", valor.format(f=f, a=a), fmt)
+    else:
+        celda(re_, f"C{f}", valor, fmt, clave=True)
+    celda(re_, f"D{f}", unidad)
+    if impacto: celda(re_, f"E{f}", impacto.format(f=f), F_PESOS0)
+    celda(re_, f"F{f}", depende, nota=True); re_[f"F{f}"].alignment = Alignment(wrap_text=False)
+    sup[f"F{r}"] = f"=CHOOSE(sel_costos,D{r},E{r},Rentable!$C${f})"
+FT = f0 + len(PAL)
+celda(re_, f"A{FT}", "TODAS JUNTAS, AL AÑO", resultado=True)
+for col in "BCD":
+    re_[f"{col}{FT}"].fill = relleno(TINTA)
+celda(re_, f"E{FT}", f"=SUM(E{f0}:E{FT-1})", F_PESOS0, resultado=True)
+celda(re_, f"A{FT+1}", "Es un estimado con las piezas del año 2. El número exacto sale al poner 3 en Supuestos D5 y leer la hoja Resumen.", nota=True)
+re_[f"A{FT+1}"].alignment = Alignment(wrap_text=False)
+
+Q = FT + 3
+seccion(re_, Q, "LAS QUE QUEDARON FUERA DEL ESCENARIO, Y POR QUÉ", 6)
+encabezado(re_, Q + 1, ["Palanca", "Hoy", "Sería", "Unidad", "Valdría al año (estimado)", "Por qué no está"])
+celda(re_, f"A{Q+2}", "Cartucho más caro"); celda(re_, f"B{Q+2}", "=Supuestos!E20", F_PESOS); celda(re_, f"C{Q+2}", 39, F_PESOS, entrada=True); celda(re_, f"D{Q+2}", "$ al público")
+celda(re_, f"E{Q+2}", f"=(C{Q+2}-B{Q+2})*(1-m_tienda)*(1-m_dist)/(1+iva)*Palancas!B10", F_PESOS0)
+celda(re_, f"F{Q+2}", "El cliente pagaría unos $223 más al año que con la veladora de la competencia. Solo se sostiene si la prueba demuestra que la nuestra dura más horas que la suya.", nota=True)
+celda(re_, f"A{Q+3}", "Margen de la tienda"); celda(re_, f"B{Q+3}", "=Supuestos!E31", F_PCT); celda(re_, f"C{Q+3}", 0.25, F_PCT, entrada=True); celda(re_, f"D{Q+3}", "% del precio")
+celda(re_, f"E{Q+3}", f"=(B{Q+3}-C{Q+3})*Cascada!B30*(1-m_dist)/(1+iva)*Palancas!B8", F_PESOS0)
+celda(re_, f"F{Q+3}", "Seguiría arriba del 22–23% del refresco, pero la tienda es quien decide si la exhibe. Primero hay que saber cuánto gana hoy con una veladora.", nota=True)
+celda(re_, f"A{Q+4}", "Cartucho retornable con depósito"); celda(re_, f"B{Q+4}", "Funda"); celda(re_, f"C{Q+4}", "Cartucho"); celda(re_, f"D{Q+4}", "Supuestos D184")
+celda(re_, f"E{Q+4}", "=Cartucho!B36", F_PESOS0)
+celda(re_, f"F{Q+4}", "Tiene su propio interruptor. Depende de cuántos cartuchos regresan y de quién se queda con el depósito del que no vuelve.", nota=True)
+for f in range(Q + 2, Q + 5):
+    re_[f"F{f}"].alignment = Alignment(wrap_text=False)
+
+U = Q + 7
+seccion(re_, U, "LO QUE EL MODELO NO SABE", 6)
+for i, t in enumerate([
+    "El modelo deja fijas las piezas por tienda. Si la Semanal a $55 se vende menos que a $49, el efecto baja: por eso se prueba en el piloto con dos precios.",
+    "La Semanal a $55 deja 58% más por pieza: aunque se vendiera un tercio menos de Semanales, se ganaría lo mismo con ellas. Pero cada Semanal que no se vende es un cliente que no compra cartuchos.",
+    "Las palancas de venta (corporativos, recaudación, parroquias, restaurantes, personalizadas) dependen de salir a vender. Si no se logran, queda lo de las decisiones: los dos precios y el diseño por proyecto.",
+], U + 1):
+    celda(re_, f"A{i}", t)
+re_.freeze_panes = "B6"
+
+# El selector ahora tiene tres posiciones
+sup["B5"] = "ESCENARIO DE COSTOS Y PRECIOS (1 = Base: lo que platicamos · 2 = Optimizado · 3 = Rentable)"
+sup["C5"] = "1 / 2 / 3"
+sup["F5"] = '=CHOOSE(D5,"Base","Optimizado","Rentable")'
+sup["G5"] = "Cambia este número y todo el modelo se recalcula. El 3 usa los costos del Optimizado y los cambios de la hoja Rentable."
+wb["Resumen"]["A2"] = '="Escenario activo: "&CHOOSE(sel_costos,"Base (lo que platicamos)","Optimizado","Rentable")&" · Volumen: "&CHOOSE(sel_vol,"Conservador","Medio","Alto")'
+
 # Pestañas: negras las que se leen, grises las de trabajo
 for ws in wb:
-    ws.sheet_properties.tabColor = NEGRO if ws.title in ("Inicio", "Resumen", "Cartucho", "Todos_ganan", "Distribuidor", "Proteccion", "Expansion") else G300
+    ws.sheet_properties.tabColor = NEGRO if ws.title in ("Inicio", "Resumen", "Rentable", "Cartucho", "Todos_ganan", "Distribuidor", "Proteccion", "Expansion") else G300
 wb.active = 0
-wb.properties.creator = _RLR; wb.properties.title = "La Vela · Modelo de negocio v3"; wb.properties.keywords = f"{_k} {_rev}"
+wb.properties.creator = _RLR; wb.properties.title = "La Vela · Modelo de negocio v4"; wb.properties.keywords = f"{_k} {_rev}"
 wb.save(DESTINO)
 print("guardado", DESTINO)

@@ -31,7 +31,7 @@ Este repositorio junta todo lo que hemos aprendido y decidido sobre el proyecto:
 | 13 | [Fuentes](docs/13-fuentes.md) | De dónde salió cada dato |
 | 14 | [Guía de estilos](docs/14-guia-de-estilos.md) | Blanco y negro: color, letra, piezas y la vela en 3D |
 
-El modelo financiero completo (20 hojas, 36 meses; la versión 3 se genera con `python3 herramientas/construir_modelo.py` a partir de la versión 1 y se recalcula con LibreOffice) está en [`modelo/La_Vela_Modelo_de_Negocio_v3.xlsx`](modelo/La_Vela_Modelo_de_Negocio_v3.xlsx).
+El modelo financiero completo (21 hojas, 36 meses; la versión 4 se genera con `python3 herramientas/construir_modelo.py` a partir de la versión 1 y se recalcula con LibreOffice) está en [`modelo/La_Vela_Modelo_de_Negocio_v4.xlsx`](modelo/La_Vela_Modelo_de_Negocio_v4.xlsx).
 
 ## El sitio
 
