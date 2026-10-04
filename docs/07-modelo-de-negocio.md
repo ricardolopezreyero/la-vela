@@ -1,6 +1,6 @@
 # 07 · Modelo de negocio
 
-El modelo completo está en [`modelo/Modelo_Negocio_Velas_Rinde.xlsx`](../modelo/Modelo_Negocio_Velas_Rinde.xlsx): 16 hojas, 36 meses, 5,525 fórmulas, selectores de escenario en `Supuestos` (D5: Base u Optimizado; D6: Conservador, Medio o Alto).
+El modelo completo está en [`modelo/La_Vela_Modelo_de_Negocio_v2.xlsx`](../modelo/La_Vela_Modelo_de_Negocio_v2.xlsx): 18 hojas, 36 meses, 5,596 fórmulas (versión 2: estilo en blanco y negro, hoja Cartucho con el retornable y hoja Distribuidor), selectores de escenario en `Supuestos` (D5: Base u Optimizado; D6: Conservador, Medio o Alto).
 
 ## El modelo en una frase
 
@@ -133,4 +133,4 @@ Optimizado · Medio, promedio mensual del año 2: cada tienda gana ~$508, el dis
 
 Inicio · Resumen · Supuestos · Costeo · Cascada · Volumen · Resultados · Flujo · Capex_Capacidad · Palancas · Sensibilidad · Todos_ganan · Competencia · Prueba_encendido · Riesgos · Fuentes.
 
-**Pendiente:** actualizar el costeo del repuesto al formato de cartucho retornable (depósito, costo del cartucho repartido entre vueltas, reproceso; sale la funda y parte del empaque).
+**Cartucho retornable (versión 2):** ya está en la hoja `Cartucho` y en `Supuestos`, sección 17, con un selector (`D184`: 1 = funda, 2 = cartucho). Viene en 1 porque los datos del cartucho son estimados; con 2, el EBITDA del año 2 pasa de ~$987 mil a ~$1.02 M, pero solo si el depósito no reclamado llega hasta nosotros.

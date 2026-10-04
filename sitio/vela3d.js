@@ -8,12 +8,105 @@ const _RLR = 'Ricardo López Reyero';
 const _k = 'EYE', _rev = 181218; // RLR · candado de autoría
 
 /* Medidas. La altura del cartucho está por validar (docs/08): cambiarla aquí cambia todo el modelo. */
-const VASO = { r: 3.3, pared: 0.3, alto: 17, fondo: 0.6 };
+const VASO = { r: 3.3, pared: 0.3, alto: 17, fondo: 0.9 };
 const CART = { r: 2.9, alto: 2.6, lamina: 0.06 };
-const CERA = { r: 2.72, alto: 13.2 };
-const AGUA = { alto: 12.5 };
+const CERA = { r: 2.72, alto: 13 };
 
 const gris = (v) => new THREE.Color(v, v, v);
+const V2 = (pts) => pts.map(([x, y]) => new THREE.Vector2(x, y));
+// Perfil suave para tornear: pasa una curva por los puntos
+const curva = (pts, n = 48) => new THREE.SplineCurve(V2(pts)).getPoints(n);
+
+/* ───────── RLR · texturas hechas a mano (nada se descarga) ───────── */
+function lienzo(w, h, pintar) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  pintar(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+// Azar con semilla, para que cada carga pinte lo mismo
+function azar(semilla) {
+  let s = semilla;
+  return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
+}
+
+function radial(paradas) {
+  return lienzo(256, 256, (g) => {
+    const d = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    paradas.forEach(([p, c]) => d.addColorStop(p, c));
+    g.fillStyle = d; g.fillRect(0, 0, 256, 256);
+  });
+}
+const texturaHalo = () => radial([[0, 'rgba(255,255,255,.6)'], [0.22, 'rgba(255,255,255,.2)'], [0.6, 'rgba(255,255,255,.04)'], [1, 'rgba(255,255,255,0)']]);
+const texturaSombra = () => radial([[0, 'rgba(0,0,0,.5)'], [0.5, 'rgba(0,0,0,.22)'], [1, 'rgba(0,0,0,0)']]);
+const texturaPiso = () => radial([[0, '#ffffff'], [0.1, '#a0a0a0'], [0.22, '#3a3a3a'], [0.36, '#0c0c0c'], [0.5, '#000000'], [1, '#000000']]);
+
+// Flama: transparente junto a la mecha, blanca al centro, se deshace en la punta
+function texturaFlama() {
+  return lienzo(8, 128, (g, w, h) => {
+    const d = g.createLinearGradient(0, h, 0, 0);
+    [[0, 'rgba(255,255,255,.10)'], [0.16, 'rgba(255,255,255,.35)'], [0.34, 'rgba(255,255,255,1)'], [0.78, 'rgba(255,255,255,.95)'], [1, 'rgba(255,255,255,0)']]
+      .forEach(([p, c]) => d.addColorStop(p, c));
+    g.fillStyle = d; g.fillRect(0, 0, w, h);
+  });
+}
+// Cera encendida: brilla arriba, donde está la flama, y se apaga hacia abajo
+function texturaBrilloCera() {
+  return lienzo(8, 256, (g, w, h) => {
+    const d = g.createLinearGradient(0, 0, 0, h);
+    [[0, '#ffffff'], [0.12, '#b9b9b9'], [0.4, '#4e4e4e'], [1, '#161616']].forEach(([p, c]) => d.addColorStop(p, c));
+    g.fillStyle = d; g.fillRect(0, 0, w, h);
+  });
+}
+// Madera: vetas largas y onduladas
+function texturaMadera(base = 150, semilla = 7) {
+  const t = lienzo(1024, 512, (g, w, h) => {
+    const r = azar(semilla);
+    g.fillStyle = `rgb(${base},${base},${base})`; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 260; i++) {
+      const y = r() * h, tono = base + (r() - 0.6) * 70, fase = r() * 6, onda = 2 + r() * 9;
+      g.strokeStyle = `rgba(${tono | 0},${tono | 0},${tono | 0},${0.08 + r() * 0.22})`;
+      g.lineWidth = 0.6 + r() * 2.6;
+      g.beginPath();
+      for (let x = 0; x <= w; x += 16) g.lineTo(x, y + Math.sin(x / (90 + onda * 14) + fase) * onda);
+      g.stroke();
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+// Aplanado del muro: grano fino
+function texturaAplanado(base = 200, semilla = 3) {
+  const t = lienzo(512, 512, (g, w, h) => {
+    const r = azar(semilla);
+    g.fillStyle = `rgb(${base},${base},${base})`; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 9000; i++) {
+      const v = base + (r() - 0.5) * 34;
+      g.fillStyle = `rgba(${v | 0},${v | 0},${v | 0},.5)`;
+      g.fillRect(r() * w, r() * h, 1 + r() * 2.5, 1 + r() * 2.5);
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+// Retrato viejo: un paisaje borroso, sin nadie reconocible
+function texturaRetrato() {
+  return lienzo(256, 360, (g, w, h) => {
+    const cielo = g.createLinearGradient(0, 0, 0, h);
+    cielo.addColorStop(0, '#e9e9e9'); cielo.addColorStop(0.6, '#bdbdbd'); cielo.addColorStop(1, '#8c8c8c');
+    g.fillStyle = cielo; g.fillRect(0, 0, w, h);
+    g.filter = 'blur(5px)';
+    g.fillStyle = '#f6f6f6'; g.beginPath(); g.arc(w * 0.68, h * 0.3, 26, 0, 7); g.fill();
+    g.fillStyle = '#777'; g.beginPath(); g.moveTo(-20, h * 0.72);
+    g.bezierCurveTo(w * 0.25, h * 0.5, w * 0.45, h * 0.62, w * 0.62, h * 0.56); g.bezierCurveTo(w * 0.8, h * 0.5, w, h * 0.66, w + 20, h * 0.6);
+    g.lineTo(w + 20, h + 20); g.lineTo(-20, h + 20); g.fill();
+    g.fillStyle = '#4c4c4c'; g.beginPath(); g.moveTo(-20, h * 0.86);
+    g.bezierCurveTo(w * 0.3, h * 0.74, w * 0.6, h * 0.9, w + 20, h * 0.78); g.lineTo(w + 20, h + 20); g.lineTo(-20, h + 20); g.fill();
+    g.filter = 'none';
+  });
+}
 
 /* RLR · entorno de estudio hecho a mano: da los reflejos del vidrio y del aluminio.
    paneles = [ángulo en grados, ancho, alto, altura del centro, intensidad]; intensidad 0 = panel negro */
@@ -21,10 +114,7 @@ function entorno(renderer, fondo, paneles, techo = 1.6) {
   const s = new THREE.Scene();
   s.background = gris(fondo);
   const panel = (x, y, z, w, h, i) => {
-    const p = new THREE.Mesh(
-      new THREE.PlaneGeometry(w, h),
-      new THREE.MeshBasicMaterial({ color: gris(i), side: THREE.DoubleSide })
-    );
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: gris(i), side: THREE.DoubleSide }));
     p.position.set(x, y, z);
     p.lookAt(0, y, 0);
     s.add(p);
@@ -41,165 +131,140 @@ function entorno(renderer, fondo, paneles, techo = 1.6) {
   return tex;
 }
 
-function texturaPiso() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 256;
-  const g = c.getContext('2d');
-  const d = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-  d.addColorStop(0, '#fff');
-  d.addColorStop(0.45, '#666');
-  d.addColorStop(1, '#000');
-  g.fillStyle = d;
-  g.fillRect(0, 0, 256, 256);
-  return new THREE.CanvasTexture(c);
-}
-
-function texturaHalo() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
-  const g = c.getContext('2d');
-  const d = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  d.addColorStop(0, 'rgba(255,255,255,.55)');
-  d.addColorStop(0.25, 'rgba(255,255,255,.18)');
-  d.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = d;
-  g.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
-}
-
-function texturaSombra() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
-  const g = c.getContext('2d');
-  const d = g.createRadialGradient(64, 64, 10, 64, 64, 64);
-  d.addColorStop(0, 'rgba(0,0,0,.42)');
-  d.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = d;
-  g.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
-}
-
-/* RLR · la vela: devuelve el grupo y sus piezas para poder animarlas */
-export function crearVela({ brilloEntorno = 1, tinte = false } = {}) {
-  const vela = new THREE.Group();
+/* ───────── RLR · el vaso solo (sirve de vela, de vaso y de florero) ───────── */
+function crearVaso({ brilloEntorno = 1, tinte = false } = {}) {
   const V = VASO, ri = V.r - V.pared;
-
-  // Vaso de vidrio: perfil torneado, pared de 3 mm y borde redondeado
-  const perfil = [
-    [0, 0], [V.r - 0.35, 0], [V.r, 0.35], [V.r, V.alto - 0.1],
-    [V.r - V.pared / 2, V.alto + 0.06], [ri, V.alto - 0.1],
-    [ri, V.fondo + 0.3], [ri - 0.3, V.fondo], [0, V.fondo],
-  ].map(([x, y]) => new THREE.Vector2(x, y));
+  const perfil = V2([
+    [0, 0], [V.r - 0.45, 0], [V.r - 0.12, 0.1], [V.r, 0.45], [V.r, V.alto - 0.12],
+    [V.r - V.pared / 2, V.alto + 0.05], [ri, V.alto - 0.12],
+    [ri, V.fondo + 0.5], [ri - 0.18, V.fondo + 0.14], [ri - 0.6, V.fondo], [0, V.fondo],
+  ]);
   const vaso = new THREE.Mesh(
-    new THREE.LatheGeometry(perfil, 72),
+    new THREE.LatheGeometry(perfil, 96),
     new THREE.MeshPhysicalMaterial({
-      color: 0xffffff, roughness: 0.04, metalness: 0, transmission: 1, ior: 1.5,
-      thickness: 0.35, envMapIntensity: brilloEntorno, specularIntensity: 1,
-      ...(tinte ? { attenuationColor: new THREE.Color(0x8c8c8c), attenuationDistance: 0.9 } : {}),
+      color: 0xffffff, roughness: 0.03, metalness: 0, transmission: 1, ior: 1.5, thickness: 0.4,
+      envMapIntensity: brilloEntorno, specularIntensity: 1, depthWrite: false,
+      ...(tinte ? { attenuationColor: new THREE.Color(0x8c8c8c), attenuationDistance: 1.1 } : {}),
     })
   );
+  return vaso;
+}
+
+// Agua dentro del vaso: tinte suave y un menisco que la hace leerse como agua
+function crearAgua(alto, brilloEntorno = 1) {
+  const ri = VASO.r - VASO.pared - 0.03, g = new THREE.Group();
+  const cuerpo = new THREE.Mesh(
+    new THREE.CylinderGeometry(ri, ri - 0.25, alto, 64),
+    new THREE.MeshPhysicalMaterial({ color: 0x8f8f8f, transparent: true, opacity: 0.2, roughness: 0.05, envMapIntensity: brilloEntorno, depthWrite: false })
+  );
+  cuerpo.position.y = VASO.fondo + alto / 2;
+  cuerpo.renderOrder = 2;
+  const menisco = new THREE.Mesh(
+    new THREE.RingGeometry(0, ri, 64),
+    new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.38, roughness: 0.02, envMapIntensity: brilloEntorno * 1.5, depthWrite: false, side: THREE.DoubleSide })
+  );
+  menisco.rotation.x = -Math.PI / 2; menisco.position.y = VASO.fondo + alto; menisco.renderOrder = 3;
+  g.add(cuerpo, menisco);
+  return g;
+}
+
+/* ───────── RLR · la vela: devuelve el grupo y sus piezas para poder animarlas ───────── */
+export function crearVela({ brilloEntorno = 1, tinte = false } = {}) {
+  const vela = new THREE.Group();
+  const vaso = crearVaso({ brilloEntorno, tinte });
   vela.add(vaso);
 
   // Cartucho: copa de aluminio con la cera y la mecha ya puestas (docs/08)
   const cartucho = new THREE.Group();
-  cartucho.position.y = V.fondo + 0.02;
+  cartucho.position.y = VASO.fondo + 0.02;
   const C = CART;
+  const aluminio = new THREE.MeshStandardMaterial({ color: 0xd8d8d8, metalness: 1, roughness: 0.3, envMapIntensity: brilloEntorno * 1.3 });
   const copa = new THREE.Mesh(
-    new THREE.LatheGeometry([
-      [0, 0], [C.r - 0.25, 0], [C.r, 0.25], [C.r, C.alto],
-      [C.r - C.lamina, C.alto], [C.r - C.lamina, C.lamina + 0.2], [0, C.lamina],
-    ].map(([x, y]) => new THREE.Vector2(x, y)), 72),
-    new THREE.MeshStandardMaterial({ color: 0xd4d4d4, metalness: 1, roughness: 0.32, envMapIntensity: brilloEntorno * 1.3 })
+    new THREE.LatheGeometry(V2([
+      [0, 0], [C.r - 0.3, 0], [C.r - 0.08, 0.08], [C.r, 0.3], [C.r, C.alto],
+      [C.r - C.lamina, C.alto], [C.r - C.lamina, C.lamina + 0.25], [0, C.lamina],
+    ]), 96),
+    aluminio
   );
+  const ceja = new THREE.Mesh(new THREE.TorusGeometry(C.r - 0.02, 0.07, 10, 96), aluminio); // borde enrollado
+  ceja.rotation.x = Math.PI / 2; ceja.position.y = C.alto;
   copa.castShadow = true;
-  cartucho.add(copa);
+  cartucho.add(copa, ceja);
 
   const matCera = new THREE.MeshPhysicalMaterial({
-    color: 0xf1f1f1, roughness: 0.55, sheen: 0.4, emissive: 0xffffff, emissiveIntensity: 0,
-    envMapIntensity: brilloEntorno * 0.5,
+    color: 0xf4f4f4, roughness: 0.5, sheen: 0.5, sheenRoughness: 0.6, emissive: 0xffffff, emissiveMap: texturaBrilloCera(),
+    emissiveIntensity: 0, envMapIntensity: brilloEntorno * 0.5,
   });
-  const cera = new THREE.Mesh(new THREE.CylinderGeometry(CERA.r, CERA.r, CERA.alto, 64), matCera);
+  const cera = new THREE.Mesh(new THREE.CylinderGeometry(CERA.r, CERA.r, CERA.alto, 72, 1, true), matCera);
   cera.position.y = C.lamina + CERA.alto / 2;
   cera.castShadow = true;
   cartucho.add(cera);
 
   const cima = C.lamina + CERA.alto;
-  // Charco de cera derretida alrededor de la mecha
-  const charco = new THREE.Mesh(
-    new THREE.CircleGeometry(CERA.r - 0.25, 48),
-    new THREE.MeshPhysicalMaterial({ color: 0xdddddd, roughness: 0.08, clearcoat: 1, envMapIntensity: brilloEntorno })
-  );
-  charco.rotation.x = -Math.PI / 2;
-  charco.position.y = cima + 0.01;
-  cartucho.add(charco);
+  // Arriba: orilla de cera sólida y, al centro, el charco derretido (hundido y brillante)
+  const matCima = new THREE.MeshPhysicalMaterial({ color: 0xf6f6f6, roughness: 0.45, emissive: 0xffffff, emissiveIntensity: 0, envMapIntensity: brilloEntorno * 0.5 });
+  const orilla = new THREE.Mesh(
+    new THREE.LatheGeometry(V2([[CERA.r, 0], [CERA.r - 0.1, 0.05], [CERA.r - 0.5, 0], [CERA.r - 0.75, -0.14], [0, -0.2]]), 72), matCima);
+  orilla.position.y = cima;
+  const matCharco = new THREE.MeshPhysicalMaterial({ color: 0xe9e9e9, roughness: 0.04, clearcoat: 1, emissive: 0xffffff, emissiveIntensity: 0, envMapIntensity: brilloEntorno * 1.2 });
+  const charco = new THREE.Mesh(new THREE.CircleGeometry(CERA.r - 0.78, 56), matCharco);
+  charco.rotation.x = -Math.PI / 2; charco.position.y = cima - 0.12;
+  cartucho.add(orilla, charco);
 
+  // Mecha: un poco curva, con la punta quemada
   const mecha = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.07, 0.09, 0.9, 10),
-    new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 1 })
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, cima - 0.2, 0), new THREE.Vector3(0.02, cima + 0.35, 0), new THREE.Vector3(0.12, cima + 0.75, 0.02),
+    ]), 12, 0.075, 8),
+    new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 1 })
   );
-  mecha.position.y = cima + 0.45;
   cartucho.add(mecha);
 
-  // Flama: gota torneada, blanca, con halo
-  const pf = [];
-  for (let i = 0; i <= 24; i++) {
-    const t = i / 24;
-    const r = 0.44 * Math.pow(Math.sin(Math.PI * Math.pow(t, 0.62)), 1.15) * (1 - 0.25 * t);
-    pf.push(new THREE.Vector2(Math.max(r, 0.0001), t * 2.3));
-  }
+  // Flama: dos capas torneadas y dos halos
+  const perfilFlama = (alto, ancho) => {
+    const p = [];
+    for (let i = 0; i <= 28; i++) {
+      const t = i / 28;
+      p.push(new THREE.Vector2(Math.max(ancho * Math.pow(Math.sin(Math.PI * Math.pow(t, 0.58)), 1.25) * (1 - 0.3 * t), 0.0001), t * alto));
+    }
+    return p;
+  };
   const flama = new THREE.Group();
-  flama.position.y = cima + 0.62;
-  const gota = new THREE.Mesh(
-    new THREE.LatheGeometry(pf, 28),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })
-  );
-  const nucleo = new THREE.Mesh(
-    new THREE.SphereGeometry(0.2, 16, 12),
-    new THREE.MeshBasicMaterial({ color: 0x555555, toneMapped: false })
-  );
-  nucleo.scale.set(1, 1.5, 1);
-  nucleo.position.y = 0.42;
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: texturaHalo(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true,
-  }));
-  halo.scale.set(13, 13, 1);
-  halo.position.y = 1.1;
+  flama.position.set(0.08, cima + 0.5, 0);
+  const tf = texturaFlama();
+  const gota = new THREE.Group();
+  const fuera = new THREE.Mesh(new THREE.LatheGeometry(perfilFlama(2.7, 0.5), 32),
+    new THREE.MeshBasicMaterial({ map: tf, transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending }));
+  const dentro = new THREE.Mesh(new THREE.LatheGeometry(perfilFlama(2.1, 0.33), 32),
+    new THREE.MeshBasicMaterial({ map: tf, transparent: true, depthWrite: false, toneMapped: false }));
+  dentro.position.y = 0.12;
+  fuera.renderOrder = 5; dentro.renderOrder = 6;
+  gota.add(fuera, dentro);
+  const th = texturaHalo();
+  const sprite = (escala, opacidad) => {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: th, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: opacidad }));
+    s.scale.set(escala, escala, 1); s.position.y = 1.15; s.renderOrder = 7; s.userData.opacidad = opacidad;
+    return s;
+  };
+  const halos = [sprite(3.6, 0.4), sprite(17, 0.5)];
   const luz = new THREE.PointLight(0xffffff, 260, 0, 2);
-  luz.position.y = 1.2;
-  flama.add(gota, nucleo, halo, luz);
+  luz.position.y = 1.3;
+  flama.add(gota, ...halos, luz);
   cartucho.add(flama);
   vela.add(cartucho);
 
-  // Agua: el mismo vaso, usado como vaso
-  const agua = new THREE.Mesh(
-    new THREE.CylinderGeometry(ri - 0.02, ri - 0.02, AGUA.alto, 64),
-    new THREE.MeshPhysicalMaterial({
-      color: 0xf4f4f4, roughness: 0, transmission: 1, ior: 1.33, thickness: 5,
-      attenuationColor: tinte ? 0x7a7a7a : 0xa8a8a8, attenuationDistance: tinte ? 3 : 7, envMapIntensity: brilloEntorno,
-    })
-  );
-  agua.position.y = V.fondo + AGUA.alto / 2 + 0.02;
-  agua.visible = false;
-  // Superficie del agua: lo que hace que se lea como agua
-  const espejo = new THREE.Mesh(
-    new THREE.CircleGeometry(ri - 0.03, 48),
-    new THREE.MeshStandardMaterial({ color: tinte ? 0xb8b8b8 : 0x3a3a3a, roughness: 0.06, metalness: 0.2, envMapIntensity: brilloEntorno * 1.2 })
-  );
-  espejo.rotation.x = -Math.PI / 2;
-  espejo.position.y = 0.5 + 0.004;
-  agua.add(espejo);
-  vela.add(agua);
-
-  return { vela, vaso, cartucho, cera: matCera, flama, gota, halo, luz, agua };
-}
-
-/* RLR · pone la vela en uno de sus tres estados sin animar (para los renders fijos) */
-function fijarEstado(p, estado) {
-  const lit = estado === 'encendida';
-  p.flama.visible = lit;
-  p.cera.emissiveIntensity = lit ? 0.3 : 0;
-  p.cartucho.visible = estado !== 'vaso';
-  p.agua.visible = estado === 'vaso';
+  // RLR · enciende o apaga en proporción f (0 a 1) con un titileo t alrededor de 1
+  const encender = (f, t = 1, fuerza = 260) => {
+    flama.visible = f > 0.02;
+    gota.scale.set(f * (2 - t), f * t, f * (2 - t));
+    luz.intensity = fuerza * f * t;
+    halos.forEach((h) => { h.material.opacity = h.userData.opacidad * f * (1 + (t - 1) * 2); });
+    matCera.emissiveIntensity = 0.5 * f;
+    matCima.emissiveIntensity = 0.42 * f;
+    matCharco.emissiveIntensity = 0.6 * f;
+  };
+  encender(1);
+  return { vela, vaso, cartucho, flama, gota, luz, encender };
 }
 
 function nuevoRenderer(canvas, sombras) {
@@ -230,34 +295,32 @@ export function escenario(canvas, { alCambiar } = {}) {
   const p = crearVela({ brilloEntorno: 0.9 });
   escena.add(p.vela);
 
+  // Piso que se pierde en el negro: no hay horizonte
   const piso = new THREE.Mesh(
-    new THREE.CircleGeometry(46, 64),
-    new THREE.MeshStandardMaterial({
-      color: 0x242424, roughness: 0.5, metalness: 0.1, envMapIntensity: 0.15,
-      alphaMap: texturaPiso(), transparent: true,
-    })
+    new THREE.CircleGeometry(70, 96),
+    new THREE.MeshLambertMaterial({ color: 0x8a8a8a, map: texturaPiso() })
   );
   piso.rotation.x = -Math.PI / 2;
   escena.add(piso);
 
   // Luz de estudio: una principal y un contraluz, para que se lea la cera y el borde del vidrio
-  const principal = new THREE.DirectionalLight(0xffffff, 1.5);
+  const principal = new THREE.DirectionalLight(0xffffff, 1.3);
   principal.position.set(-30, 40, 45);
-  const contra = new THREE.DirectionalLight(0xffffff, 1.1);
+  const contra = new THREE.DirectionalLight(0xffffff, 1.0);
   contra.position.set(35, 25, -40);
   escena.add(principal, contra);
 
   const camara = new THREE.PerspectiveCamera(27, 1, 1, 400);
   const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Hacia dónde va cada estado: altura del cartucho, flama, agua y encuadre
+  // Hacia dónde va cada estado: altura del cartucho, flama y encuadre
   const METAS = {
-    encendida: { y: 0, flama: 1, agua: 0, mira: 9.2, lejos: 56 },
-    cartucho: { y: 15.5, flama: 0, agua: 0, mira: 15.5, lejos: 84 },
-    vaso: { y: 60, flama: 0, agua: 1, mira: 8.6, lejos: 54 },
+    encendida: { y: 0, flama: 1, mira: 9.2, lejos: 56 },
+    cartucho: { y: 15.5, flama: 0, mira: 15.5, lejos: 84 },
+    nuevo: { y: 0, flama: 1, mira: 9.2, lejos: 56 },
   };
   let estado = 'encendida';
-  const a = { y: 0, flama: 1, agua: 0, mira: 9.2, lejos: 56 };
+  const a = { y: 0, flama: 1, mira: 9.2, lejos: 56 };
   const base = VASO.fondo + 0.02;
 
   let giro = 0.6, arrastrando = false, x0 = 0, ultimoToque = 0;
@@ -280,23 +343,17 @@ export function escenario(canvas, { alCambiar } = {}) {
     requestAnimationFrame(cuadro);
     if (!visible) { t0 = ahora; return; }
     const dt = Math.min((ahora - t0) / 1000, 0.05); t0 = ahora;
-    const m = METAS[estado], k = 1 - Math.exp(-dt * 4.2);
-    for (const c in a) a[c] += (m[c] - a[c]) * k;
+    const m = METAS[estado], k = 1 - Math.exp(-dt * 3.4);
+    a.y += (m.y - a.y) * k; a.mira += (m.mira - a.mira) * k; a.lejos += (m.lejos - a.lejos) * k;
+    // La flama solo prende cuando el cartucho ya está sentado en el vaso
+    const sentado = a.y < 0.25 ? 1 : 0;
+    a.flama += (m.flama * sentado - a.flama) * (1 - Math.exp(-dt * 5));
 
     p.cartucho.position.y = base + a.y;
-    p.cartucho.visible = a.y < 50;
-    const f = a.flama;
-    p.flama.visible = f > 0.02;
     const s = ahora / 1000;
     const titila = quieto ? 1 : 1 + 0.05 * Math.sin(s * 11) + 0.035 * Math.sin(s * 17.3 + 1) + 0.02 * Math.sin(s * 29.1);
-    p.gota.scale.set(f * (2 - titila), f * titila, f * (2 - titila));
-    if (!quieto) p.gota.rotation.z = 0.03 * Math.sin(s * 6.1);
-    p.luz.intensity = 260 * f * titila;
-    p.halo.material.opacity = f * (0.85 + (titila - 1) * 2);
-    p.cera.emissiveIntensity = 0.16 * f;
-    p.agua.visible = a.agua > 0.01;
-    p.agua.scale.y = Math.max(a.agua, 0.001);
-    p.agua.position.y = VASO.fondo + (AGUA.alto * a.agua) / 2 + 0.02;
+    p.encender(a.flama, titila);
+    if (!quieto) p.gota.rotation.z = 0.035 * Math.sin(s * 6.1);
 
     if (!arrastrando && !quieto && ahora - ultimoToque > 1800) giro += dt * 0.16;
     const alto = canvas.clientHeight / Math.max(canvas.clientWidth, 1);
@@ -308,133 +365,228 @@ export function escenario(canvas, { alCambiar } = {}) {
   requestAnimationFrame(cuadro);
 
   return {
-    poner(nuevo) { if (METAS[nuevo]) { estado = nuevo; if (alCambiar) alCambiar(nuevo); } },
+    poner(nuevo) {
+      if (!METAS[nuevo]) return;
+      // El cartucho nuevo entra desde arriba, apagado
+      if (nuevo === 'nuevo' && estado !== 'nuevo') { a.y = 30; a.flama = 0; }
+      estado = nuevo;
+      if (alCambiar) alCambiar(nuevo);
+    },
     get estado() { return estado; },
   };
+}
+
+/* ───────── RLR · piezas de utilería para los renders ───────── */
+function utileria(escena, brillo = 0.5) {
+  const mate = (c, r = 0.85, extra = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: r, envMapIntensity: brillo, ...extra });
+  const poner = (m, x, y, z) => { m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; escena.add(m); return m; };
+  const caja = (w, h, d, material, x, y, z) => poner(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material), x, y, z);
+  const torno = (pts, material, x, y, z, suave = true) =>
+    poner(new THREE.Mesh(new THREE.LatheGeometry(suave ? curva(pts) : V2(pts), 96), material), x, y, z);
+  // Libro: pasta y, adentro, el canto de las hojas
+  const libro = (w, h, d, tono, x, y, z, giro) => {
+    const g = new THREE.Group();
+    const pasta = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mate(tono, 0.7));
+    const hojas = new THREE.Mesh(new THREE.BoxGeometry(w - 0.5, h - 0.5, d - 0.25), mate(0xe4e4e4, 0.95));
+    hojas.position.set(0.3, 0, 0.2);
+    [pasta, hojas].forEach((m) => { m.castShadow = true; m.receiveShadow = true; });
+    g.add(pasta, hojas); g.position.set(x, y, z); g.rotation.y = giro; escena.add(g);
+    return g;
+  };
+  // Tallo curvo entre puntos
+  const tallo = (pts, grosor, material) => {
+    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((q) => new THREE.Vector3(...q))), 24, grosor, 6), material);
+    m.castShadow = true; escena.add(m); return m;
+  };
+  const ts = texturaSombra();
+  const sombra = (w, d, x, z, giro = 0, fuerza = 1) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: ts, transparent: true, depthWrite: false, opacity: fuerza }));
+    m.rotation.x = -Math.PI / 2; m.rotation.z = giro; m.position.set(x, 0.04, z); escena.add(m); return m;
+  };
+  return { mate, poner, caja, torno, libro, tallo, sombra };
 }
 
 /* ───────── RLR · Render 1: en la repisa, de noche, encendida ───────── */
 export function renderRepisa(canvas) {
   const renderer = nuevoRenderer(canvas, true);
+  renderer.toneMappingExposure = 1.15;
   const escena = new THREE.Scene();
-  escena.background = new THREE.Color(0x030303);
-  escena.environment = entorno(renderer, 0.004, [[-60, 30, 60, 22, 0.5], [60, 20, 60, 22, 0.35]], 0.1);
+  escena.background = new THREE.Color(0x020202);
+  escena.environment = entorno(renderer, 0.004, [[-60, 30, 60, 22, 0.45], [60, 20, 60, 22, 0.3], [0, 40, 30, 12, 0.25]], 0.08);
+  const u = utileria(escena, 0.35);
 
-  const mate = (c, r = 0.85) => new THREE.MeshStandardMaterial({ color: c, roughness: r, envMapIntensity: 0.3 });
-  const caja = (w, h, d, c, x, y, z) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mate(c));
-    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; escena.add(m); return m;
-  };
-  const muro = new THREE.Mesh(new THREE.PlaneGeometry(260, 160), mate(0x9a9a9a, 0.95));
-  muro.position.set(0, 30, -9); muro.receiveShadow = true; escena.add(muro);
-  caja(120, 1.6, 20, 0x6e6e6e, 0, -0.8, 0); // repisa
+  // Muro aplanado y repisa de madera
+  const aplanado = texturaAplanado(190); aplanado.repeat.set(5, 3);
+  const muro = new THREE.Mesh(new THREE.PlaneGeometry(300, 180), u.mate(0xb4b4b4, 0.96, { map: aplanado, bumpMap: aplanado, bumpScale: 0.6 }));
+  muro.position.set(0, 30, -10); muro.receiveShadow = true; escena.add(muro);
+  const madera = texturaMadera(120, 11); madera.repeat.set(2, 1);
+  const repisa = u.caja(140, 2.4, 22, u.mate(0x8a8a8a, 0.62, { map: madera }), 0, -1.2, 0);
+  repisa.castShadow = false;
+  // La repisa es la cubierta de una cómoda: abajo no hay muro, hay mueble
+  const comoda = u.caja(140, 60, 21, u.mate(0x4a4a4a, 0.7, { map: madera }), 0, -32.4, -0.6); comoda.castShadow = false;
 
-  // Retrato enmarcado, recargado en el muro
+  // Retrato enmarcado, recargado en el muro: marco, paspartú y foto con cristal
   const marco = new THREE.Group();
-  const aro = new THREE.Mesh(new THREE.BoxGeometry(12.5, 16.5, 0.9), mate(0x2a2a2a, 0.5));
-  const foto = new THREE.Mesh(new THREE.PlaneGeometry(9.4, 13.4), mate(0xcfcfcf, 0.9));
-  foto.position.z = 0.47;
-  const figura = new THREE.Mesh(new THREE.CircleGeometry(2.1, 32), mate(0x8a8a8a, 0.9));
-  figura.position.set(0, 1.6, 0.48);
-  const hombros = new THREE.Mesh(new THREE.CircleGeometry(3.6, 32, 0, Math.PI), mate(0x8a8a8a, 0.9));
-  hombros.position.set(0, -5.2, 0.48);
-  aro.castShadow = true;
-  marco.add(aro, foto, figura, hombros);
-  marco.position.set(-12.5, 8.2, -6.2); marco.rotation.x = -0.16; marco.rotation.y = 0.18;
+  const negro = u.mate(0x1c1c1c, 0.4);
+  [[13, 1.1, 0, 8.45], [13, 1.1, 0, -8.45], [1.1, 18, 5.95, 0], [1.1, 18, -5.95, 0]].forEach(([w, h, x, y]) => {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 1.2), negro); b.position.set(x, y, 0); b.castShadow = true; marco.add(b);
+  });
+  const paspartu = new THREE.Mesh(new THREE.PlaneGeometry(11, 16), u.mate(0xeeeeee, 0.9)); paspartu.position.z = -0.1;
+  const foto = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 10.2),
+    new THREE.MeshPhysicalMaterial({ map: texturaRetrato(), roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 0.5 }));
+  foto.position.z = -0.05;
+  const respaldo = new THREE.Mesh(new THREE.BoxGeometry(12.6, 17.6, 0.3), negro); respaldo.position.z = -0.4; respaldo.castShadow = true;
+  marco.add(paspartu, foto, respaldo);
+  marco.position.set(-12.2, 8.9, -6.4); marco.rotation.set(-0.17, 0.2, 0);
   escena.add(marco);
 
-  // Dos libros acostados y un florero con ramas
-  caja(15, 2.4, 10.5, 0x4a4a4a, 14.5, 1.2, -2).rotation.y = -0.12;
-  caja(13.5, 1.8, 9.6, 0xb5b5b5, 14.2, 3.3, -2).rotation.y = 0.1;
-  const florero = new THREE.Mesh(
-    new THREE.LatheGeometry([[0, 0], [2.4, 0], [3.1, 2.5], [2.6, 6], [1.3, 8.4], [1.5, 9.6], [1.3, 9.6], [0, 9.2]].map(([x, y]) => new THREE.Vector2(x, y)), 40),
-    mate(0xe6e6e6, 0.35)
-  );
-  florero.position.set(15, 4.2, -2.2); florero.castShadow = true; escena.add(florero);
-  for (let i = 0; i < 5; i++) {
-    const rama = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 15 + i * 1.3, 6), mate(0x3a3a3a));
-    rama.position.set(15, 19, -2.2);
-    rama.rotation.z = (i - 2) * 0.2; rama.rotation.x = (i % 2 ? 1 : -1) * 0.1;
-    rama.translateY(1); rama.castShadow = true; escena.add(rama);
-    const flor = new THREE.Mesh(new THREE.SphereGeometry(0.75 + (i % 3) * 0.18, 12, 10), mate(0xf0f0f0, 0.7));
-    flor.position.copy(rama.position); flor.rotation.copy(rama.rotation); flor.translateY(7.6 + i * 0.6);
-    flor.castShadow = true; escena.add(flor);
-  }
+  // Tres libros y, encima, un florero de barro con ramas de algodón
+  u.libro(15.5, 2.3, 10.5, 0x3c3c3c, 13.5, 1.15, -2.2, -0.1);
+  u.libro(14.2, 1.7, 9.8, 0xa9a9a9, 13.1, 3.15, -2.3, 0.07);
+  u.libro(12.6, 1.4, 9.2, 0x5e5e5e, 13.6, 4.7, -2.1, -0.16);
+  const yF = 5.4;
+  u.torno([[0, 0], [2.2, 0], [3.2, 1.6], [3.5, 4.2], [2.7, 7], [1.35, 8.8], [1.25, 10], [1.6, 10.8]],
+    u.mate(0xdedede, 0.55, { side: THREE.DoubleSide }), 13.4, yF, -2.4);
+  const rama = u.mate(0x2a2a2a, 0.9), mota = u.mate(0xf2f2f2, 1);
+  const r = azar(21);
+  [[-5.5, 15, -1], [-1.5, 19, 1.5], [2.2, 16.5, -1.8], [5.5, 12.5, 0.8], [0.5, 12, 2.4]].forEach(([dx, alto, dz]) => {
+    const x0 = 13.4, y0 = yF + 9.5, z0 = -2.4;
+    const punta = [x0 + dx, y0 + alto, z0 + dz];
+    u.tallo([[x0, yF + 2, z0], [x0 + dx * 0.12, y0 + 1, z0 + dz * 0.1], [x0 + dx * 0.55, y0 + alto * 0.6, z0 + dz * 0.6], punta], 0.09, rama);
+    // Capullo de algodón: cuatro motas apretadas y su cáliz
+    const capullo = (cx, cy, cz, tam) => {
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2 + r() * 0.6;
+        const m = new THREE.Mesh(new THREE.SphereGeometry(tam * (0.8 + r() * 0.3), 14, 10), mota);
+        m.position.set(cx + Math.cos(a) * tam * 0.55, cy + (r() - 0.3) * tam * 0.5, cz + Math.sin(a) * tam * 0.55);
+        m.castShadow = true; escena.add(m);
+      }
+      const caliz = new THREE.Mesh(new THREE.ConeGeometry(tam * 0.9, tam * 0.9, 5), rama);
+      caliz.position.set(cx, cy - tam * 0.75, cz); caliz.rotation.x = Math.PI; escena.add(caliz);
+    };
+    capullo(...punta, 0.95);
+    capullo(x0 + dx * 0.62 + 0.9, y0 + alto * 0.58, z0 + dz * 0.6, 0.75);
+  });
+
+  // Un platito con la caja de cerillos
+  u.torno([[0, 0], [2.4, 0], [3.6, 0.5], [3.7, 0.75], [2.4, 0.3], [0, 0.3]], u.mate(0xd0d0d0, 0.35), -3.2, 0, 6.2, false);
+  const cerillos = u.caja(3.4, 0.9, 2.2, u.mate(0x4a4a4a, 0.8), -3.2, 0.78, 6.2); cerillos.rotation.y = 0.5;
+  const lija = u.caja(3.42, 0.5, 0.05, u.mate(0x161616, 1), -3.2, 0.78, 6.2); lija.rotation.y = 0.5; lija.translateZ(1.11);
 
   const p = crearVela({ brilloEntorno: 0.7 });
-  fijarEstado(p, 'encendida');
-  p.luz.intensity = 420; p.luz.castShadow = true;
-  p.luz.shadow.mapSize.set(1024, 1024); p.luz.shadow.bias = -0.002; p.luz.shadow.radius = 6;
+  p.encender(1, 1, 520);
+  p.luz.castShadow = true;
+  p.luz.shadow.mapSize.set(2048, 2048); p.luz.shadow.bias = -0.003; p.luz.shadow.normalBias = 0.05;
   p.cartucho.traverse((o) => { if (o.isMesh) o.castShadow = false; });
-  p.vela.position.set(0.5, 0, 1.5);
+  p.vela.position.set(1, 0, 1.6);
   escena.add(p.vela);
-  escena.add(new THREE.AmbientLight(0xffffff, 0.06));
+  u.sombra(11, 11, 1, 1.6, 0, 0.75);
+  // Apenas un poco de luz de la casa, para que lo oscuro no sea un hoyo negro
+  escena.add(new THREE.AmbientLight(0xffffff, 0.05));
+  const relleno = new THREE.DirectionalLight(0xffffff, 0.07); relleno.position.set(-40, 30, 60); escena.add(relleno);
 
   const camara = new THREE.PerspectiveCamera(30, 1, 1, 500);
   const pintar = () => {
     if (!ajustar(renderer, camara, canvas)) return;
-    const ancho = camara.aspect < 1 ? 92 : 74;
-    camara.position.set(8, 16, ancho); camara.lookAt(1.5, 12.5, 0);
+    const lejos = camara.aspect < 1 ? 92 : 74;
+    camara.position.set(7, 19, lejos); camara.lookAt(1.5, 15, 0);
     renderer.render(escena, camara);
   };
   new ResizeObserver(pintar).observe(canvas);
   pintar();
 }
 
-/* ───────── RLR · Render 2: en la mesa, de día, como vaso de agua ───────── */
+/* ───────── RLR · Render 2: en la mesa, de día. El mismo vaso, ya sin cartucho: florero y vaso ───────── */
 export function renderMesa(canvas) {
   const renderer = nuevoRenderer(canvas, true);
+  renderer.toneMappingExposure = 1.05;
   const escena = new THREE.Scene();
-  escena.background = new THREE.Color(0xd9d9d9);
-  escena.environment = entorno(renderer, 0.75, [[-95, 26, 70, 20, 0], [95, 26, 70, 20, 0], [-40, 30, 50, 34, 3.2], [180, 60, 20, 4, 0.05]], 1.2);
+  escena.background = new THREE.Color(0xcfcfcf);
+  escena.environment = entorno(renderer, 0.6, [[-95, 26, 70, 20, 0], [95, 26, 70, 20, 0], [-40, 30, 50, 34, 3.4], [180, 60, 20, 4, 0.05]], 1.1);
+  const u = utileria(escena, 0.6);
 
-  const mate = (c, r = 0.8) => new THREE.MeshStandardMaterial({ color: c, roughness: r, envMapIntensity: 0.6 });
-  const muro = new THREE.Mesh(new THREE.PlaneGeometry(400, 200), mate(0xdedede, 1));
-  muro.position.set(0, 40, -34); muro.receiveShadow = true; escena.add(muro);
-  const mesa = new THREE.Mesh(new THREE.BoxGeometry(260, 3, 160), mate(0xf3f3f3, 0.6));
-  mesa.position.set(0, -1.5, 44); mesa.receiveShadow = true; escena.add(mesa);
+  const aplanado = texturaAplanado(214, 5); aplanado.repeat.set(6, 3);
+  const muro = new THREE.Mesh(new THREE.PlaneGeometry(420, 220), u.mate(0xd2d2d2, 1, { map: aplanado, bumpMap: aplanado, bumpScale: 0.5 }));
+  muro.position.set(0, 50, -30); muro.receiveShadow = true; escena.add(muro);
+  const madera = texturaMadera(196, 4); madera.repeat.set(2.2, 1.6);
+  const mesa = u.caja(280, 3, 170, u.mate(0xdadada, 0.5, { map: madera }), 0, -1.5, 42);
+  mesa.castShadow = false;
 
-  const torno = (pts, c, r) => {
-    const m = new THREE.Mesh(new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), 56), mate(c, r));
-    m.castShadow = true; m.receiveShadow = true; escena.add(m); return m;
+  // Luz de ventana: un sol bajo que entra por un marco con cruceta (el marco no se ve, solo su sombra)
+  const sol = new THREE.DirectionalLight(0xffffff, 4.2);
+  const L = new THREE.Vector3(-74, 62, 46), T = new THREE.Vector3(1, 6, -2);
+  sol.position.copy(L); sol.target.position.copy(T); sol.castShadow = true;
+  sol.shadow.mapSize.set(4096, 4096); sol.shadow.bias = -0.0004; sol.shadow.normalBias = 0.04;
+  Object.assign(sol.shadow.camera, { left: -75, right: 75, top: 75, bottom: -75, near: 1, far: 260 });
+  escena.add(sol, sol.target, new THREE.HemisphereLight(0xffffff, 0xa8a8a8, 1.0));
+  const ventana = new THREE.Group();
+  const tapa = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
+  const barra = (w, h, x, y) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.6), tapa); b.position.set(x, y, 0); b.castShadow = true; ventana.add(b); };
+  const AN = 46, AL = 54; // el claro de la ventana
+  barra(140, 90, 0, AL / 2 + 45); barra(140, 90, 0, -AL / 2 - 45); barra(90, AL, -AN / 2 - 45, 0); barra(90, AL, AN / 2 + 45, 0);
+  barra(1.8, AL, 0, 0); barra(AN, 1.8, 0, 4); // cruceta
+  ventana.position.copy(L).lerp(T, 0.42); ventana.lookAt(L);
+  escena.add(ventana);
+
+  // Jarra de barro con asa
+  const barro = u.mate(0x3a3a3a, 0.48, { side: THREE.DoubleSide });
+  u.torno([[0, 0], [4.4, 0], [6.6, 3.2], [7, 8], [5.6, 13.5], [3.9, 17.2], [3.9, 19.6], [4.8, 21.4]], barro, -15, 0, -11);
+  const asa = u.poner(new THREE.Mesh(new THREE.TorusGeometry(4.3, 0.72, 14, 40, Math.PI * 1.05), barro), -20.6, 12, -11);
+  asa.rotation.z = Math.PI / 2 - 0.05;
+
+  // Florero: el vaso con agua y flores de campo
+  const FX = 7, FZ = -5;
+  const florero = new THREE.Group();
+  florero.add(crearVaso({ brilloEntorno: 1.5, tinte: true }), crearAgua(7.5, 1.4));
+  florero.position.set(FX, 0, FZ);
+  escena.add(florero);
+  const verde = u.mate(0x4b4b4b, 0.8), petalo = u.mate(0xfafafa, 0.75), boton = u.mate(0x6a6a6a, 0.9);
+  const r = azar(9);
+  const flor = (x, y, z, tam, inclina) => {
+    const g = new THREE.Group();
+    const centro = new THREE.Mesh(new THREE.SphereGeometry(tam * 0.42, 16, 12), boton); centro.scale.y = 0.6; g.add(centro);
+    for (let i = 0; i < 13; i++) {
+      const a = (i / 13) * Math.PI * 2;
+      const pt = new THREE.Mesh(new THREE.SphereGeometry(tam * 0.5, 10, 8), petalo);
+      pt.scale.set(1, 0.14, 0.36); pt.position.set(Math.cos(a) * tam * 0.8, -0.05, Math.sin(a) * tam * 0.8); pt.rotation.y = -a; pt.rotation.z = 0.12;
+      pt.castShadow = true; g.add(pt);
+    }
+    g.position.set(x, y, z); g.rotation.set(inclina[0], 0, inclina[1]); escena.add(g);
   };
-  // Jarra de barro
-  const jarra = torno([[0, 0], [4.6, 0], [6.8, 4], [7.2, 9], [5.6, 15], [4.2, 19], [4.9, 22.5], [4.5, 22.5], [3.8, 19.2], [0, 18.5]], 0x3d3d3d, 0.5);
-  jarra.position.set(-13.5, 0, -9); jarra.scale.setScalar(0.82);
-  const asa = new THREE.Mesh(new THREE.TorusGeometry(4.6, 0.75, 12, 32, Math.PI), mate(0x3d3d3d, 0.5));
-  asa.position.set(-18.7, 10.2, -9); asa.scale.setScalar(0.82); asa.rotation.z = Math.PI / 2; asa.castShadow = true; escena.add(asa);
-  // Plato con pan
-  const plato = torno([[0, 0], [5.5, 0], [10.5, 1.3], [10.5, 1.6], [5.5, 0.5], [0, 0.5]], 0xffffff, 0.3);
-  plato.position.set(14, 0, 3);
-  const pan = new THREE.Mesh(new THREE.SphereGeometry(4.6, 32, 20), mate(0x9c9c9c, 0.95));
-  pan.scale.set(1.25, 0.55, 0.95); pan.position.set(14, 2.9, 3); pan.castShadow = true; escena.add(pan);
-  // Servilleta doblada
-  const serv = new THREE.Mesh(new THREE.BoxGeometry(11, 0.5, 11), mate(0xbdbdbd, 1));
-  serv.position.set(-1.5, 0.25, 13); serv.rotation.y = 0.35; serv.receiveShadow = true; escena.add(serv);
+  [[-4.6, 15, -1.5, 1.9], [-0.5, 19.5, 1.2, 2.2], [3.6, 16, -0.8, 1.8], [1.6, 12.5, 2.6, 1.6], [-2.6, 11, 2.2, 1.5], [5.2, 10.5, 1.6, 1.4]].forEach(([dx, alto, dz, tam]) => {
+    const bx = FX, y0 = VASO.alto, punta = [bx + dx, y0 + alto, FZ + dz];
+    u.tallo([[bx - dx * 0.25, VASO.fondo + 0.4, FZ - dz * 0.3], [bx + dx * 0.1, y0 * 0.6, FZ + dz * 0.1], [bx + dx * 0.4, y0 + alto * 0.35, FZ + dz * 0.45], punta], 0.11, verde);
+    flor(...punta, tam, [0.95 + dz * 0.06, -dx * 0.07]);
+    // una hoja a medio tallo
+    const hoja = new THREE.Mesh(new THREE.SphereGeometry(1.5, 12, 8), verde);
+    hoja.scale.set(1.2, 0.07, 0.36); hoja.position.set(bx + dx * 0.36 + (r() - 0.5), y0 + alto * 0.28, FZ + dz * 0.4); hoja.rotation.set(r(), r() * 3, 0.5 + r() * 0.5);
+    hoja.castShadow = true; escena.add(hoja);
+  });
+  u.sombra(26, 12, FX + 8, FZ - 2.2, 0.42, 0.8);
 
-  const p = crearVela({ brilloEntorno: 1.4, tinte: true });
-  fijarEstado(p, 'vaso');
-  p.vela.position.set(1, 0, 1);
-  escena.add(p.vela);
-  const sombra = new THREE.Mesh(
-    new THREE.PlaneGeometry(22, 12),
-    new THREE.MeshBasicMaterial({ map: texturaSombra(), transparent: true, depthWrite: false })
-  );
-  sombra.rotation.x = -Math.PI / 2; sombra.position.set(6.5, 0.03, -0.8); sombra.rotation.z = 0.33;
-  escena.add(sombra);
+  // El otro uso: el mismo vaso, con agua para tomar
+  const vasoAgua = new THREE.Group();
+  vasoAgua.add(crearVaso({ brilloEntorno: 1.5, tinte: true }), crearAgua(12.4, 1.4));
+  vasoAgua.position.set(-4.5, 0, 6);
+  escena.add(vasoAgua);
+  u.sombra(24, 11, 3, 3.5, 0.42, 0.8);
 
-  // Luz de ventana, desde la izquierda
-  const sol = new THREE.DirectionalLight(0xffffff, 3.1);
-  sol.position.set(-60, 55, 30); sol.castShadow = true;
-  sol.shadow.mapSize.set(2048, 2048); sol.shadow.bias = -0.0006; sol.shadow.radius = 5;
-  Object.assign(sol.shadow.camera, { left: -70, right: 70, top: 60, bottom: -40, near: 1, far: 220 });
-  escena.add(sol, new THREE.HemisphereLight(0xffffff, 0xbbbbbb, 0.9));
+  // Plato con limones y una servilleta de tela
+  u.torno([[0, 0], [5, 0], [9.6, 1.1], [9.8, 1.5], [5, 0.5], [0, 0.5]], u.mate(0xffffff, 0.28), 11.5, 0, 13, false);
+  const cascara = texturaAplanado(150, 8);
+  [[9.4, 3.1, 12.4, 2.7], [13.8, 3, 14.4, 2.6], [12.2, 3.2, 10, 2.8]].forEach(([x, y, z, t]) => {
+    const limon = u.poner(new THREE.Mesh(new THREE.SphereGeometry(t, 32, 24), u.mate(0xbdbdbd, 0.5, { bumpMap: cascara, bumpScale: 0.25 })), x, y, z);
+    limon.scale.set(1.12, 1, 1); limon.rotation.y = x;
+  });
+  const tela = u.mate(0xb9b9b9, 1);
+  const s1 = u.caja(13, 0.35, 13, tela, -14, 0.18, 15); s1.rotation.y = 0.3;
+  const s2 = u.caja(13, 0.35, 6.4, tela, -14, 0.52, 15); s2.rotation.y = 0.3; s2.translateZ(-3.2);
 
-  const camara = new THREE.PerspectiveCamera(30, 1, 1, 500);
+  const camara = new THREE.PerspectiveCamera(30, 1, 1, 600);
   const pintar = () => {
     if (!ajustar(renderer, camara, canvas)) return;
-    const ancho = camara.aspect < 1 ? 110 : 80;
-    camara.position.set(-5, 21, ancho); camara.lookAt(-1, 8.5, 0);
+    const lejos = camara.aspect < 1 ? 112 : 86;
+    camara.position.set(-3, 25, lejos); camara.lookAt(0.5, 14, 0);
     renderer.render(escena, camara);
   };
   new ResizeObserver(pintar).observe(canvas);

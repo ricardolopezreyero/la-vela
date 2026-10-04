@@ -54,7 +54,7 @@
       <div class="estados" role="group" aria-label="Ver la vela">
         <button type="button" data-estado="encendida" aria-pressed="true">1 · Encendida</button>
         <button type="button" data-estado="cartucho" aria-pressed="false">2 · Sale el cartucho</button>
-        <button type="button" data-estado="vaso" aria-pressed="false">3 · Vaso de agua</button>
+        <button type="button" data-estado="nuevo" aria-pressed="false">3 · Entra el nuevo</button>
       </div>
       <p class="pie-escena" id="pie-escena" aria-live="polite"></p>
     </div>
@@ -81,7 +81,7 @@
     <ol class="pasos">
       <li><span class="n">1</span><div><h3>Enciéndela.</h3><p>Una mecha diseñada para aprovechar cada gramo de cera.</p></div></li>
       <li><span class="n">2</span><div><h3>Rellénala.</h3><p>Cuando se acaba, compras solo el repuesto. El vaso sigue contigo.</p></div></li>
-      <li><span class="n">3</span><div><h3>Úsala de vaso.</h3><p>Cuando decidas, se queda en tu mesa para el agua de todos los días.</p></div></li>
+      <li><span class="n">3</span><div><h3>Dale otro uso.</h3><p>Sin el cartucho es un vaso limpio: para el agua, para flores, para lo que quieras.</p></div></li>
       <li><span class="n">4</span><div><h3>Recíclala.</h3><p>Vaso y base son 100% reciclables.</p></div></li>
     </ol>
   </div>
@@ -118,15 +118,15 @@
 <section class="seccion" id="casa">
   <div class="caja">
     <p class="etiqueta">En casa</p>
-    <h2>De noche es una vela. De día es un vaso.</h2>
+    <h2>De noche es una vela. De día, lo que tú quieras.</h2>
     <div class="casas">
       <figure>
-        <canvas id="repisa" role="img" aria-label="Render: la vela encendida sobre una repisa, de noche, junto a un retrato enmarcado, unos libros y un florero."></canvas>
+        <canvas id="repisa" role="img" aria-label="Render: la vela encendida sobre una repisa de madera, de noche, junto a un retrato enmarcado, unos libros y un florero con ramas de algodón."></canvas>
         <figcaption><b>En la repisa.</b>Encendida junto al retrato de siempre. Render 3D del modelo.</figcaption>
       </figure>
       <figure>
-        <canvas id="mesa" role="img" aria-label="Render: el mismo vaso, ya sin cartucho y lleno de agua, sobre la mesa de día, junto a una jarra y un plato con pan."></canvas>
-        <figcaption><b>En la mesa.</b>El mismo vaso, sin el cartucho, con el agua de todos los días. Render 3D del modelo.</figcaption>
+        <canvas id="mesa" role="img" aria-label="Render: el mismo vaso, ya sin cartucho, sobre la mesa de día: uno como florero con flores de campo y otro con agua, junto a una jarra y un plato con limones."></canvas>
+        <figcaption><b>En la mesa.</b>El mismo vaso, sin el cartucho: de florero, de vaso, de lo que haga falta. Render 3D del modelo.</figcaption>
       </figure>
     </div>
   </div>
@@ -195,7 +195,7 @@ const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 const PIES = {
   encendida: 'Arrástrala para girarla. La cera arde dentro del cartucho de aluminio; el vidrio no se mancha.',
   cartucho: 'Cuando se acaba, el cartucho sale completo y regresa a la tienda. Entra uno nuevo.',
-  vaso: 'Sin el cartucho, es un vaso limpio: el de agua de todos los días.',
+  nuevo: 'Entra un cartucho nuevo en el mismo vaso y vuelve a encender. El vacío regresa a la tienda.',
 };
 const pie = document.getElementById('pie-escena');
 const botones = [...document.querySelectorAll('.estados button')];

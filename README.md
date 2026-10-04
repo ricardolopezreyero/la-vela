@@ -31,7 +31,7 @@ Este repositorio junta todo lo que hemos aprendido y decidido sobre el proyecto:
 | 13 | [Fuentes](docs/13-fuentes.md) | De dónde salió cada dato |
 | 14 | [Guía de estilos](docs/14-guia-de-estilos.md) | Blanco y negro: color, letra, piezas y la vela en 3D |
 
-El modelo financiero completo (16 hojas, 36 meses) está en [`modelo/Modelo_Negocio_Velas_Rinde.xlsx`](modelo/Modelo_Negocio_Velas_Rinde.xlsx).
+El modelo financiero completo (18 hojas, 36 meses; la versión 2 se genera con `python3 herramientas/construir_modelo.py` a partir de la versión 1 y se recalcula con LibreOffice) está en [`modelo/La_Vela_Modelo_de_Negocio_v2.xlsx`](modelo/La_Vela_Modelo_de_Negocio_v2.xlsx).
 
 ## El sitio
 
@@ -45,7 +45,7 @@ Vive en [`sitio/`](sitio/) y se publica como Worker de Cloudflare en `vela.capit
 | `/distribuir` | `distribuir.html` | Solicitud de 8 preguntas; se guarda en D1 (`esquema.sql`, `src/worker.js`) |
 | `/entrar` | `entrar.html` | Inicio de sesión (solo la puerta; aún sin tablero) |
 
-Si cambia el Excel, hay que copiarlo de nuevo a `sitio/descargas/` y actualizar los números de `modelo.html`. Para desplegar:
+Si cambia el Excel, hay que copiarlo de nuevo a `sitio/descargas/` (con versión y fecha en el nombre) y actualizar los números de `modelo.html`. Para desplegar:
 
 ```bash
 npx wrangler deploy

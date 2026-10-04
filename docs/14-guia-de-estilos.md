@@ -66,7 +66,8 @@ Todos los botones miden al menos 48 px de alto.
 
 - El modelo vive en [`sitio/vela3d.js`](../sitio/vela3d.js) y es **uno solo**: el inicio y los dos renders de casa usan la misma vela.
 - Medidas en centímetros, tomadas de [02 · Ingeniería](02-ingenieria-de-la-vela.md): vaso de 6 cm de diámetro interior y 17 cm de alto, pared de 3 mm.
-- Tres estados, que son el modelo de negocio: **encendida**, **sale el cartucho**, **vaso de agua**.
+- Tres estados, que son el modelo de negocio: **encendida**, **sale el cartucho**, **entra el nuevo**. Los otros usos del vaso (florero, vaso de agua) se enseñan en el render de la mesa, no en los botones.
+- Los renders se arman con utilería sencilla y texturas pintadas en código (madera, aplanado): nada se descarga. La luz de día entra por una ventana con cruceta que no se ve; solo se ve su sombra.
 - Siempre en escala de grises: materiales neutros y, por seguridad, `filter: grayscale(1)` en el lienzo.
 - La flama es blanca. El vidrio se dibuja con sus reflejos, no con color.
 - **Por validar:** la altura del cartucho. El modelo lo dibuja como una copa baja de aluminio (2.6 cm) con la columna de cera encima; [08 · Cartucho retornable](08-cartucho-retornable.md) todavía no fija esa medida. Se cambia en la constante `CART` y todo lo demás se ajusta.
