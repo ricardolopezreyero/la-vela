@@ -1,10 +1,19 @@
 // RLR · La Vela en vela.capitaltorreon.com — Ricardo López Reyero
-// Sólo publica la carpeta sitio/. Desplegar: npx wrangler deploy
+// Publica la carpeta sitio/ y un Worker chico (src/worker.js) que redirige los dominios
+// alternos y guarda las solicitudes de distribuidores en D1. Desplegar: npx wrangler deploy
 {
   "name": "la-vela",
+  "main": "src/worker.js",
   "compatibility_date": "2026-09-01",
-  "assets": { "directory": "./sitio" },
-  "routes": [{ "pattern": "vela.capitaltorreon.com", "custom_domain": true }],
+  "assets": { "directory": "./sitio", "binding": "ASSETS", "run_worker_first": true },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "la-vela", "database_id": "9d5c1d4e-ecf0-444c-a139-a15a441d9758" }
+  ],
+  "routes": [
+    { "pattern": "vela.capitaltorreon.com", "custom_domain": true },
+    { "pattern": "la-vela.capitaltorreon.com", "custom_domain": true },
+    { "pattern": "lavela.capitaltorreon.com", "custom_domain": true }
+  ],
   "workers_dev": false,
   "preview_urls": false
 }

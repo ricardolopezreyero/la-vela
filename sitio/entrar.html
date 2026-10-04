@@ -1,0 +1,80 @@
+<!doctype html>
+<!-- RLR · La Vela, como Dios manda — Ricardo López Reyero · Torreón, Coahuila · octubre 2026 -->
+<html lang="es-MX" data-k="eye" data-rev="181218">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iniciar sesión · La Vela</title>
+<meta name="description" content="Acceso al tablero de La Vela.">
+<meta name="author" content="Ricardo López Reyero">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="Iniciar sesión · La Vela">
+<meta property="og:description" content="Acceso al tablero de La Vela.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://vela.capitaltorreon.com/entrar">
+<link rel="canonical" href="https://vela.capitaltorreon.com/entrar">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/estilos.css">
+</head>
+<body>
+
+<header class="barra">
+  <div class="caja">
+    <a class="marca" href="/" aria-label="La Vela, inicio">
+      <svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.500 6 4 7.500 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>
+      La Vela
+    </a>
+    <nav aria-label="Secciones">
+      <a href="/#como">Cómo funciona</a>
+      <a href="/#cartucho">El cartucho</a>
+      <a href="/#casa">En casa</a>
+      <a href="/manifiesto">Manifiesto</a>
+      <a class="siempre" href="/distribuir">Distribuir</a>
+      <a class="siempre entrar" href="/entrar" aria-label="Iniciar sesión" title="Iniciar sesión"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.500 21c.8-4.400 4.300-6.800 8.500-6.800s7.700 2.400 8.500 6.800" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"/></svg></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- RLR · inicio de sesión: solo la puerta; el tablero todavía no existe -->
+<section class="negra acceso">
+  <div class="caja">
+    <div class="tarjeta">
+      <p class="etiqueta">Tablero</p>
+      <h1>Iniciar sesión</h1>
+      <form id="acceso" novalidate>
+        <label>Correo<input name="correo" type="email" autocomplete="email" inputmode="email" maxlength="160" required></label>
+        <button class="boton lleno" type="submit">Entrar</button>
+        <p class="aviso" id="aviso" role="status" aria-live="polite"></p>
+      </form>
+      <p class="aviso">¿Quieres distribuir La Vela? <a href="/distribuir">Llena la solicitud</a>.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="pie">
+  <div class="caja">
+    <span>La Vela · Torreón, Coahuila, México</span>
+    <span><a href="/manifiesto">Manifiesto</a> · <a href="/distribuir">Quiero distribuir</a> · <a href="/entrar">Iniciar sesión</a></span>
+  </div>
+</footer>
+<script>
+/* RLR · por ahora el acceso llega hasta aquí — Ricardo López Reyero */
+(function () {
+  var _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
+  var forma = document.getElementById('acceso'), aviso = document.getElementById('aviso');
+  forma.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var correo = forma.correo.value.trim();
+    aviso.textContent = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)
+      ? 'El tablero todavía no está abierto. Cuando abra, entrarás desde aquí.'
+      : 'Escribe tu correo.';
+  });
+  void _RLR; void _k; void _rev;
+})();
+</script>
+<!-- RLR · Ricardo López Reyero -->
+</body>
+</html>

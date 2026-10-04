@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vela.capitaltorreon.com/">
 <link rel="canonical" href="https://vela.capitaltorreon.com/">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="estilos.css">
 <link rel="modulepreload" href="vendor/three.module.min.js">
 </head>
@@ -21,16 +21,17 @@
 
 <header class="barra">
   <div class="caja">
-    <a class="marca" href="#inicio" aria-label="La Vela, inicio">
-      <svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.5 6 4 7.5 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>
+    <a class="marca" href="/" aria-label="La Vela, inicio">
+      <svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.500 6 4 7.500 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>
       La Vela
     </a>
     <nav aria-label="Secciones">
       <a href="#como">Cómo funciona</a>
       <a href="#cartucho">El cartucho</a>
       <a href="#casa">En casa</a>
-      <a href="#ganan">Todos ganan</a>
-      <a class="siempre" href="#distribuir">Distribuir</a>
+      <a href="/manifiesto">Manifiesto</a>
+      <a class="siempre" href="/distribuir">Distribuir</a>
+      <a class="siempre entrar" href="/entrar" aria-label="Iniciar sesión" title="Iniciar sesión"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.500 21c.8-4.400 4.300-6.800 8.500-6.800s7.700 2.400 8.500 6.800" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"/></svg></a>
     </nav>
   </div>
 </header>
@@ -44,8 +45,8 @@
       <h1>La vela, como Dios manda.</h1>
       <p class="grande">Hecha para durar lo más posible, rellenarse y quedarse en tu casa como vaso.</p>
       <div class="botones">
-        <a class="boton lleno" href="#como">Cómo funciona</a>
-        <a class="boton" href="#distribuir">Quiero distribuir</a>
+        <a class="boton lleno" href="/manifiesto">Lee nuestro manifiesto</a>
+        <a class="boton" href="/distribuir">Quiero distribuir</a>
       </div>
     </div>
     <div class="escena">
@@ -174,7 +175,7 @@
     <p class="etiqueta">Para distribuidores</p>
     <h2>¿Tienes rutas, tiendas o clientes?</h2>
     <p class="grande">La veladora es de lo que más se vende en una tienda. Hicimos una que se rellena y que regresa al cliente a la misma tienda.</p>
-    <p class="aviso">La página para distribuidores abre pronto.</p>
+    <div class="botones"><a class="boton lleno" href="/distribuir">Quiero distribuir</a></div>
   </div>
 </section>
 </main>
@@ -182,7 +183,7 @@
 <footer class="pie">
   <div class="caja">
     <span>La Vela · Torreón, Coahuila, México</span>
-    <span>Octubre de 2026</span>
+    <span><a href="/manifiesto">Manifiesto</a> · <a href="/distribuir">Quiero distribuir</a> · <a href="/entrar">Iniciar sesión</a></span>
   </div>
 </footer>
 

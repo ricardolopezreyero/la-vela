@@ -144,3 +144,64 @@ a { color: inherit; }
 .pie .caja { display: flex; flex-wrap: wrap; gap: var(--e1) var(--e3); justify-content: space-between; }
 .aviso { font-size: 0.85rem; color: var(--gris-300); }
 /* RLR */
+
+/* ───── RLR · páginas: manifiesto, distribuir, entrar ───── */
+.barra nav { align-items: center; }
+.barra nav a.entrar { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-right: -10px; color: var(--blanco); border: 1px solid var(--gris-700); border-radius: 50%; padding: 0; }
+.barra nav a.entrar:hover { background: var(--blanco); color: var(--negro); }
+.barra nav a.entrar svg { width: 22px; height: 22px; }
+.pie a { color: inherit; }
+
+.prosa { margin-top: var(--e6); }
+.prosa p { font-family: var(--titulos); font-size: 1.3rem; line-height: 1.55; max-width: 34em; }
+.prosa p + p { margin-top: var(--e3); }
+.firma { margin-top: var(--e6) !important; padding-top: var(--e3); border-top: var(--linea); font-size: 0.85rem; color: var(--gris-700); max-width: 34em; }
+.firma b { display: block; font-family: var(--titulos); font-weight: 400; font-size: 1.3rem; color: var(--tinta); }
+.manifiesto .botones { margin-top: var(--e4); }
+.manifiesto h1 { font-size: clamp(2.3rem, 6vw, 4rem); }
+
+.razones { list-style: none; margin: var(--e6) 0 0; padding: 0; display: grid; gap: 0; border-top: var(--linea); }
+.razones li { padding: var(--e3) 0; border-bottom: var(--linea); }
+.razones h3 + p { margin-top: var(--e1); color: var(--gris-700); }
+@media (min-width: 900px) { .razones { grid-template-columns: repeat(3, 1fr); column-gap: var(--e4); } }
+
+/* Formulario */
+.forma { margin-top: var(--e6); max-width: 760px; }
+.forma fieldset { border: 0; border-top: var(--linea); margin: 0; padding: var(--e3) 0 var(--e4); min-width: 0; }
+.forma legend { float: left; width: 100%; padding: 0; margin-bottom: var(--e2); font-family: var(--titulos); font-size: 1.3rem; line-height: 1.25; }
+.forma legend + * { clear: both; }
+.forma legend .n { display: inline-block; min-width: 1.6em; }
+.forma legend small { font-family: var(--texto); font-size: 0.8rem; color: var(--gris-500); white-space: nowrap; }
+.campos { display: grid; gap: var(--e2); }
+@media (min-width: 760px) { .campos { grid-template-columns: repeat(3, 1fr); } .campos.uno { grid-template-columns: 1fr; } }
+.forma label, .tarjeta label { display: block; font-size: 0.85rem; font-weight: 600; }
+.forma input[type="text"], .forma input[type="tel"], .tarjeta input {
+  display: block; width: 100%; min-height: 52px; margin-top: 6px; padding: 0 var(--e2);
+  border: 2px solid var(--tinta); border-radius: 0; background: var(--blanco); color: var(--tinta);
+  font: 400 1rem var(--texto);
+}
+.opciones { display: grid; gap: var(--e1); }
+@media (min-width: 760px) { .opciones { grid-template-columns: repeat(2, 1fr); } }
+.opcion { position: relative; cursor: pointer; }
+.opcion input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.opcion span { display: flex; align-items: center; min-height: 52px; padding: var(--e1) var(--e2); border: 2px solid var(--tinta); background: var(--blanco); font-size: 1rem; font-weight: 400; }
+.opcion input:checked + span { background: var(--tinta); color: var(--blanco); }
+.opcion input:focus-visible + span { outline: 3px solid var(--tinta); outline-offset: 3px; }
+.trampa { position: absolute !important; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.error { margin: 0 0 var(--e2); padding: var(--e2); border: 2px solid var(--tinta); font-weight: 600; }
+.nota { margin-top: var(--e2); font-size: 0.8rem; color: var(--gris-500); }
+.gracias { margin-top: var(--e6); }
+.gracias > * + * { margin-top: var(--e3); }
+button.boton:disabled { opacity: .5; cursor: default; }
+
+/* Inicio de sesión */
+.acceso { padding: var(--e8) 0; min-height: calc(100vh - 64px - 90px); display: flex; align-items: center; }
+.tarjeta { max-width: 420px; margin: 0 auto; }
+.tarjeta > * + * { margin-top: var(--e3); }
+.tarjeta h1 { font-size: 2.4rem; }
+.tarjeta form > * + * { margin-top: var(--e2); }
+.tarjeta input { border-color: var(--blanco); }
+.tarjeta .boton { width: 100%; }
+.tarjeta .aviso { min-height: 1.4em; }
+/* RLR */

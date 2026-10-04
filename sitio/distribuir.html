@@ -1,0 +1,199 @@
+<!doctype html>
+<!-- RLR · La Vela, como Dios manda — Ricardo López Reyero · Torreón, Coahuila · octubre 2026 -->
+<html lang="es-MX" data-k="eye" data-rev="181218">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiero distribuir · La Vela</title>
+<meta name="description" content="Distribuye la vela que tus clientes van a volver a pedir. Ocho preguntas, dos minutos.">
+<meta name="author" content="Ricardo López Reyero">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="Quiero distribuir · La Vela">
+<meta property="og:description" content="Distribuye la vela que tus clientes van a volver a pedir. Ocho preguntas, dos minutos.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://vela.capitaltorreon.com/distribuir">
+<link rel="canonical" href="https://vela.capitaltorreon.com/distribuir">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/estilos.css">
+</head>
+<body>
+
+<header class="barra">
+  <div class="caja">
+    <a class="marca" href="/" aria-label="La Vela, inicio">
+      <svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.500 6 4 7.500 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>
+      La Vela
+    </a>
+    <nav aria-label="Secciones">
+      <a href="/#como">Cómo funciona</a>
+      <a href="/#cartucho">El cartucho</a>
+      <a href="/#casa">En casa</a>
+      <a href="/manifiesto">Manifiesto</a>
+      <a class="siempre" href="/distribuir">Distribuir</a>
+      <a class="siempre entrar" href="/entrar" aria-label="Iniciar sesión" title="Iniciar sesión"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.500 21c.8-4.400 4.300-6.800 8.500-6.800s7.700 2.400 8.500 6.800" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"/></svg></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="negra inicio">
+  <div class="caja" style="display:block">
+    <div class="dicho">
+      <p class="etiqueta">Para distribuidores</p>
+      <h1>Distribuye la vela que tus clientes van a volver a pedir.</h1>
+      <p class="grande">La veladora es de lo que más se vende en una tienda. Hicimos una que se rellena y regresa al cliente a la misma tienda.</p>
+      <div class="botones"><a class="boton lleno" href="#solicitud">Llenar la solicitud</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" style="border-top:0">
+  <div class="caja">
+    <p class="etiqueta">Por qué te conviene</p>
+    <h2>Un producto que regresa solo.</h2>
+    <ul class="razones">
+      <li><h3>Recompra</h3><p>El cliente compra el vaso una vez y luego vuelve por su repuesto.</p></li>
+      <li><h3>Margen atractivo</h3><p>Para ti y para la tienda. Te lo mostramos en la llamada.</p></li>
+      <li><h3>Exhibidor sin costo</h3><p>Exhibidor y material de punto de venta incluidos.</p></li>
+      <li><h3>Venta garantizada</h3><p>Lo que no se mueva, se cambia.</p></li>
+      <li><h3>Exclusividad por zona</h3><p>Para quien llegue primero y cumpla volumen.</p></li>
+      <li><h3>Temporadas listas</h3><p>Día de Muertos, Guadalupe, San Judas, 10 de mayo.</p></li>
+    </ul>
+  </div>
+</section>
+
+<!-- RLR · la solicitud: 8 preguntas, se guarda en la base de datos -->
+<section class="seccion gris" id="solicitud">
+  <div class="caja">
+    <p class="etiqueta">Solicitud</p>
+    <h2>Ocho preguntas, dos minutos.</h2>
+    <form id="forma" class="forma" novalidate>
+      <fieldset>
+        <legend><span class="n">1</span>¿Quién eres?</legend>
+        <div class="campos">
+          <label>Nombre<input name="nombre" type="text" autocomplete="name" maxlength="120" required></label>
+          <label>Empresa<input name="empresa" type="text" autocomplete="organization" maxlength="160" required></label>
+          <label>WhatsApp<input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="10 dígitos" required></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="n">2</span>¿En qué ciudades o estados distribuyes?</legend>
+        <div class="campos uno"><label><span class="oculto">Ciudades o estados</span><input name="zonas" type="text" maxlength="400" required></label></div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="n">3</span>¿A cuántos puntos de venta les surtes hoy?</legend>
+        <div class="opciones">
+          <label class="opcion"><input type="radio" name="puntos" value="Menos de 100" required><span>Menos de 100</span></label>
+          <label class="opcion"><input type="radio" name="puntos" value="100–300" required><span>100–300</span></label>
+          <label class="opcion"><input type="radio" name="puntos" value="300–1,000" required><span>300–1,000</span></label>
+          <label class="opcion"><input type="radio" name="puntos" value="Más de 1,000" required><span>Más de 1,000</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="n">4</span>¿Qué tipo de puntos de venta? <small>Puedes marcar varios.</small></legend>
+        <div class="opciones">
+          <label class="opcion"><input type="checkbox" name="tipos" value="Misceláneas y abarrotes"><span>Misceláneas y abarrotes</span></label>
+          <label class="opcion"><input type="checkbox" name="tipos" value="Mayoristas"><span>Mayoristas</span></label>
+          <label class="opcion"><input type="checkbox" name="tipos" value="Artículos religiosos"><span>Artículos religiosos</span></label>
+          <label class="opcion"><input type="checkbox" name="tipos" value="Restaurantes y hoteles"><span>Restaurantes y hoteles</span></label>
+          <label class="opcion"><input type="checkbox" name="tipos" value="Otro"><span>Otro</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="n">5</span>¿Cada cuánto visitas a cada tienda?</legend>
+        <div class="opciones">
+          <label class="opcion"><input type="radio" name="visita" value="Cada semana" required><span>Cada semana</span></label>
+          <label class="opcion"><input type="radio" name="visita" value="Cada 2 semanas" required><span>Cada 2 semanas</span></label>
+          <label class="opcion"><input type="radio" name="visita" value="Cada mes" required><span>Cada mes</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="n">6</span>¿Ya vendes veladoras? ¿Cuántas piezas al mes?</legend>
+        <div class="opciones">
+          <label class="opcion"><input type="radio" name="veladoras" value="No" required><span>No</span></label>
+          <label class="opcion"><input type="radio" name="veladoras" value="Menos de 1,000" required><span>Menos de 1,000</span></label>
+          <label class="opcion"><input type="radio" name="veladoras" value="1,000–10,000" required><span>1,000–10,000</span></label>
+          <label class="opcion"><input type="radio" name="veladoras" value="Más de 10,000" required><span>Más de 10,000</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="n">7</span>¿Cuántos vehículos de reparto tienes?</legend>
+        <div class="opciones">
+          <label class="opcion"><input type="radio" name="vehiculos" value="1–2" required><span>1–2</span></label>
+          <label class="opcion"><input type="radio" name="vehiculos" value="3–10" required><span>3–10</span></label>
+          <label class="opcion"><input type="radio" name="vehiculos" value="Más de 10" required><span>Más de 10</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="n">8</span>¿De qué tamaño sería tu primer pedido?</legend>
+        <div class="opciones">
+          <label class="opcion"><input type="radio" name="pedido" value="Menos de $10 mil" required><span>Menos de $10 mil</span></label>
+          <label class="opcion"><input type="radio" name="pedido" value="$10–50 mil" required><span>$10–50 mil</span></label>
+          <label class="opcion"><input type="radio" name="pedido" value="Más de $50 mil" required><span>Más de $50 mil</span></label>
+        </div>
+      </fieldset>
+      <label class="trampa" aria-hidden="true">No llenar<input name="sitio" type="text" tabindex="-1" autocomplete="off"></label>
+      <p class="error" id="error" role="alert" hidden></p>
+      <div class="botones"><button class="boton lleno" type="submit" id="enviar">Enviar solicitud</button></div>
+      <p class="nota">Usamos tus datos solo para contactarte sobre la distribución.</p>
+    </form>
+    <div class="gracias" id="gracias" hidden tabindex="-1">
+      <h2>Gracias.</h2>
+      <p class="grande">Revisamos cada solicitud a mano. Si tu zona está disponible, te escribimos por WhatsApp.</p>
+      <div class="botones"><a class="boton" href="/">Volver al inicio</a></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="pie">
+  <div class="caja">
+    <span>La Vela · Torreón, Coahuila, México</span>
+    <span><a href="/manifiesto">Manifiesto</a> · <a href="/distribuir">Quiero distribuir</a> · <a href="/entrar">Iniciar sesión</a></span>
+  </div>
+</footer>
+<script>
+/* RLR · envío de la solicitud — Ricardo López Reyero */
+(function () {
+  var _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
+  var forma = document.getElementById('forma'), error = document.getElementById('error');
+  var boton = document.getElementById('enviar'), gracias = document.getElementById('gracias');
+  var NOMBRES = { nombre: 'tu nombre', empresa: 'tu empresa', whatsapp: 'tu WhatsApp (10 dígitos)', zonas: 'la pregunta 2',
+    puntos: 'la pregunta 3', tipos: 'la pregunta 4', visita: 'la pregunta 5', veladoras: 'la pregunta 6', vehiculos: 'la pregunta 7', pedido: 'la pregunta 8' };
+  function avisar(faltan) {
+    error.textContent = 'Falta ' + faltan.map(function (f) { return NOMBRES[f] || f; }).join(', ') + '.';
+    error.hidden = false;
+    var campo = forma.querySelector('[name="' + faltan[0] + '"]');
+    if (campo) { campo.closest('fieldset').scrollIntoView({ block: 'center' }); if (campo.type !== 'radio' && campo.type !== 'checkbox') campo.focus(); }
+  }
+  forma.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var f = new FormData(forma), d = { tipos: f.getAll('tipos') };
+    ['nombre', 'empresa', 'whatsapp', 'zonas', 'puntos', 'visita', 'veladoras', 'vehiculos', 'pedido', 'sitio'].forEach(function (c) { d[c] = (f.get(c) || '').toString().trim(); });
+    var faltan = [];
+    if (d.nombre.length < 2) faltan.push('nombre');
+    if (d.empresa.length < 2) faltan.push('empresa');
+    if (d.whatsapp.replace(/\D/g, '').length < 10) faltan.push('whatsapp');
+    if (d.zonas.length < 2) faltan.push('zonas');
+    if (!d.puntos) faltan.push('puntos');
+    if (!d.tipos.length) faltan.push('tipos');
+    ['visita', 'veladoras', 'vehiculos', 'pedido'].forEach(function (c) { if (!d[c]) faltan.push(c); });
+    if (faltan.length) return avisar(faltan);
+    error.hidden = true; boton.disabled = true; boton.textContent = 'Enviando…';
+    fetch('/api/distribuir', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (r) {
+        if (!r.ok) { boton.disabled = false; boton.textContent = 'Enviar solicitud'; if (r.j.faltan) return avisar(r.j.faltan); throw new Error(r.j.error); }
+        forma.hidden = true; gracias.hidden = false; gracias.focus(); gracias.scrollIntoView({ block: 'center' });
+      })
+      .catch(function (e) {
+        boton.disabled = false; boton.textContent = 'Enviar solicitud';
+        error.textContent = (e && e.message) || 'No se pudo enviar. Revisa tu conexión e intenta de nuevo.'; error.hidden = false;
+      });
+  });
+  void _RLR; void _k; void _rev;
+})();
+</script>
+<!-- RLR · Ricardo López Reyero -->
+</body>
+</html>
