@@ -57,6 +57,10 @@ Solo los administradores entran a Usuarios y a Ajustes. La pantalla es una matri
 
 La lista de lo que el tablero iba a necesitar vive en Proyecto, sección «Tablero» (100 tarjetas, 59 hechas en la primera pasada) y en `docs/16-las-siguientes-100.md`. Entre lo hecho: buscador de todo (tecla «/»), refrescar y hora, copiar pendientes, posponer, alertas de días sin pedir, anticipados por producir, capacidad corta y retorno bajo; filtros, orden y CSV en Distribuidores y Pedidos; remisión y etiquetas de reja imprimibles; plan de la semana, merma y ajuste de inventario con motivo; sugerencia de compra por semanas de cobertura, historial de precios, WhatsApp al proveedor; hoja de ruta imprimible y **liga del repartidor** (`/ruta?r=…`); conciliación, repetir fijos, pagar nómina y flujo de cuatro semanas; contratar en un clic y organigrama; correo al distribuidor cuando su pedido cambia de paso; mensajes de WhatsApp editables en Ajustes.
 
+### En vivo (`src/vivo.js`)
+
+Un Durable Object («Vivo») guarda los WebSockets abiertos del tablero, de cada panel de distribuidor y de cada hoja de ruta, y la versión del tablero. Toda escritura del Worker lo avisa (`avisar()`), sube la versión y manda el cambio a quien le toca: al tablero todo; al distribuidor lo de sus pedidos y el catálogo; al repartidor su ruta. El cliente (`sitio/vivo.js`) recarga en cuanto llega el aviso (unos 100 ms después de la escritura) sin pisar lo que alguien esté escribiendo, ignora sus propios cambios (cabecera `x-vivo`), se reconecta solo y, si el socket no entra, pregunta la versión cada 8 segundos. El tablero muestra «● en vivo» y quién más está conectado.
+
 Lo que se automatizó:
 
 - Una solicitud nueva o un pedido hecho desde la liga manda un correo a los administradores.

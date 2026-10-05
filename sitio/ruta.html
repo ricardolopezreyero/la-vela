@@ -36,6 +36,7 @@
 <body>
 <header class="barra"><div class="caja"><span class="marca"><svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.5 6 4 7.5 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>La Vela</span></div></header>
 <main class="ruta"><section class="seccion" style="border-top:0"><div class="caja" id="pagina"><p class="grande">Cargando tu ruta…</p></div></section></main>
+<script src="/vivo.js"></script>
 <script>
 /* RLR · la ruta del repartidor: paradas en orden, mapa, WhatsApp, entregado y efectivo — Ricardo López Reyero */
 (function () {
@@ -85,7 +86,7 @@
     return fetch('/api/ruta?r=' + encodeURIComponent(r)).then(function (x) { return x.json().then(function (j) { if (!x.ok) throw new Error(j.error); return j; }); })
       .then(function (j) { D = j; pintar(); }).catch(function (e) { pagina.innerHTML = '<h1>Esta liga no está activa</h1><p class="grande">' + esc(e.message || '') + '</p>'; });
   }
-  cargar();
+  cargar().then(function () { var c = function () { if (!window.Vivo) return setTimeout(c, 300); Vivo.conectar({ canal: 'ruta', r: r, alCambio: function () { cargar(); } }); }; c(); });
   void _RLR; void _k; void _rev;
 })();
 </script>

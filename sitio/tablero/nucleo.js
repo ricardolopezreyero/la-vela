@@ -2,7 +2,7 @@
    Estado en memoria, llamadas al servidor y las piezas que usan todas las pantallas. */
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
-export const S = { listo: false, ui: { vista: {}, filtro: {}, orden: {}, buscar: '' } };
+export const S = { listo: false, vivo: '', enLinea: [], ui: { vista: {}, filtro: {}, orden: {}, buscar: '' } };
 const PK = { inventario: 'clave', productos: 'clave', usuarios: 'correo', promos: 'clave' };
 export const pkDe = (rec) => PK[rec] || 'id';
 try { Object.assign(S.ui, JSON.parse(localStorage.getItem('vela.ui') || '{}')); } catch { /* sin memoria local */ }
@@ -44,7 +44,7 @@ export const horasDesde = (iso) => (Date.now() - new Date(iso).getTime()) / 3600
 
 // ───────── Servidor ─────────
 export async function api(metodo, ruta, cuerpo) {
-  const r = await fetch('/api/t/' + ruta, { method: metodo, headers: cuerpo ? { 'content-type': 'application/json' } : {}, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
+  const r = await fetch('/api/t/' + ruta, { method: metodo, headers: { ...(cuerpo ? { 'content-type': 'application/json' } : {}), 'x-vivo': window.Vivo ? Vivo.id : '' }, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
   if (r.status === 401) { location.href = '/entrar'; throw new Error('Tu sesión terminó.'); }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error || 'No se pudo guardar.');

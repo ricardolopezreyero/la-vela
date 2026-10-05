@@ -230,6 +230,8 @@ input[type="checkbox"] { width: 20px; height: 20px; min-height: 0; accent-color:
 .resultados li { padding: 8px 0; border-bottom: 1px solid var(--g3); }
 .resultados small { color: var(--g5); display: block; }
 #tope .al-dia { font-size: 0.75rem; color: var(--g5); white-space: nowrap; }
+#tope .al-dia.vivo { color: var(--tinta); }
+#lado .enlinea { font-size: 0.75rem; color: var(--g3); padding: 6px 10px 0; }
 #tope .al-dia button { background: none; border: 0; text-decoration: underline; cursor: pointer; color: inherit; font: inherit; padding: 0; }
 .semaforo { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--tinta); vertical-align: middle; margin-right: 5px; }
 .semaforo.lleno { background: var(--tinta); }

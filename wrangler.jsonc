@@ -11,6 +11,9 @@
     { "binding": "RESEND_API_KEY", "store_id": "308dac6355cb4d7a8bef6cc8ef7ee035", "secret_name": "RESEND_API_KEY" },
     { "binding": "STRIPE_SECRET_KEY", "store_id": "308dac6355cb4d7a8bef6cc8ef7ee035", "secret_name": "STRIPE_SECRET_KEY" }
   ],
+  // «Vivo»: el objeto que mantiene los WebSockets abiertos y avisa al instante de cada cambio (src/vivo.js)
+  "durable_objects": { "bindings": [{ "name": "VIVO", "class_name": "Vivo" }] },
+  "migrations": [{ "tag": "vivo-1", "new_sqlite_classes": ["Vivo"] }],
   "d1_databases": [
     { "binding": "DB", "database_name": "la-vela", "database_id": "9d5c1d4e-ecf0-444c-a139-a15a441d9758" }
   ],

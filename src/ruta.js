@@ -2,10 +2,11 @@
 // Sin login: la liga es la credencial. Ve las paradas en orden, abre el mapa, avisa por WhatsApp, marca entregado y anota lo que cobró en efectivo.
 import { ahora, hoyMX, json, mismoOrigen, texto } from './comun.js';
 import { cambiarPedido, nota, pagarPedido } from './tablero.js';
+import { avisar as avisarVivo } from './vivo.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
-async function rutaDe(env, liga) {
+export async function rutaDe(env, liga) {
   if (!/^[a-f0-9]{40}$/.test(liga || '')) return null;
   return env.DB.prepare('SELECT * FROM rutas WHERE liga = ?').bind(liga).first();
 }
@@ -35,7 +36,7 @@ export async function apiRuta(req, env, ctx) {
   if (!p) return json({ error: 'Esa parada no es de esta ruta.' }, 404);
   const yo = { correo: `repartidor:${texto(r.repartidor, 60) || r.id}`, rol: 'admin' };
   try {
-    if (e.accion === 'salir') { await env.DB.batch([env.DB.prepare(`UPDATE rutas SET estado = 'En camino', actualizado = ? WHERE id = ? AND estado <> 'Terminada'`).bind(ahora(), r.id), nota(env, 'rutas', r.id, 'El repartidor marcó que salió', yo.correo)]); return json({ ok: true }); }
+    if (e.accion === 'salir') { await env.DB.batch([env.DB.prepare(`UPDATE rutas SET estado = 'En camino', actualizado = ? WHERE id = ? AND estado <> 'Terminada'`).bind(ahora(), r.id), nota(env, 'rutas', r.id, 'El repartidor marcó que salió', yo.correo)]); avisarVivo(env, ctx, { cosa: 'rutas', id: r.id, ruta_id: r.id }); return json({ ok: true }); }
     if (e.accion === 'entregar') {
       const vacios = Math.max(0, Math.floor(Number(e.vacios)));
       if (Number.isFinite(vacios) && vacios !== p.vacios && p.cobro !== 'Cobrado') await cambiarPedido(env, yo, p.id, { vacios }, ctx);
@@ -49,6 +50,7 @@ export async function apiRuta(req, env, ctx) {
       // Si ya no queda nada por entregar, la ruta se cierra sola
       const { n } = await env.DB.prepare('SELECT COUNT(*) n FROM pedidos WHERE ruta_id = ? AND entregado_fecha IS NULL').bind(r.id).first();
       if (!n) await env.DB.prepare(`UPDATE rutas SET estado = 'Terminada', actualizado = ? WHERE id = ?`).bind(ahora(), r.id).run();
+      avisarVivo(env, ctx, { cosa: 'pedidos', id: p.id, distribuidor_id: p.distribuidor_id, ruta_id: r.id });
       return json({ ok: true });
     }
     if (e.accion === 'nota') { const t = texto(e.texto, 500); if (!t) return json({ error: 'Escribe la nota.' }, 400); await nota(env, 'pedidos', p.id, `Repartidor: ${t}`, yo.correo).run(); return json({ ok: true }); }

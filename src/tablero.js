@@ -2,6 +2,7 @@
 // Todo pasa por aquí con sesión. Un solo GET trae el tablero completo; cada cambio es un PATCH chico.
 import { CASA, ahora, azar, hoyMX, json, mismoOrigen, parrafo, texto } from './comun.js';
 import { enviar, plantilla } from './correo.js';
+import { avisar as avisarVivo } from './vivo.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
@@ -465,8 +466,24 @@ async function crearCompra(env, yo, cuerpo) {
 // ───────── RLR · entrada ─────────
 export async function tablero(req, env, ctx, yo, ruta) {
   const m = req.method, [rec, idCrudo, accion] = ruta.split('/').map(decodeURIComponent);
+  if (m === 'GET') return rec === 'todo' ? await todo(env, yo) : json({ error: 'No existe.' }, 404);
+  // Toda escritura que salga bien se avisa a los conectados (Vivo), con el distribuidor y la ruta si es un pedido
+  const r = await escribir(req, env, ctx, yo, rec, idCrudo, accion, m);
+  if (r.ok) {
+    const c = { cosa: rec === 'nota' ? 'bitacora' : rec, id: Number(idCrudo) || 0, de: texto(req.headers.get('x-vivo'), 40) };
+    if (rec === 'pedidos' || (rec === 'rutas' && accion === 'paradas')) {
+      let pid = c.id;
+      if (!pid && rec === 'pedidos') { try { pid = Number((await r.clone().json()).id) || 0; } catch { /* sin id */ } }
+      const p = pid && rec === 'pedidos' ? await env.DB.prepare('SELECT distribuidor_id, ruta_id FROM pedidos WHERE id = ?').bind(pid).first() : null;
+      if (p) { c.distribuidor_id = p.distribuidor_id; c.ruta_id = p.ruta_id || 0; c.id = pid; }
+      if (rec === 'rutas') c.ruta_id = c.id;
+    }
+    avisarVivo(env, ctx, c);
+  }
+  return r;
+}
+async function escribir(req, env, ctx, yo, rec, idCrudo, accion, m) {
   try {
-    if (m === 'GET') return rec === 'todo' ? await todo(env, yo) : json({ error: 'No existe.' }, 404);
     if (!mismoOrigen(req, env)) throw new Mal('Origen no permitido.', 403);
     let cuerpo = {};
     if (m !== 'DELETE') { try { cuerpo = await req.json(); } catch { throw new Mal('No se pudo leer.'); } }

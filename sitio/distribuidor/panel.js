@@ -268,6 +268,11 @@ async function cargar() { D = await api('todo'); pintar(); }
     catch (e) { aviso(e.message, true); }
     history.replaceState(null, '', '/distribuidor/');
   } else if (q.get('pedido')) { location.hash = '#pedido-' + q.get('pedido'); history.replaceState(null, '', '/distribuidor/' + location.hash); }
-  setInterval(async () => { if (document.hidden || /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) return; try { const antes = JSON.stringify(D.pedidos.map((p) => [p.id, p.estado, p.cobro])); const d = await api('todo'); if (JSON.stringify(d.pedidos.map((p) => [p.id, p.estado, p.cobro])) !== antes) { D = d; pintar(); } } catch { /* la próxima */ } }, 60000);
+  // Vivo: en cuanto el tablero mueva su pedido, el panel lo refleja (sin pisar lo que esté escribiendo)
+  let pend = null;
+  const alCambio = () => { clearTimeout(pend); pend = setTimeout(async () => { if (/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) return alCambio(); try { const d = await api('todo'); D = d; pintar(); } catch { /* la próxima */ } }, 200); };
+  const conectar = () => { if (!window.Vivo) return setTimeout(conectar, 300); Vivo.conectar({ canal: 'dist', quien: D.yo.empresa, alCambio }); };
+  conectar();
+  setInterval(async () => { if (document.hidden || /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) return; try { const antes = JSON.stringify(D.pedidos.map((p) => [p.id, p.estado, p.cobro])); const d = await api('todo'); if (JSON.stringify(d.pedidos.map((p) => [p.id, p.estado, p.cobro])) !== antes) { D = d; pintar(); } } catch { /* la próxima */ } }, 120000);
 })();
 void _RLR; void _k; void _rev;

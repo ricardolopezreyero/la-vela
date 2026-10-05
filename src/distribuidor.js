@@ -6,6 +6,7 @@ import { CASA, ahora, azar, escapar, esLocal, hoyMX, huella, json, mismoOrigen, 
 import { verificarPase } from './verificar.js';
 import { avisar } from './pedir.js';
 import { ESTADOS_PEDIDO, calcularPedido, insertarPedido, nota, pagarPedido } from './tablero.js';
+import { avisar as avisarVivo } from './vivo.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 const COOKIE = 'vela_dist', DURA = 30 * 86400;
@@ -15,7 +16,7 @@ class Mal extends Error { constructor(m, s = 400) { super(m); this.status = s; }
 const cookieDe = (req) => { const m = (req.headers.get('cookie') || '').match(new RegExp(`(?:^|;\\s*)${COOKIE}=([a-f0-9]{64})`)); return m ? m[1] : ''; };
 
 // Quién es el distribuidor detrás de la petición (o null)
-async function quien(req, env) {
+export async function quienDist(req, env) {
   const id = cookieDe(req);
   if (!id) return null;
   const d = await env.DB.prepare('SELECT d.* FROM sesiones_dist s JOIN solicitudes d ON d.id = s.distribuidor_id WHERE s.hash = ? AND s.vence > ?').bind(await huella(id), seg()).first();
@@ -140,13 +141,14 @@ export async function apiDistribuidor(req, env, ctx, ruta) {
     let cuerpo = {};
     if (req.method === 'POST') { if (!mismoOrigen(req, env)) throw new Mal('Origen no permitido.', 403); try { cuerpo = await req.json(); } catch { cuerpo = {}; } }
     if (ruta === 'entrar') return await entrar(req, env, cuerpo || {});
-    const d = await quien(req, env);
+    const d = await quienDist(req, env);
     if (!d) return json({ error: 'Entra con tu cuenta.', entrar: true }, 401);
     const stripe = await secreto(env.STRIPE_SECRET_KEY);
     if (ruta === 'todo') return await todo(env, d, stripe);
     if (ruta === 'salir') { const id = cookieDe(req); if (id) await env.DB.prepare('DELETE FROM sesiones_dist WHERE hash = ?').bind(await huella(id)).run(); return json({ ok: true }, 200, { 'set-cookie': `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0` }); }
     if (ruta === 'pedir') {
       const r = await pedir(env, d, cuerpo, origen);
+      avisarVivo(env, ctx, { cosa: 'pedidos', id: r.id, distribuidor_id: d.id });
       ctx.waitUntil(avisar(env, origen, `Pedido ${r.anticipado ? 'anticipado' : 'nuevo'} · ${r.piezas} piezas · ${d.empresa}`, r.anticipado ? 'Pedido anticipado' : 'Pedido nuevo desde su panel',
         [`<b>${escapar(d.empresa)}</b> pidió ${r.piezas} piezas por ${r.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}.`, `Entrega: ${r.fecha}.`], `/tablero/#/pedidos/${r.id}`));
       return json(r);
@@ -154,11 +156,13 @@ export async function apiDistribuidor(req, env, ctx, ruta) {
     if (ruta === 'pagar') return json(await pagar(env, d, cuerpo, origen, stripe));
     if (ruta === 'confirmar') {
       const r = await confirmar(env, d, cuerpo, stripe);
+      if (!r.ya) avisarVivo(env, ctx, { cosa: 'pedidos', id: r.id, distribuidor_id: d.id });
       if (!r.ya) ctx.waitUntil(avisar(env, origen, `Pago con tarjeta · pedido #${r.id} · ${d.empresa}`, 'Pedido pagado con tarjeta', [`<b>${escapar(d.empresa)}</b> pagó el pedido #${r.id} con tarjeta. Ya pasó a Confirmado.`], `/tablero/#/pedidos/${r.id}`));
       return json(r);
     }
     if (ruta === 'transferencia') {
       const r = await transferencia(env, d, cuerpo);
+      avisarVivo(env, ctx, { cosa: 'pedidos', id: Number(cuerpo.pedido_id) || 0, distribuidor_id: d.id });
       ctx.waitUntil(avisar(env, origen, `Aviso de transferencia · pedido #${cuerpo.pedido_id} · ${d.empresa}`, 'Transferencia por confirmar', [`<b>${escapar(d.empresa)}</b> avisa que transfirió el pedido #${Number(cuerpo.pedido_id) || 0}. Confírmalo en Pagos cuando lo veas en el banco.`], `/tablero/#/pagos`));
       return json(r);
     }

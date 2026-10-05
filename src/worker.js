@@ -10,7 +10,10 @@ import { entrarConPase, paginaAcceso, pedirEnlace, privado, quienEntra, salir, u
 import { avisar, pedir } from './pedir.js';
 import { tablero } from './tablero.js';
 import { apiDistribuidor } from './distribuidor.js';
-import { apiRuta } from './ruta.js';
+import { apiRuta, rutaDe } from './ruta.js';
+import { Vivo, avisar as avisarVivo, conectar, version } from './vivo.js';
+import { quienDist } from './distribuidor.js';
+export { Vivo };
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
@@ -70,6 +73,7 @@ async function distribuir(req, env, ctx) {
   ctx.waitUntil(avisar(env, new URL(req.url).origin, `Solicitud nueva · tipo ${tipo} · ${d.empresa}`, `Distribuidor nuevo, tipo ${tipo}`,
     [`<b>${escapar(d.empresa)}</b> (${escapar(d.nombre)}) quiere distribuir en ${escapar(d.zonas)}.`, `Surte ${escapar(d.puntos)} puntos de venta y los visita ${escapar(d.visita.toLowerCase())}.`, plazo],
     `/tablero/#/distribuidores/${r.meta.last_row_id}`));
+  avisarVivo(env, ctx, { cosa: 'distribuidores', id: r.meta.last_row_id });
   return json({ ok: true }); // el puntaje no sale de aquí
 }
 
@@ -87,6 +91,18 @@ export default {
       if (p === '/api/salir') return await salir(req, env);
       if (p === '/api/pedir') return await pedir(req, env, ctx);
       if (p === '/api/ruta') return await apiRuta(req, env, ctx);
+      // Vivo: el socket (ya autorizado aquí según el canal) y la versión para el respaldo por consulta
+      if (p === '/api/vivo') {
+        const canal = url.searchParams.get('canal') || 'tablero';
+        let tag = '', quien = '';
+        if (canal === 'tablero') { const yo = await quienEntra(req, env); if (yo) { tag = 'tablero'; quien = yo.nombre || yo.correo; } }
+        else if (canal === 'dist') { const d = await quienDist(req, env); if (d) { tag = 'dist:' + d.id; quien = d.empresa; } }
+        else if (canal === 'ruta') { const r = await rutaDe(env, url.searchParams.get('r')); if (r) { tag = 'ruta:' + r.id; quien = r.repartidor; } }
+        if (!tag) return json({ error: 'Sin sesión.' }, 401);
+        if (req.headers.get('upgrade') !== 'websocket') return json({ error: 'Es un WebSocket.' }, 426);
+        return await conectar(env, req, tag, quien);
+      }
+      if (p === '/api/vivo/version') return await version(env);
       if (p === '/acceso') return req.method === 'POST' ? await usarEnlace(req, env) : await paginaAcceso(req, env);
       if (p.startsWith('/api/t/')) {
         const yo = await quienEntra(req, env);

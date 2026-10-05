@@ -47,9 +47,9 @@ function pintar() {
   $('#lado').innerHTML = html`<a class="marca" href="#/hoy">${crudo(LLAMA)}La Vela</a>
     <nav>${GRUPOS.map((g) => { const xs = Object.values(VISTAS).filter((x) => x.grupo === g && x.id !== 'ajustes' && permitida(x.id)); return html`${g && xs.length ? html`<p class="grupo">${g}</p>` : ''}${xs.map((x) => { const n = x.cuenta ? x.cuenta() : 0;
       return html`<a href="#/${x.id}" aria-current="${x.id === sec ? 'page' : 'false'}">${x.titulo}${n ? html`<span class="cuenta">${n}</span>` : ''}</a>`; })}`; })}</nav>
-    <div class="abajo"><a href="#/ajustes" aria-current="${sec === 'ajustes' ? 'page' : 'false'}">Ajustes</a><a href="/" class="tenue">Ver el sitio</a><p>${S.yo.nombre || S.yo.correo}</p></div>`;
+    <div class="abajo"><a href="#/ajustes" aria-current="${sec === 'ajustes' ? 'page' : 'false'}">Ajustes</a><a href="/" class="tenue">Ver el sitio</a><p>${S.yo.nombre || S.yo.correo}</p>${S.enLinea.length > 1 ? html`<p class="enlinea">En línea: ${S.enLinea.filter((q) => q !== (S.yo.nombre || S.yo.correo)).join(', ')}</p>` : ''}</div>`;
   const resultados = S.ui.buscarTodo ? buscarTodo(S.ui.buscarTodo) : null;
-  $('#tope').innerHTML = html`<button class="menu" data-a="menu" aria-label="Menú">☰</button><h1>${v.titulo}</h1><div class="acciones"><input class="buscar" type="search" placeholder="Buscar en todo (/)" data-buscar-todo value="${S.ui.buscarTodo || ''}" aria-label="Buscar en todo el tablero">${v.botones ? v.botones() : ''}<span class="al-dia">al día ${fecha(ultimaISO).toLowerCase() === fecha(new Date().toISOString()).toLowerCase() ? 'a las ' + new Date(ultima).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : fecha(ultimaISO)} · <button type="button" data-a="refrescar">refrescar</button></span></div>`;
+  $('#tope').innerHTML = html`<button class="menu" data-a="menu" aria-label="Menú">☰</button><h1>${v.titulo}</h1><div class="acciones"><input class="buscar" type="search" placeholder="Buscar en todo (/)" data-buscar-todo value="${S.ui.buscarTodo || ''}" aria-label="Buscar en todo el tablero">${v.botones ? v.botones() : ''}<span class="al-dia ${S.vivo}" title="${S.vivo === 'vivo' ? 'Conectado: los cambios llegan al instante' : S.vivo === 'consulta' ? 'Sin socket: se pregunta cada 8 segundos' : 'Sin conexión'}">${S.vivo === 'vivo' ? '● en vivo' : S.vivo === 'consulta' ? '○ cada 8 s' : '○ sin conexión'} · ${new Date(ultima).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })} · <button type="button" data-a="refrescar">refrescar</button></span></div>`;
   const clave = v.fijo && !resultados ? sec : '';
   if (resultados) $('#vista').innerHTML = html`<section class="bloque"><h2>Resultados<span class="cuenta">${resultados.length}</span></h2>${resultados.length ? html`<ul class="resultados">${resultados.map((r) => html`<li><a href="${r.liga}" data-a="ir-resultado"><b>${r.titulo}</b></a><small>${r.tipo} · ${r.detalle}</small></li>`)}</ul>` : html`<p class="vacio">Nada con «${S.ui.buscarTodo}».</p>`}</section>`;
   else if (!clave || clave !== pintada) $('#vista').innerHTML = v.pintar(sub);
@@ -159,8 +159,22 @@ async function refrescar(aFuerza = false) {
   if (!aFuerza && (document.hidden || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || ''))) return;
   try { await cargar(); ultima = Date.now(); ultimaISO = new Date().toISOString(); pintar(); if (aFuerza) aviso('Al día'); } catch { /* se intenta en la próxima */ }
 }
-setInterval(refrescar, 90000);
+setInterval(refrescar, 120000); // respaldo del respaldo
 window.addEventListener('focus', () => { if (Date.now() - ultima > 30000) refrescar(); });
+// RLR · Vivo: cada cambio que avisa el servidor recarga el tablero en cuanto nadie esté escribiendo
+let pendienteVivo = null;
+function alCambio(c) {
+  if (c.de && window.Vivo && c.de === Vivo.id) return; // lo hice yo: ya se ve
+  clearTimeout(pendienteVivo);
+  pendienteVivo = setTimeout(async () => {
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '') && !document.activeElement.matches('[data-buscar-todo], .buscar')) { alCambio({}); return; } // se reintenta en 2 s
+    try { await cargar(); ultima = Date.now(); ultimaISO = new Date().toISOString(); pintar(); } catch { /* el respaldo lo recoge */ }
+  }, c.de === undefined ? 2000 : 80);
+}
+function conectarVivo() {
+  if (!window.Vivo) return setTimeout(conectarVivo, 300);
+  Vivo.conectar({ canal: 'tablero', quien: S.yo.nombre || S.yo.correo, alCambio, alQuien: (lista) => { S.enLinea = lista; pintar(); }, alEstado: (e) => { S.vivo = e; pintar(); } });
+}
 
-cargar().then(() => { if (!permitida(ruta()[0])) location.hash = '#/' + primera(); pintar(); }).catch((e) => { $('#vista').innerHTML = html`<p class="vacio">No se pudo cargar el tablero: ${e.message}</p>`; });
+cargar().then(() => { if (!permitida(ruta()[0])) location.hash = '#/' + primera(); pintar(); conectarVivo(); }).catch((e) => { $('#vista').innerHTML = html`<p class="vacio">No se pudo cargar el tablero: ${e.message}</p>`; });
 void _RLR; void _k; void _rev;

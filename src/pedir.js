@@ -3,6 +3,7 @@
 import { ahora, escapar, hoyMX, json, mismoOrigen, parrafo, texto } from './comun.js';
 import { enviar, plantilla } from './correo.js';
 import { calcularPedido } from './tablero.js';
+import { avisar as avisarVivo } from './vivo.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
@@ -44,6 +45,7 @@ export async function pedir(req, env, ctx) {
      VALUES (?, 'Recibido', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'liga', ?)`
   ).bind(d.id, c.lineas, c.piezas, c.piezas_vaso, c.cajas, c.subtotal, c.deposito, c.total, c.vacios, c.rejas, c.kg, fecha, parrafo(e.notas, 1000), ahora()).run();
   const id = r.meta.last_row_id;
+  avisarVivo(env, ctx, { cosa: 'pedidos', id, distribuidor_id: d.id });
   await env.DB.prepare('INSERT INTO bitacora (cosa, cosa_id, texto, por, fecha) VALUES (?, ?, ?, ?, ?)').bind('pedidos', id, 'Pedido hecho desde su liga', texto(d.empresa, 80), ahora()).run();
   ctx.waitUntil(avisar(env, url.origin, `Pedido nuevo · ${c.cajas} caja(s) · ${d.empresa}`, 'Pedido nuevo',
     [`<b>${escapar(d.empresa)}</b> pidió ${c.cajas} caja(s): ${c.piezas} piezas en ${c.rejas} reja(s), ${c.kg} kg.`, `Regresa ${c.vacios} cartuchos vacíos. Entrega estimada: ${fecha}.`], `/tablero/#/pedidos/${id}`));
