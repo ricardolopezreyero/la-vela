@@ -369,6 +369,9 @@ pagina = f'''<!doctype html>
 <footer class="pie"></footer>
 {GUION}
 <!-- RLR · {_RLR} -->
+<!-- RLR · Login de CapitalTorreon: todo funciona sin entrar; entrar solo agrega -->
+<div data-login-ct style="position:fixed;top:12px;right:12px;z-index:9999"></div>
+<script src="https://login.capitaltorreon.com/login.js" data-prefs="vela.ui" defer></script>
 </body>
 </html>
 '''
@@ -472,10 +475,10 @@ Nada de esto está validado todavía. Son estimados que hay que confirmar en est
 
 | | |
 |---|---|
-| [`docs/`](docs/) | Los 14 documentos del proyecto: [origen](docs/01-origen-y-vision.md) · [ingeniería de la vela](docs/02-ingenieria-de-la-vela.md) · [pruebas de encendido](docs/03-pruebas-de-encendido.md) · [proveedores](docs/04-proveedores-arranque.md) · [checklist](docs/05-checklist-proyecto.md) · [salida al mercado](docs/06-go-to-market.md) · [modelo de negocio](docs/07-modelo-de-negocio.md) · [cartucho retornable](docs/08-cartucho-retornable.md) · [manifiesto](docs/09-manifiesto.md) · [sitio](docs/10-sitio-web.md) · [tablero](docs/11-tablero-operacion.md) · [riesgos](docs/12-riesgos-y-supuestos.md) · [fuentes](docs/13-fuentes.md) · [guía de estilos](docs/14-guia-de-estilos.md) |
+| [`docs/`](docs/) | Los 15 documentos del proyecto: [origen](docs/01-origen-y-vision.md) · [ingeniería de la vela](docs/02-ingenieria-de-la-vela.md) · [pruebas de encendido](docs/03-pruebas-de-encendido.md) · [proveedores](docs/04-proveedores-arranque.md) · [checklist](docs/05-checklist-proyecto.md) · [salida al mercado](docs/06-go-to-market.md) · [modelo de negocio](docs/07-modelo-de-negocio.md) · [cartucho retornable](docs/08-cartucho-retornable.md) · [manifiesto](docs/09-manifiesto.md) · [sitio](docs/10-sitio-web.md) · [tablero](docs/11-tablero-operacion.md) · [riesgos](docs/12-riesgos-y-supuestos.md) · [fuentes](docs/13-fuentes.md) · [guía de estilos](docs/14-guia-de-estilos.md) · [equipo y mercado](docs/15-equipo-y-mercado.md) |
 | [`modelo/`](modelo/) | El Excel del modelo ({len(wb.sheetnames)} hojas, 36 meses, tres escenarios) y `escenarios.json` |
 | [`sitio/`](sitio/) | El sitio público, la liga de pedidos de los distribuidores y el tablero de operación |
-| [`src/`](src/) | El Worker de Cloudflare: solicitudes, acceso por enlace mágico, tablero y pedidos |
+| [`src/`](src/) | El Worker de Cloudflare: solicitudes, acceso (Login de CapitalTorreon o enlace al correo), tablero y pedidos |
 | [`herramientas/`](herramientas/) | Los programas que generan todo lo que se repite |
 | [`contenido/blog/`](contenido/blog/) | Los artículos del blog |
 
@@ -488,7 +491,7 @@ Nada de esto está validado todavía. Son estimados que hay que confirmar en est
 | [`/manifiesto`]({SITIO}/manifiesto) | La vela, como Dios manda |
 | [`/distribuir`]({SITIO}/distribuir) | La solicitud para distribuidores y las tres hojas para imprimir |
 | [`/blog/`]({SITIO}/blog/) | Cinco artículos sobre la veladora |
-| `/tablero/` | La operación: distribuidores, pedidos, producción, cartuchos, indicadores, proyecto y receta. Pide sesión |
+| `/tablero/` | La empresa completa: Hoy y Datos (sala de datos); Distribuidores, Pedidos, Ventas y Mercado; Producción, Compras, Rutas, Cartuchos e Indicadores; Pagos y Contabilidad; Equipo, Proyecto, Receta y Modelo. Pide sesión |
 | `/pedir?d=…` | La liga privada con la que cada distribuidor hace sus pedidos |
 
 ### Cómo se actualiza
@@ -504,7 +507,7 @@ python3 herramientas/construir_sitio.py           # cabeceras, barra, pie, blog 
 npx wrangler deploy                               # publica
 ```
 
-El tablero usa D1: `esquema.sql`, luego `migraciones/0002_tablero.sql`, y los datos de arranque salen de `herramientas/semilla.py`. Se entra con un enlace que llega al correo; en la compu, `npx wrangler dev` con un archivo `.dev.vars` que diga `LOCAL=1` enseña ese enlace en pantalla. La lumbre es lo único con color en todo el sitio (ver la [guía de estilos](docs/14-guia-de-estilos.md)).
+El tablero usa D1: `esquema.sql`, luego `migraciones/0002_tablero.sql` y `migraciones/0003_empresa.sql`; los datos de arranque (tareas, recetas, catálogo, proveedores, puestos, mercados, centros y vehículos) salen de `herramientas/semilla.py`, que también escribe `docs/15`. Se entra con la cuenta de Google por el Login de CapitalTorreon, o con un enlace que llega al correo; solo entra quien esté en la tabla `usuarios`. En la compu, `npx wrangler dev` con un archivo `.dev.vars` que diga `LOCAL=1` enseña el enlace en pantalla. Los pedidos se empacan por reja de 24 (dos cajas) y tarima de 32 rejas; las rutas se arman con todos los pedidos listos y se miden contra el vehículo. La lumbre es lo único con color en todo el sitio (ver la [guía de estilos](docs/14-guia-de-estilos.md)).
 
 ---
 

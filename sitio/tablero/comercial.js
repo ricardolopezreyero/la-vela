@@ -1,6 +1,6 @@
 /* RLR · La Vela — pantallas Hoy, Distribuidores y Pedidos — Ricardo López Reyero */
 import { S, aj, api, aviso, bitacoraDe, borrar, campo, cargar, columnas, crear, diasA, dinero, etiqueta, fecha, guardar, hace, html, hoyISO, interruptor, num, wa } from './nucleo.js';
-import { FASES, abiertos, cartuchos, dist, lunes, medir, mensajes, paso, pendientes, plazo, porCobrar, producto, saldoDe, temporadas, totalDe, zonaTomada } from './cuentas.js';
+import { FASES, abiertos, cartuchos, credito, dist, empaque, lunes, medir, mensajes, paso, pendientes, plazo, porCobrar, producto, saldoDe, tarimasTexto, temporadas, totalDe, zonaTomada } from './cuentas.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
@@ -44,7 +44,7 @@ export const hoy = {
         <a href="#/indicadores"><b>${num(piezasSem)}</b><span>piezas pedidas esta semana${aj('meta_semanal') ? ` de ${num(aj('meta_semanal'))}` : ''}</span></a>
         <a href="#/indicadores"><b>${dinero(porCobrar().reduce((s, p) => s + p.total, 0))}</b><span>por cobrar</span></a>
         <a href="#/cartuchos"><b>${c.tasa == null ? '—' : Math.round(c.tasa * 100) + '%'}</b><span>de los cartuchos regresa</span></a>
-      </div></section>
+      </div><p class="tenue">Todo el negocio en una pantalla: <a href="#/datos">Datos</a>.</p></section>
     </div>`;
   },
 };
@@ -89,7 +89,11 @@ function panelDist(sub) {
       ${campo('distribuidores', d.id, 'proxima_accion', d.proxima_accion, { rotulo: 'Próxima acción', marcador: 'Llamarle, mandar propuesta, visitar su bodega…', ancho: 'doble' })}
       ${campo('distribuidores', d.id, 'proxima_fecha', d.proxima_fecha, { rotulo: 'Para cuándo', tipo: 'date' })}
       ${campo('distribuidores', d.id, 'tipo', d.tipo, { rotulo: 'Tipo', opciones: [['A', 'A · Grande'], ['B', 'B · Mediano'], ['C', 'C · Chico']] })}
+      ${campo('distribuidores', d.id, 'canal', d.canal || 'tienditas', { rotulo: 'Canal', opciones: S.estados.canales.map((c) => [c, S.mercados.find((m) => m.tipo === 'Canal' && m.clave === c)?.nombre || c]) })}
       ${campo('distribuidores', d.id, 'zona', d.zona, { rotulo: 'Zona asignada', marcador: 'Torreón y Gómez Palacio' })}
+      ${campo('distribuidores', d.id, 'centro_id', d.centro_id || '', { rotulo: 'Lo surte', opciones: [['', '—'], ...S.centros.map((c) => [c.id, c.nombre])] })}
+      ${campo('distribuidores', d.id, 'ciudad', d.ciudad, { rotulo: 'Ciudad de entrega', marcador: 'Para armar las rutas' })}
+      ${campo('distribuidores', d.id, 'direccion', d.direccion, { rotulo: 'Dirección de su bodega', marcador: 'Calle, número, colonia' })}
       ${campo('distribuidores', d.id, 'tiendas', d.tiendas || '', { rotulo: 'Tiendas activas con La Vela', tipo: 'number', paso: '1' })}
       ${campo('distribuidores', d.id, 'exclusividad', d.exclusividad, { rotulo: 'Tiene la exclusividad de su zona', tipo: 'checkbox', ancho: 'doble' })}
       ${campo('distribuidores', d.id, 'notas', d.notas, { rotulo: 'Notas', tipo: 'area', ancho: 'doble', marcador: 'Qué margen gana hoy, quién le fabrica, de qué se quejan sus tiendas…' })}
@@ -153,16 +157,22 @@ const tarjetaPedido = (p) => {
   const tarde = paso(p.estado) < paso('Entregado') && p.fecha_prometida && diasA(p.fecha_prometida) < 0;
   return html`<article class="tarjeta ${tarde ? 'roja' : ''}" draggable="true" data-arr="${p.id}" data-a="ir" data-ruta="pedidos/${p.id}" tabindex="0">
     <header><b>#${p.id} · ${dist(p.distribuidor_id)?.empresa || 'Sin distribuidor'}</b></header>
-    <p>${resumenLineas(p)}</p><p class="tenue">${num(p.piezas)} piezas · ${dinero(p.total)}${p.vacios ? ` · regresa ${num(p.vacios)}` : ''}</p>
+    <p>${resumenLineas(p)}</p><p class="tenue">${num(p.piezas)} piezas · ${p.rejas} rejas · ${dinero(p.total)}${p.vacios ? ` · regresa ${num(p.vacios)}` : ''}</p>
     ${p.fecha_prometida ? html`<p class="${tarde ? 'plazo' : 'sigue'}">${tarde ? 'Atrasado: era para el' : 'Para el'} ${fecha(p.fecha_prometida)}</p>` : ''}
     ${p.entregado_fecha && p.cobro !== 'Cobrado' ? html`<p class="plazo">Por cobrar · ${-diasA(p.entregado_fecha)} días</p>` : ''}
   </article>`;
 };
 
-function desglose(t) {
+function desglose(t, lineas = [], d = null) {
+  const e = empaque(lineas), cr = d ? credito(d, t.total) : null;
+  const sugerencia = !e.rejas ? '' : e.faltan.length ? `Para no mandar rejas a medias: ${e.faltan.map((f) => `${f.cajas} caja(s) más de ${f.nombre}`).join(' y ')}.`
+    : e.paraTarima ? `Rejas completas. Faltan ${e.paraTarima} rejas para llenar la tarima.` : 'Tarima(s) completa(s).';
   return html`<dl class="datos cuenta-pedido"><dt>${num(t.piezas)} piezas en ${num(t.cajas)} cajas</dt><dd>${dinero(t.subtotal, 2)}</dd>
     <dt>Depósito de cartuchos (${num(t.piezas)} × ${dinero(t.deposito)})</dt><dd>${dinero(t.cargo, 2)}</dd>
-    <dt>Cartuchos vacíos que entrega</dt><dd>${dinero(-t.abono, 2)}</dd><dt><b>Total, con IVA</b></dt><dd><b>${dinero(t.total, 2)}</b></dd></dl>`;
+    <dt>Cartuchos vacíos que entrega</dt><dd>${dinero(-t.abono, 2)}</dd><dt><b>Total, con IVA</b></dt><dd><b>${dinero(t.total, 2)}</b></dd>
+    ${e.rejas ? html`<dt>Empaque</dt><dd>${e.rejas} reja(s) · ${tarimasTexto(e.tarimas)} · ${num(e.kg)} kg</dd>` : ''}</dl>
+    ${sugerencia ? html`<p class="tenue">${sugerencia}</p>` : ''}
+    ${cr && cr.excede ? html`<p class="alerta">Con este pedido debe ${dinero(cr.saldo)} y su crédito es de ${dinero(cr.credito)}. Confirmar solo con pago por adelantado o subir el crédito en su ficha.</p>` : ''}`;
 }
 
 function panelPedido(sub) {
@@ -194,13 +204,14 @@ function panelPedido(sub) {
       <label class="campo"><span>Cartuchos vacíos que entrega</span><input name="vacios" type="number" min="0" step="1" value="${p.vacios || ''}" ${p.descontado ? html`disabled` : ''} data-envia></label>
     </form>
     ${p.descontado ? html`<p class="tenue">Ya se fabricó y el material bajó del inventario: las piezas ya no se cambian.</p>` : ''}
-    ${desglose(t)}
+    ${desglose(t, p.lineas, p.estado === 'Recibido' ? d : null)}
     <div class="forma">
       ${campo('pedidos', p.id, 'fecha_prometida', p.fecha_prometida, { rotulo: 'Entrega prometida', tipo: 'date' })}
       ${campo('pedidos', p.id, 'lote_id', p.lote_id || '', { rotulo: 'Lote', opciones: [['', 'Sin lote'], ...S.lotes.map((l) => [l.id, `${l.codigo} · ${l.resultado}`])] })}
+      ${campo('pedidos', p.id, 'ruta_id', p.ruta_id || '', { rotulo: 'Ruta', opciones: [['', 'Sin ruta'], ...S.rutas.filter((r) => r.estado !== 'Terminada' || r.id === p.ruta_id).map((r) => [r.id, `${fecha(r.fecha)} · ${r.repartidor || 'sin repartidor'}`])] })}
       ${campo('pedidos', p.id, 'notas', p.notas, { rotulo: 'Notas', tipo: 'area', ancho: 'doble' })}
     </div>
-    <dl class="datos"><dt>Cobro</dt><dd>${p.cobro}${p.cobrado_fecha ? ' · ' + fecha(p.cobrado_fecha) : ''}</dd>${p.entregado_fecha ? html`<dt>Entregado</dt><dd>${fecha(p.entregado_fecha)}</dd>` : ''}</dl>
+    <dl class="datos"><dt>Cobro</dt><dd>${p.cobro}${p.cobrado_fecha ? ' · ' + fecha(p.cobrado_fecha) : ''}</dd>${p.entregado_fecha ? html`<dt>Entregado</dt><dd>${fecha(p.entregado_fecha)}</dd>` : ''}${d?.direccion || d?.ciudad ? html`<dt>Entregar en</dt><dd>${[d.direccion, d.ciudad].filter(Boolean).join(', ')}</dd>` : ''}</dl>
     ${bitacoraDe('pedidos', p.id)}
     ${p.descontado ? '' : html`<p class="fin"><button class="enlace" data-a="borrar-pedido" data-id="${p.id}">Borrar este pedido</button></p>`}`;
 }
@@ -218,7 +229,7 @@ export const pedidos = {
     return columnas({ rec: 'pedidos', cols: S.estados.pedidos, items: S.pedidos, tarjeta: tarjetaPedido });
   },
   panel: panelPedido,
-  vivo: { pedido: (d) => desglose(totalDe(leerLineas(d).lineas, d.vacios)) },
+  vivo: { pedido: (d) => desglose(totalDe(leerLineas(d).lineas, d.vacios), leerLineas(d).lineas, dist(Number(d.distribuidor_id))) },
   acciones: {
     'mover-pedido': (el) => guardar('pedidos', el.dataset.id, { estado: el.dataset.v }),
     async 'borrar-pedido'(el) { if (await borrar('pedidos', el.dataset.id, '¿Borrar este pedido?')) location.hash = '#/pedidos'; },

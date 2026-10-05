@@ -172,7 +172,11 @@ export const modelo = {
 
 // ───────── Ajustes: operación, catálogo y quién entra ─────────
 const AJ = [['deposito', 'Depósito por cartucho ($)', '1'], ['dias_entrega', 'Días para entregar un pedido', '1'], ['dias_cobro', 'Días de crédito antes de avisar', '1'],
-  ['meta_semanal', 'Meta de piezas por semana', '1'], ['pedido_minimo_cajas', 'Pedido mínimo desde la liga (cajas)', '1']];
+  ['meta_semanal', 'Meta de piezas por semana', '1'], ['pedido_minimo_cajas', 'Pedido mínimo desde la liga (cajas)', '1'], ['piezas_semana_hoy', 'Piezas por semana (mientras no haya pedidos)', '1']];
+const AJ_EMPAQUE = [['rejas_tarima', 'Rejas por tarima', '1'], ['reja_kg', 'Peso de la reja vacía (kg)', '0.1'], ['tarima_kg', 'Peso de la tarima (kg)', '1']];
+const AJ_DINERO = [['iva', 'IVA (%)', '1'], ['transf_pieza', 'Maquila o transformación por pieza ($)', '0.01'], ['gasto_fijo_mes', 'Gasto fijo mensual, si no se captura en Pagos ($)', '100'], ['ebitda_pieza', 'EBITDA por pieza del plan ($)', '0.01']];
+const AJ_ESCALA = [['mercado_piezas_anio', 'Velas que se venden en México al año', '1000000'], ['meta_participacion', 'Meta de participación (%)', '1'], ['piezas_tienda_semana', 'Piezas por tienda por semana', '1'],
+  ['tiendas_distribuidor', 'Tiendas por distribuidor', '10'], ['piezas_centro_semana', 'Piezas por semana por centro de distribución', '1000']];
 
 export const ajustes = {
   id: 'ajustes', titulo: 'Ajustes', grupo: '',
@@ -183,13 +187,22 @@ export const ajustes = {
         <label class="campo doble"><span>Fase actual del proyecto</span><select data-ajuste="fase_actual">${FASES.map((f) => html`<option value="${f.n}" ${aj('fase_actual', 1) === f.n ? html`selected` : ''}>${f.n} · ${f.nombre}: ${f.metrica.toLowerCase()}</option>`)}</select></label>
         ${AJ.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}</div></section>
       <section class="bloque"><h2>Tu sesión</h2><p>Entraste como <b>${S.yo.correo}</b>${admin ? ', con acceso de administrador' : ''}.</p>
-        <p class="tenue">Se entra con un enlace que llega al correo; dura 15 minutos y sirve una vez. La sesión dura 30 días en este navegador.</p>
+        <p class="tenue">Se entra con la cuenta de Google (Login de CapitalTorreon) o con un enlace que llega al correo. La sesión dura 30 días en este navegador.</p>
         <div class="botones"><button class="boton" data-a="salir">Cerrar sesión</button></div></section>
-      <section class="bloque doble"><h2>Catálogo</h2><div class="tabla-caja"><table class="tabla editable"><thead><tr><th>Producto</th><th>Piezas por caja</th><th>Precio al distribuidor, por pieza</th><th>Precio al público</th><th>Lleva vaso</th><th>Se vende</th></tr></thead><tbody>
+      <section class="bloque doble"><h2>Catálogo</h2><div class="tabla-caja"><table class="tabla editable"><thead><tr><th>Producto</th><th>Piezas por caja</th><th>Precio al distribuidor, por pieza</th><th>Precio al público</th><th>Piezas por reja</th><th>Peso por pieza (kg)</th><th>Lleva vaso</th><th>Se vende</th></tr></thead><tbody>
         ${S.productos.map((p) => html`<tr><th>${campo('productos', p.clave, 'nombre', p.nombre)}</th><td>${campo('productos', p.clave, 'piezas_caja', p.piezas_caja, { tipo: 'number', paso: '1' })}</td>
           <td>${campo('productos', p.clave, 'precio_dist', p.precio_dist, { tipo: 'number' })}</td><td>${campo('productos', p.clave, 'precio_publico', p.precio_publico, { tipo: 'number' })}</td>
+          <td>${campo('productos', p.clave, 'piezas_reja', p.piezas_reja, { tipo: 'number', paso: '1' })}</td><td>${campo('productos', p.clave, 'peso_kg', p.peso_kg, { tipo: 'number', paso: '0.01' })}</td>
           <td>${campo('productos', p.clave, 'lleva_vaso', p.lleva_vaso, { tipo: 'checkbox' })}</td><td>${campo('productos', p.clave, 'activo', p.activo, { tipo: 'checkbox' })}</td></tr>`)}</tbody></table></div>
-        <p class="tenue">Los precios al distribuidor llevan IVA y salen del modelo (escenario Rentable). Cambiarlos aquí cambia los pedidos nuevos, no los que ya existen.</p></section>
+        <p class="tenue">Los precios al distribuidor llevan IVA y salen del modelo (escenario Rentable). Cambiarlos aquí cambia los pedidos nuevos, no los que ya existen. Reja de 24 = dos cajas de 12 (6 × 4 vasos de 7.5 cm en una reja de 50 × 33 × 25 cm).</p></section>
+      <section class="bloque"><h2>Empaque y transporte</h2><div class="forma">${AJ_EMPAQUE.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}</div>
+        <p class="tenue">Tarima de 1.0 × 1.2 m: 8 rejas por cama y 4 camas son 32 rejas, 768 piezas y 1.15 m de alto. Se mueve con patín y cabe en una camioneta de 1.5 toneladas junto con otra. Los vehículos se editan en Rutas.</p></section>
+      <section class="bloque"><h2>Dinero</h2><div class="forma">${AJ_DINERO.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}</div></section>
+      <section class="bloque doble"><h2>Escala: los supuestos de la meta</h2><div class="forma tres">${AJ_ESCALA.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}</div>
+        <p class="tenue">697 millones de velas al año en México (Solunion, 2024). 8 piezas por tienda por semana y 150 tiendas por distribuidor salen del Excel. Con estos números Mercado arma la escalera hacia la meta.</p></section>
+      <section class="bloque doble"><h2>Centros de distribución</h2><div class="tabla-caja"><table class="tabla editable"><thead><tr><th>Centro</th><th>Ciudad</th><th>Tipo</th><th>Estado</th><th>Piezas por semana</th><th>Abre</th></tr></thead><tbody>
+        ${S.centros.map((c) => html`<tr><th>${campo('centros', c.id, 'nombre', c.nombre)}</th><td>${campo('centros', c.id, 'ciudad', c.ciudad)}</td><td>${campo('centros', c.id, 'tipo', c.tipo, { opciones: ['Planta', 'Maquila', 'Centro'] })}</td><td>${campo('centros', c.id, 'estado', c.estado, { opciones: ['Planeado', 'Activo', 'Cerrado'] })}</td><td>${campo('centros', c.id, 'piezas_semana', c.piezas_semana, { tipo: 'number', paso: '1000' })}</td><td>${campo('centros', c.id, 'abre', c.abre, { marcador: '2027-10' })}</td></tr>`)}</tbody></table></div>
+        <div class="botones"><button class="boton" data-a="centro-nuevo">+ Centro</button></div></section>
       <section class="bloque doble"><h2>Quién entra al tablero</h2>
         <div class="tabla-caja"><table class="tabla ${admin ? 'editable' : ''}"><thead><tr><th>Correo</th><th>Nombre</th><th>Acceso</th><th></th></tr></thead><tbody>
           ${S.usuarios.map((u) => html`<tr><th>${u.correo}</th><td>${admin ? campo('usuarios', u.correo, 'nombre', u.nombre) : u.nombre}</td>
@@ -197,12 +210,13 @@ export const ajustes = {
             <td>${admin && u.correo !== S.yo.correo ? html`<button class="enlace" data-a="borrar-usuario" data-id="${u.correo}">Quitar</button>` : ''}</td></tr>`)}</tbody></table></div>
         ${admin ? html`<form data-f="usuario-nuevo" class="forma enlinea"><label class="campo"><span>Correo</span><input name="correo" type="email" required></label><label class="campo"><span>Nombre</span><input name="nombre"></label>
           <label class="campo"><span>Acceso</span><select name="rol"><option value="equipo">Equipo</option><option value="admin">Administrador</option></select></label><button class="boton">Dar acceso</button></form>
-          <p class="tenue">Quien esté en esta lista entra con su correo. Los administradores reciben el aviso de cada solicitud y pedido nuevo, y son los únicos que cambian esta lista.</p>` : ''}</section>
+          <p class="tenue">Quien esté en esta lista entra con su cuenta de Google o con su correo. Los administradores reciben el aviso de cada solicitud y pedido nuevo, y son los únicos que cambian esta lista.</p>` : ''}</section>
     </div>`;
   },
   acciones: {
     'borrar-usuario': (el) => borrar('usuarios', el.dataset.id, `¿Quitarle el acceso a ${el.dataset.id}?`),
     async salir() { await fetch('/api/salir', { method: 'POST' }); location.href = '/entrar'; },
+    'centro-nuevo': () => crear('centros', { nombre: 'Centro nuevo', tipo: 'Centro', estado: 'Planeado', piezas_semana: 60000, orden: S.centros.length + 1 }),
   },
   formularios: { 'usuario-nuevo': (f, d) => crear('usuarios', d) },
 };

@@ -150,6 +150,15 @@ export function pendientes() {
     if (d < 0) p.push({ urg: 2, titulo: t.titulo, detalle: `Tarea vencida: era para el ${fecha(t.fecha)}`, liga: `#/proyecto/${t.id}` });
     else if (d <= 7) p.push({ urg: d === 0 ? 1 : 0, titulo: t.titulo, detalle: d === 0 ? 'Tarea para hoy' : `Tarea para el ${fecha(t.fecha)}`, liga: `#/proyecto/${t.id}` });
   }
+  // La empresa completa: compras que no llegan, pagos, rutas y contrataciones
+  for (const c of S.compras || []) {
+    if (c.estado === 'Pedida' && c.fecha_esperada && c.fecha_esperada < hoy) p.push({ urg: 2, titulo: `La compra #${c.id} no ha llegado`, detalle: `Se esperaba el ${fecha(c.fecha_esperada)} · ${dinero(c.total)}`, liga: `#/compras/${c.id}` });
+    if (c.estado === 'Recibida') { const pv = (S.proveedores || []).find((x) => x.id === c.proveedor_id), vence = pv ? -diasA(c.recibida_fecha) >= pv.credito_dias : true; if (vence) p.push({ urg: 1, titulo: `Pagar la compra #${c.id}${pv ? ' · ' + pv.nombre : ''}`, detalle: `${dinero(c.total)} · recibida el ${fecha(c.recibida_fecha)}`, liga: `#/compras/${c.id}` }); }
+  }
+  for (const r of S.rutas || []) if (r.fecha === hoy && ['Planeada', 'Cargada'].includes(r.estado)) p.push({ urg: 1, titulo: `Ruta de hoy · ${r.repartidor || 'sin repartidor'}`, detalle: `${S.pedidos.filter((x) => x.ruta_id === r.id).length} paradas · ${r.estado}`, liga: `#/rutas/${r.id}` });
+  const listos = S.pedidos.filter((x) => x.estado === 'Listo' && !x.ruta_id);
+  if (listos.length) p.push({ urg: 1, titulo: `${listos.length} pedido(s) listos sin ruta`, detalle: `${listos.reduce((s, x) => s + x.rejas, 0)} rejas esperando repartidor`, liga: '#/rutas' });
+  for (const f of plantilla(piezasSemana()).faltan) p.push({ urg: 1, titulo: `Toca contratar: ${f.p.nombre.toLowerCase()}`, detalle: `Hacen falta ${f.faltan} a ${num(piezasSemana())} piezas por semana`, liga: `#/equipo/${f.p.id}` });
   return p.sort((a, b) => b.urg - a.urg);
 }
 
@@ -158,5 +167,90 @@ export function lunes() {
   const d = new Date(hoyISO() + 'T00:00');
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+// ═══════════ La empresa completa: empaque, dinero, equipo y escala ═══════════
+export const prov = (id) => S.proveedores.find((p) => p.id === id);
+export const centro = (id) => S.centros.find((c) => c.id === id);
+export const vehiculo = (id) => S.vehiculos.find((v) => v.id === id);
+export const mes = (iso) => (iso || '').slice(0, 7);
+export const mesHoy = () => hoyISO().slice(0, 7);
+export const mesesAtras = (n) => { const out = []; const d = new Date(hoyISO() + 'T00:00'); for (let i = 0; i < n; i++) { out.unshift(d.toISOString().slice(0, 7)); d.setMonth(d.getMonth() - 1); } return out; };
+const MESL = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+export const nombreMes = (m) => `${MESL[Number(m.slice(5, 7)) - 1]} ${m.slice(0, 4)}`;
+
+// RLR · empaque: cada producto llena sus propias rejas; la tarima son N rejas (Ajustes)
+export function empaque(lineas) {
+  let rejas = 0, kg = 0;
+  const faltan = [];
+  for (const l of lineas) {
+    const p = producto(l.clave), piezas = (Number(l.cajas) || 0) * (p?.piezas_caja || 12);
+    if (!p || !piezas) continue;
+    const reja = p.piezas_reja || 24, sobra = piezas % reja;
+    rejas += Math.ceil(piezas / reja); kg += piezas * (p.peso_kg || 0);
+    if (sobra) faltan.push({ nombre: p.nombre.split(' (')[0], cajas: Math.ceil((reja - sobra) / p.piezas_caja) });
+  }
+  const rt = aj('rejas_tarima', 32);
+  return { rejas, kg: kg + rejas * aj('reja_kg', 1.8), tarimas: rejas / rt, faltan, paraTarima: rejas % rt ? rt - (rejas % rt) : 0 };
+}
+export const tarimasTexto = (t) => (t >= 1 ? `${num(t, 1).replace('.0', '')} tarima(s)` : `${Math.round(t * 100)}% de una tarima`);
+
+// Lo que el distribuidor debe más lo que pide, contra su crédito
+export function credito(d, extra = 0) {
+  const saldo = saldoDe(d.id) + S.pedidos.filter((p) => p.distribuidor_id === d.id && !p.entregado_fecha).reduce((s, p) => s + p.total, 0) + extra;
+  return { saldo, credito: d.credito || 0, excede: d.credito > 0 && saldo > d.credito };
+}
+
+// Piezas pedidas por semana: el promedio de las últimas 4 semanas (o lo que diga Ajustes si todavía no hay pedidos)
+export function piezasSemana() {
+  const desde = hoyISO(-28), n = S.pedidos.filter((p) => p.creado.slice(0, 10) >= desde && p.estado !== 'Recibido').reduce((s, p) => s + p.piezas, 0);
+  return n ? n / 4 : aj('piezas_semana_hoy');
+}
+
+// ───────── Dinero ─────────
+export const porPagar = () => S.compras.filter((c) => c.estado === 'Recibida');
+export function caja() {
+  let cobros = 0, pagos = 0;
+  for (const m of S.movimientos) { if (m.tipo === 'Cobro') cobros += m.monto; else pagos += m.monto; }
+  return { cobros, pagos, saldo: cobros - pagos };
+}
+// Costo de materiales y transformación de una pieza, con los costos del inventario y la receta activa
+export function costoPieza(conVaso = true) {
+  const c = (clave) => inv(clave)?.costo || 0;
+  return (gramosPieza() / 1000) * c('cera') + c('mecha') + c('cartucho') + (conVaso ? c('vaso') + c('etiqueta') : 0) + c('caja') / 12 + aj('transf_pieza', 2.2);
+}
+export const nomina = () => S.puestos.reduce((s, p) => s + p.ocupadas * p.sueldo, 0);
+
+// RLR · estado de resultados de un mes, con lo que hay en el tablero (sin IVA)
+export function resultado(m) {
+  const iva = 1 + aj('iva', 16) / 100;
+  const ent = S.pedidos.filter((p) => mes(p.entregado_fecha) === m);
+  const piezas = ent.reduce((s, p) => s + p.piezas, 0), conVaso = ent.reduce((s, p) => s + p.piezas_vaso, 0);
+  const ventas = ent.reduce((s, p) => s + p.subtotal, 0) / iva;
+  const costo = conVaso * costoPieza(true) + (piezas - conVaso) * costoPieza(false);
+  const gastos = {};
+  for (const x of S.movimientos) if (x.tipo === 'Pago' && mes(x.fecha) === m && !['Insumos', 'Inversión', 'Depósitos', 'Impuestos'].includes(x.categoria)) gastos[x.categoria] = (gastos[x.categoria] || 0) + x.monto / (x.categoria === 'Nómina' ? 1 : iva);
+  if (!gastos['Nómina'] && m === mesHoy()) gastos['Nómina'] = nomina();
+  if (aj('gasto_fijo_mes') && !Object.keys(gastos).some((k) => k !== 'Nómina') && m === mesHoy()) gastos['Fijos (Ajustes)'] = aj('gasto_fijo_mes');
+  const gasto = Object.values(gastos).reduce((s, n) => s + n, 0);
+  const cobrado = S.movimientos.filter((x) => x.tipo === 'Cobro' && mes(x.fecha) === m && x.categoria === 'Ventas').reduce((s, x) => s + x.monto, 0);
+  const pagadoInsumos = S.movimientos.filter((x) => x.tipo === 'Pago' && mes(x.fecha) === m && x.categoria === 'Insumos').reduce((s, x) => s + x.monto, 0);
+  const ivaTrasladado = cobrado - cobrado / iva, ivaAcreditable = pagadoInsumos - pagadoInsumos / iva + Object.entries(gastos).filter(([k]) => k !== 'Nómina' && k !== 'Fijos (Ajustes)').reduce((s, [, n]) => s + n * (iva - 1), 0);
+  return { mes: m, pedidos: ent.length, piezas, ventas, costo, bruta: ventas - costo, margen: ventas ? (ventas - costo) / ventas : 0, gastos, gasto, ebitda: ventas - costo - gasto, cobrado, iva: ivaTrasladado - ivaAcreditable };
+}
+
+// ───────── Equipo y escala ─────────
+// Cuántas plazas de cada puesto pide un volumen de piezas por semana
+export const plazas = (p, piezas) => (!p.disparador && !p.por_piezas ? 1 : piezas < p.disparador ? 0 : p.por_piezas ? Math.max(1, Math.ceil(piezas / p.por_piezas)) : 1);
+export function plantilla(piezas) {
+  const filas = S.puestos.map((p) => ({ p, necesarias: plazas(p, piezas), faltan: Math.max(0, plazas(p, piezas) - p.ocupadas) }));
+  return { filas, personas: filas.reduce((s, f) => s + f.necesarias, 0), nomina: filas.reduce((s, f) => s + f.necesarias * f.p.sueldo, 0), faltan: filas.filter((f) => f.faltan > 0) };
+}
+// La escalera hacia el 25% de México: qué pide cada escalón
+export function escalon(participacion) {
+  const piezasSem = (aj('mercado_piezas_anio', 697000000) * participacion) / 100 / 52;
+  const tiendas = piezasSem / Math.max(1, aj('piezas_tienda_semana', 8)), dists = tiendas / Math.max(1, aj('tiendas_distribuidor', 150));
+  const centros = Math.max(1, Math.ceil(piezasSem / Math.max(1, aj('piezas_centro_semana', 60000)))), pl = plantilla(piezasSem);
+  return { participacion, piezasSem, piezasMes: piezasSem * 4.33, tiendas, dists, centros, personas: pl.personas, nomina: pl.nomina, ebitdaMes: piezasSem * 4.33 * aj('ebitda_pieza', 9.22) };
 }
 void _RLR; void _k; void _rev;

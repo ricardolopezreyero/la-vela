@@ -4,11 +4,14 @@ import { $, S, ajuste, alRepintar, api, aviso, cargar, crudo, guardar, html, rec
 import { distribuidores, hoy, pedidos } from './comercial.js';
 import { cartuchosVista, indicadores, produccion } from './operacion.js';
 import { ajustes, modelo, proyecto, receta } from './saber.js';
+import { compras, contabilidad, pagos, ventas } from './empresa.js';
+import { rutas } from './logistica.js';
+import { datos, equipo, mercado } from './crecer.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
-const VISTAS = Object.fromEntries([hoy, distribuidores, pedidos, produccion, cartuchosVista, indicadores, proyecto, receta, modelo, ajustes].map((v) => [v.id, v]));
-const GRUPOS = ['', 'Comercial', 'Operación', 'Proyecto'];
+const VISTAS = Object.fromEntries([hoy, datos, distribuidores, pedidos, ventas, mercado, produccion, compras, rutas, cartuchosVista, indicadores, pagos, contabilidad, equipo, proyecto, receta, modelo, ajustes].map((v) => [v.id, v]));
+const GRUPOS = ['', 'Comercial', 'Operación', 'Dinero', 'Empresa'];
 const LLAMA = '<svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.5 6 4 7.5 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>';
 
 const ruta = () => { const [sec = 'hoy', ...resto] = location.hash.replace(/^#\/?/, '').split('/'); return [VISTAS[sec] ? sec : 'hoy', resto.join('/')]; };
@@ -118,7 +121,7 @@ document.addEventListener('submit', async (ev) => {
   if (boton) boton.disabled = true;
   await h(f, d);
   if (boton && boton.isConnected) boton.disabled = false;
-  if (f.isConnected && !['receta', 'pedido-lineas'].includes(f.dataset.f)) f.reset();
+  if (f.isConnected && !['receta', 'pedido-lineas', 'compra-lineas'].includes(f.dataset.f)) f.reset();
   pintar();
 });
 

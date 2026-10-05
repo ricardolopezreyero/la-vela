@@ -3,8 +3,9 @@
 //   /entrar → POST /api/entrar → correo con /acceso?t=… (15 min, un solo uso)
 //   abrir el enlace enseña un botón (el GET no lo gasta: los antivirus de correo abren las ligas)
 //   POST /acceso gasta el enlace y deja la cookie de sesión (30 días) → /tablero/
-import { ahora, azar, escapar, esLocal, huella, json, mismoOrigen, seg, texto } from './comun.js';
+import { CASA, ahora, azar, escapar, esLocal, huella, json, mismoOrigen, seg, texto } from './comun.js';
 import { enviar, plantilla } from './correo.js';
+import { verificarPase } from './verificar.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 const DURA_ENLACE = 15 * 60, DURA_SESION = 30 * 86400, COOKIE = 'vela_sesion';
@@ -75,6 +76,17 @@ export async function paginaAcceso(req, env) {
   return pagina('Entrar', `<h1>Ya casi</h1><form method="post" action="/acceso"><input type="hidden" name="t" value="${t}"><button class="boton lleno" type="submit">Entrar al tablero</button></form>`);
 }
 
+// RLR · abre una sesión de 30 días para ese correo y devuelve la cookie (y lo que haya que borrar antes)
+async function abrirSesion(env, correo, extra = []) {
+  const sesion = azar();
+  await env.DB.batch([
+    ...extra,
+    env.DB.prepare('DELETE FROM sesiones WHERE vence < ?').bind(seg()),
+    env.DB.prepare('INSERT INTO sesiones (hash, correo, vence, creada) VALUES (?, ?, ?, ?)').bind(await huella(sesion), correo, seg() + DURA_SESION, seg()),
+  ]);
+  return `${COOKIE}=${sesion}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${DURA_SESION}${esLocal(env) ? '' : '; Secure'}`;
+}
+
 export async function usarEnlace(req, env) {
   const url = new URL(req.url);
   // Aquí no se revisa el origen: quien trae el enlace trae la credencial, y un formulario
@@ -83,16 +95,24 @@ export async function usarEnlace(req, env) {
   const h = /^[a-f0-9]{64}$/.test(t) ? await huella(t) : '';
   const fila = h ? await env.DB.prepare('SELECT correo FROM enlaces WHERE hash = ? AND vence > ?').bind(h, seg()).first() : null;
   if (!fila) return Response.redirect(`${url.origin}/acceso?t=vencido`, 303);
-  const sesion = azar();
-  await env.DB.batch([
-    env.DB.prepare('DELETE FROM enlaces WHERE hash = ?').bind(h),
-    env.DB.prepare('DELETE FROM sesiones WHERE vence < ?').bind(seg()),
-    env.DB.prepare('INSERT INTO sesiones (hash, correo, vence, creada) VALUES (?, ?, ?, ?)').bind(await huella(sesion), fila.correo, seg() + DURA_SESION, seg()),
-  ]);
-  return new Response(null, { status: 303, headers: {
-    location: '/tablero/', ...PRIVADO,
-    'set-cookie': `${COOKIE}=${sesion}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${DURA_SESION}${esLocal(env) ? '' : '; Secure'}`,
-  } });
+  const cookie = await abrirSesion(env, fila.correo, [env.DB.prepare('DELETE FROM enlaces WHERE hash = ?').bind(h)]);
+  return new Response(null, { status: 303, headers: { location: '/tablero/', ...PRIVADO, 'set-cookie': cookie } });
+}
+
+// RLR · el camino de la casa: el pase del Login de CapitalTorreon (Google) abre el tablero si el correo está en «usuarios».
+// Nadie se registra solo: el correo tiene que estar en la lista. El pase se verifica aquí con la llave pública del login.
+export async function entrarConPase(req, env) {
+  if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405);
+  if (!mismoOrigen(req, env)) return json({ error: 'Origen no permitido.' }, 403);
+  let cuerpo = {};
+  try { cuerpo = await req.json(); } catch { /* sin cuerpo */ }
+  const quien = await verificarPase(String(cuerpo.pase || ''), esLocal(env) ? undefined : CASA);
+  const correo = texto(quien && quien.email, 160).toLowerCase();
+  if (!quien || !correo) return json({ error: 'El pase no sirve. Vuelve a entrar.' }, 401);
+  const usuario = await env.DB.prepare('SELECT correo, nombre FROM usuarios WHERE correo = ?').bind(correo).first();
+  if (!usuario) return json({ error: `${correo} no está en la lista de quien entra al tablero.` }, 403);
+  const lote = usuario.nombre || !quien.name ? [] : [env.DB.prepare('UPDATE usuarios SET nombre = ? WHERE correo = ?').bind(texto(quien.name, 120), correo)];
+  return json({ ok: true }, 200, { 'set-cookie': await abrirSesion(env, correo, lote) });
 }
 
 export async function salir(req, env) {

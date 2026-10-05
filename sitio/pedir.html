@@ -47,20 +47,38 @@
     var lineas = D.productos.map(function (p) { return { clave: p.clave, cajas: Math.max(0, Math.floor(Number(document.getElementById('c-' + p.clave).value) || 0)) }; });
     return { lineas: lineas, vacios: Math.max(0, Math.floor(Number(document.getElementById('vacios').value) || 0)) };
   }
+  // RLR · empaque: cada producto llena sus rejas; se sugiere completar la reja y, si conviene, la tarima
+  function empaque(lineas) {
+    var rejas = 0, faltan = [];
+    lineas.forEach(function (l) {
+      var p = D.productos.filter(function (q) { return q.clave === l.clave; })[0], reja = p.piezas_reja || 24, piezas = l.cajas * p.piezas_caja;
+      if (!piezas) return;
+      rejas += Math.ceil(piezas / reja);
+      var sobra = piezas % reja;
+      if (sobra) faltan.push({ nombre: p.nombre.split(' (')[0], cajas: Math.ceil((reja - sobra) / p.piezas_caja) });
+    });
+    return { rejas: rejas, tarimas: rejas / D.rejas_tarima, faltan: faltan };
+  }
   function cuenta() {
     var x = leer(), piezas = 0, cajas = 0, sub = 0;
     x.lineas.forEach(function (l) { var p = D.productos.filter(function (q) { return q.clave === l.clave; })[0]; cajas += l.cajas; piezas += l.cajas * p.piezas_caja; sub += l.cajas * p.piezas_caja * p.precio_dist; });
-    var total = sub + D.deposito * (piezas - x.vacios);
+    var total = sub + D.deposito * (piezas - x.vacios), e = empaque(x.lineas);
+    var sugerencia = !e.rejas ? '' : e.faltan.length
+      ? 'Para no mandar rejas a medias, agrega ' + e.faltan.map(function (f) { return f.cajas + ' caja(s) de ' + f.nombre; }).join(' y ') + '.'
+      : e.rejas % D.rejas_tarima ? 'Rejas completas. Una tarima son ' + D.rejas_tarima + ' rejas: te faltan ' + (D.rejas_tarima - (e.rejas % D.rejas_tarima)) + ' para llenarla y pagar menos flete por pieza.'
+      : 'Tarima(s) completa(s): el mejor precio de flete por pieza.';
     document.getElementById('cuenta').innerHTML = '<div><span>' + piezas + ' piezas en ' + cajas + ' caja(s)</span><b>' + pesos(sub) + '</b></div>'
       + '<div><span>Depósito de cartuchos (' + piezas + ' × ' + pesos(D.deposito) + ')</span><b>' + pesos(D.deposito * piezas) + '</b></div>'
       + '<div><span>Cartuchos vacíos que entregas</span><b>' + pesos(-D.deposito * x.vacios) + '</b></div>'
-      + '<div class="total"><span>Total, con IVA</span><b>' + pesos(total) + '</b></div>';
+      + '<div class="total"><span>Total, con IVA</span><b>' + pesos(total) + '</b></div>'
+      + (e.rejas ? '<div><span>Empaque</span><b>' + e.rejas + ' reja(s) · ' + (e.tarimas >= 1 ? e.tarimas.toFixed(1).replace('.0', '') + ' tarima(s)' : Math.round(e.tarimas * 100) + '% de una tarima') + '</b></div>' : '')
+      + (sugerencia ? '<p class="nota" style="margin-top:8px">' + sugerencia + '</p>' : '');
     document.getElementById('enviar').disabled = cajas < D.minimo;
   }
   function pintar() {
     var ultimo = D.pedidos[0];
     pagina.innerHTML = '<p class="etiqueta">Tus pedidos</p><h1>' + esc(D.empresa) + '</h1>'
-      + '<p class="grande">Pide por caja de 12. Anota los cartuchos vacíos que nos vas a entregar: se descuentan del pedido.</p>'
+      + '<p class="grande">Pide por caja de 12. Dos cajas llenan una reja y ' + D.rejas_tarima + ' rejas llenan una tarima: pide por tarima y el flete por pieza es el más bajo. Anota los cartuchos vacíos que nos vas a entregar: se descuentan del pedido.</p>'
       + (D.saldo > 0 ? '<p>Tu saldo por pagar es de <b>' + pesos(D.saldo) + '</b>' + (D.credito ? ', de un crédito de ' + pesos(D.credito) : '') + '.</p>' : '')
       + '<form id="forma"><div class="cajas">' + D.productos.map(function (p) {
         return '<div class="renglon"><div><b>' + esc(p.nombre) + '</b><small>Caja de ' + p.piezas_caja + ' · ' + pesos(p.precio_dist * p.piezas_caja) + ' · ' + pesos(p.precio_dist) + ' por pieza</small></div>'

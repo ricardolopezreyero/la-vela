@@ -1,11 +1,12 @@
 // RLR · La Vela — Worker — Ricardo López Reyero
 // 1) Cualquier otro dominio (la-vela., lavela.) lleva a vela.capitaltorreon.com.
 // 2) /api/distribuir guarda la solicitud con su puntaje A/B/C (docs/10) y avisa por correo.
-// 3) Acceso por enlace mágico (src/acceso.js) y, con sesión, el tablero (/tablero/ y /api/t/…).
+// 3) Acceso con el Login de CapitalTorreon (/api/entrar-pase) o por enlace al correo (src/acceso.js);
+//    con sesión, el tablero (/tablero/ y /api/t/…). Solo entra quien esté en la tabla «usuarios».
 // 4) /pedir y /api/pedir: la liga privada con la que cada distribuidor hace sus pedidos.
 // 5) Todo lo demás son los archivos de sitio/.
 import { CASA, escapar, json, mismoOrigen, texto } from './comun.js';
-import { paginaAcceso, pedirEnlace, privado, quienEntra, salir, usarEnlace } from './acceso.js';
+import { entrarConPase, paginaAcceso, pedirEnlace, privado, quienEntra, salir, usarEnlace } from './acceso.js';
 import { avisar, pedir } from './pedir.js';
 import { tablero } from './tablero.js';
 
@@ -80,6 +81,7 @@ export default {
     try {
       if (p === '/api/distribuir') return await distribuir(req, env, ctx);
       if (p === '/api/entrar') return await pedirEnlace(req, env, ctx);
+      if (p === '/api/entrar-pase') return await entrarConPase(req, env);
       if (p === '/api/salir') return await salir(req, env);
       if (p === '/api/pedir') return await pedir(req, env, ctx);
       if (p === '/acceso') return req.method === 'POST' ? await usarEnlace(req, env) : await paginaAcceso(req, env);

@@ -18,15 +18,15 @@ export async function pedir(req, env, ctx) {
     const d = await distribuidor(env, url.searchParams.get('d'));
     if (!d) return json({ error: 'Esta liga no está activa. Escríbenos y te mandamos una nueva.' }, 404);
     const [pr, pe, aj] = await env.DB.batch([
-      env.DB.prepare('SELECT clave, nombre, piezas_caja, precio_dist FROM productos WHERE activo = 1 ORDER BY orden'),
-      env.DB.prepare('SELECT id, creado, estado, lineas, piezas, total, vacios, cobro, fecha_prometida, entregado_fecha FROM pedidos WHERE distribuidor_id = ? ORDER BY id DESC LIMIT 30').bind(d.id),
-      env.DB.prepare(`SELECT clave, valor FROM ajustes WHERE clave IN ('deposito', 'dias_entrega', 'pedido_minimo_cajas')`),
+      env.DB.prepare('SELECT clave, nombre, piezas_caja, precio_dist, piezas_reja FROM productos WHERE activo = 1 ORDER BY orden'),
+      env.DB.prepare('SELECT id, creado, estado, lineas, piezas, total, vacios, rejas, cobro, fecha_prometida, entregado_fecha FROM pedidos WHERE distribuidor_id = ? ORDER BY id DESC LIMIT 30').bind(d.id),
+      env.DB.prepare(`SELECT clave, valor FROM ajustes WHERE clave IN ('deposito', 'dias_entrega', 'pedido_minimo_cajas', 'rejas_tarima')`),
     ]);
     const a = Object.fromEntries(aj.results.map((r) => [r.clave, Number(r.valor) || 0]));
     const pedidos = pe.results.map((p) => ({ ...p, lineas: JSON.parse(p.lineas || '[]') }));
     // Saldo: lo entregado y no cobrado. Por surtir: lo que ya pidió y aún no llega.
     const saldo = pedidos.filter((p) => p.entregado_fecha && p.cobro !== 'Cobrado').reduce((s, p) => s + p.total, 0);
-    return json({ empresa: d.empresa, nombre: d.nombre, productos: pr.results, pedidos, saldo, credito: d.credito, deposito: a.deposito, dias_entrega: a.dias_entrega, minimo: a.pedido_minimo_cajas || 1 });
+    return json({ empresa: d.empresa, nombre: d.nombre, productos: pr.results, pedidos, saldo, credito: d.credito, deposito: a.deposito, dias_entrega: a.dias_entrega, minimo: a.pedido_minimo_cajas || 1, rejas_tarima: a.rejas_tarima || 32 });
   }
   if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405);
   if (!mismoOrigen(req, env)) return json({ error: 'Origen no permitido.' }, 403);
@@ -40,13 +40,13 @@ export async function pedir(req, env, ctx) {
   if (c.cajas < (a.pedido_minimo_cajas || 1)) return json({ error: `El pedido mínimo es de ${a.pedido_minimo_cajas || 1} caja(s).` }, 400);
   const fecha = hoyMX(a.dias_entrega || 5);
   const r = await env.DB.prepare(
-    `INSERT INTO pedidos (distribuidor_id, estado, lineas, piezas, piezas_vaso, cajas, subtotal, deposito, total, vacios, fecha_prometida, notas, origen, creado)
-     VALUES (?, 'Recibido', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'liga', ?)`
-  ).bind(d.id, c.lineas, c.piezas, c.piezas_vaso, c.cajas, c.subtotal, c.deposito, c.total, c.vacios, fecha, parrafo(e.notas, 1000), ahora()).run();
+    `INSERT INTO pedidos (distribuidor_id, estado, lineas, piezas, piezas_vaso, cajas, subtotal, deposito, total, vacios, rejas, kg, fecha_prometida, notas, origen, creado)
+     VALUES (?, 'Recibido', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'liga', ?)`
+  ).bind(d.id, c.lineas, c.piezas, c.piezas_vaso, c.cajas, c.subtotal, c.deposito, c.total, c.vacios, c.rejas, c.kg, fecha, parrafo(e.notas, 1000), ahora()).run();
   const id = r.meta.last_row_id;
   await env.DB.prepare('INSERT INTO bitacora (cosa, cosa_id, texto, por, fecha) VALUES (?, ?, ?, ?, ?)').bind('pedidos', id, 'Pedido hecho desde su liga', texto(d.empresa, 80), ahora()).run();
   ctx.waitUntil(avisar(env, url.origin, `Pedido nuevo · ${c.cajas} caja(s) · ${d.empresa}`, 'Pedido nuevo',
-    [`<b>${escapar(d.empresa)}</b> pidió ${c.cajas} caja(s): ${c.piezas} piezas.`, `Regresa ${c.vacios} cartuchos vacíos. Entrega estimada: ${fecha}.`], `/tablero/#/pedidos/${id}`));
+    [`<b>${escapar(d.empresa)}</b> pidió ${c.cajas} caja(s): ${c.piezas} piezas en ${c.rejas} reja(s), ${c.kg} kg.`, `Regresa ${c.vacios} cartuchos vacíos. Entrega estimada: ${fecha}.`], `/tablero/#/pedidos/${id}`));
   return json({ ok: true, id, fecha, total: c.total });
 }
 

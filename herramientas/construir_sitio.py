@@ -48,6 +48,11 @@ def barra(inicio=False):
 </header>'''
 
 
+# El login de la casa, en todas las páginas (ver README: el camino del login)
+LOGIN = '''<!-- RLR · Login de CapitalTorreon: todo funciona sin entrar; entrar solo agrega -->
+<div data-login-ct style="position:fixed;top:12px;right:12px;z-index:9999"></div>
+<script src="https://login.capitaltorreon.com/login.js" data-prefs="vela.ui" defer></script>'''
+
 PIE = '''<footer class="pie">
   <div class="caja">
     <span>La Vela · Torreón, Coahuila, México</span>
@@ -159,6 +164,7 @@ def pagina(cab, cuerpo, inicio=False, guion=""):
 
 {PIE}
 {guion}<!-- RLR · {_RLR} -->
+{LOGIN}
 </body>
 </html>
 '''

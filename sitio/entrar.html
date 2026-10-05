@@ -53,11 +53,15 @@
     <div class="tarjeta">
       <p class="etiqueta">Tablero</p>
       <h1>Iniciar sesión</h1>
-      <form id="acceso" novalidate>
+      <p class="aviso">Entra con tu cuenta de Google. Solo abre para los correos que están en la lista del tablero.</p>
+      <div class="botones" style="margin:16px 0 8px"><button class="boton lleno" type="button" id="google">Entrar con Google</button></div>
+      <p class="aviso" id="aviso-google" role="status" aria-live="polite"></p>
+      <details style="margin-top:24px"><summary class="aviso" style="cursor:pointer">¿Sin cuenta de Google? Pide un enlace al correo</summary>
+      <form id="acceso" novalidate style="margin-top:12px">
         <label>Correo<input name="correo" type="email" autocomplete="email" inputmode="email" maxlength="160" required></label>
-        <button class="boton lleno" type="submit">Mandarme el enlace</button>
+        <button class="boton" type="submit">Mandarme el enlace</button>
         <p class="aviso" id="aviso" role="status" aria-live="polite"></p>
-      </form>
+      </form></details>
       <p class="aviso">¿Quieres distribuir La Vela? <a href="/distribuir">Llena la solicitud</a>.</p>
     </div>
   </div>
@@ -71,10 +75,24 @@
   </div>
 </footer>
 <script>
-/* RLR · pedir el enlace mágico — Ricardo López Reyero */
+/* RLR · entrar: con el Login de CapitalTorreon (Google) o, si no, con el enlace al correo — Ricardo López Reyero */
 (function () {
   var _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
   var forma = document.getElementById('acceso'), aviso = document.getElementById('aviso'), boton = forma.querySelector('button');
+  var avisoG = document.getElementById('aviso-google'), botonG = document.getElementById('google'), probando = false;
+  // Con el pase de la casa se abre la sesión del tablero; si el correo no está en la lista, se dice y no se insiste
+  function conPase() {
+    var pase = window.LoginCT && LoginCT.pase();
+    if (!pase || probando || sessionStorage.getItem('vela_pase_malo') === pase) return;
+    probando = true; avisoG.textContent = 'Entrando…';
+    fetch('/api/entrar-pase', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pase: pase }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error); return j; }); })
+      .then(function () { location.href = '/tablero/'; })
+      .catch(function (e) { probando = false; try { sessionStorage.setItem('vela_pase_malo', pase); } catch (x) { /* da igual */ } avisoG.textContent = e.message || 'No se pudo entrar.'; });
+  }
+  botonG.addEventListener('click', function () { if (window.LoginCT && LoginCT.quien()) conPase(); else if (window.LoginCT) LoginCT.entrar(); else avisoG.textContent = 'El login todavía está cargando. Intenta de nuevo.'; });
+  function alCargar() { if (!window.LoginCT) return setTimeout(alCargar, 150); LoginCT.al(function (q) { if (q) conPase(); }); if (LoginCT.quien()) conPase(); }
+  alCargar();
   forma.addEventListener('submit', function (ev) {
     ev.preventDefault();
     var correo = forma.correo.value.trim();

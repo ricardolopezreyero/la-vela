@@ -17,14 +17,36 @@ Vive en `vela.capitaltorreon.com/tablero/` y se entra desde el ícono de persona
 | **Receta** | Las recetas, editables en pantalla, y las pruebas de encendido con sus gramos por hora y horas proyectadas | — |
 | **Modelo** | El modelo de negocio y la descarga del Excel | — |
 
+### La empresa completa (segunda entrega, octubre de 2026)
+
+El principio cambió de orden: **primero el sistema, luego la gente.** Cada puesto existe en el tablero antes que la persona, y cada peso, cada reja y cada parada tienen su pantalla. Migración `0003_empresa.sql`; semilla en `herramientas/semilla.py` (que también genera `docs/15-equipo-y-mercado.md`).
+
+| Pantalla | Qué resuelve |
+|---|---|
+| **Datos** | La sala de datos: el negocio en una pantalla (piezas por semana y participación de mercado, ventas y EBITDA del mes, caja, por cobrar y por pagar, tiendas y distribuidores, cartuchos, equipo, pedidos por etapa, operación, dinero, pendientes y supuestos por validar). Botón para copiar el resumen |
+| **Ventas** | Por mes, por canal, por producto y por distribuidor; piezas por semana contra la meta y contra el plan Rentable; lo que trae el embudo en propuesta y piloto |
+| **Mercado** | La meta (25% de las velas de México) con la escalera de escalones: piezas, tiendas, distribuidores, centros, personas y EBITDA en cada uno. Tres pestañas: **canales** (10), **regiones** (La Laguna → Norte → Bajío → Centro → Occidente → Sur → Centroamérica y Colombia → Estados Unidos) y **dónde buscar comercializadores** (9 fuentes, en orden de rapidez). Cada uno con estrategia, cómo entrar, fase, prioridad, responsable y meta de piezas por semana |
+| **Compras** | Sugerencia de compra (pedidos confirmados + mínimos) que se vuelve orden de compra con un clic; órdenes por etapas (Por pedir → Pedida → Recibida → Pagada); al recibirse entra al inventario y actualiza el costo por unidad; al pagarse se anota el pago. Proveedores con qué surten, días de entrega y crédito. Cobertura en días por material |
+| **Rutas** | Todos los pedidos listos, de todas las ciudades, en una lista; el repartidor los acomoda en rutas (fecha, repartidor, vehículo, centro de salida) con las paradas en orden. Cada pedido trae sus rejas y kilos; la ruta se mide contra el vehículo y avisa si no cabe. «Llenar con lo que haya listo» acomoda por ciudad hasta donde quepa. Cargar la ruta pasa los pedidos a «En ruta»; cada parada se marca entregada; aviso por WhatsApp al distribuidor. Costo por pieza de cada ruta |
+| **Pagos** | Cada peso que entra o sale. Los cobros de pedidos y los pagos de compras se anotan solos; lo demás se captura (nómina, renta, transporte, servicios, aportaciones). Caja, por cobrar, por pagar, en qué se va |
+| **Contabilidad** | Estado de resultados de 12 meses (ventas sin IVA, costo de ventas por pieza, gastos por categoría, EBITDA, cobrado, IVA estimado), costo por pieza al día y dos CSV para el contador |
+| **Equipo** | 19 puestos con qué hace, perfil, qué mide, desde cuántas piezas por semana se contrata, una plaza por cada cuántas, sueldo, dónde buscar y la prueba para elegir. El tablero dice cuándo toca contratar y cuántas personas pide cada escalón. Candidatos por puesto |
+
+Empaque: reja de 24 piezas (dos cajas de 12) y tarima de 32 rejas (768 piezas). La liga de pedidos del distribuidor sugiere completar la reja y la tarima; el pedido guarda sus rejas y sus kilos.
+
+Acceso: con la cuenta de Google por el Login de CapitalTorreon (`/api/entrar-pase` verifica el pase con la llave pública) o con el enlace al correo. Solo entra quien esté en `usuarios`.
+
 Lo que se automatizó:
 
 - Una solicitud nueva o un pedido hecho desde la liga manda un correo a los administradores.
 - Al pasar un pedido a «Curando» baja del inventario la cera, los vasos, las mechas, los cartuchos, las etiquetas y las cajas, según la receta activa.
 - Al entregarse, los cartuchos vacíos que regresa el distribuidor entran al inventario.
+- Al cobrarse un pedido, entran al libro la venta y los depósitos; al pagarse una compra, sale el pago.
+- Al recibirse una compra, entra al inventario y pone al día el costo por unidad.
+- «Hoy» avisa de compras que no llegan, pagos por hacer, rutas del día, pedidos listos sin ruta y puestos que ya toca contratar.
 - Cada cambio de etapa queda en la bitácora con quién lo hizo.
 
-Pendiente: aviso por WhatsApp (hoy es por correo), fotos para las personalizadas y registros de garantía por QR.
+Pendiente: onboarding de seis pantallas para quien entra por primera vez, aviso por WhatsApp (hoy es por correo), fotos para las personalizadas, registros de garantía por QR y facturación electrónica conectada.
 
 ---
 
