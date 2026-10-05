@@ -22,7 +22,7 @@ export async function quienEntra(req, env) {
   const id = cookieDe(req);
   if (!id) return null;
   const fila = await env.DB.prepare(
-    `SELECT u.correo, u.nombre, u.rol FROM sesiones s JOIN usuarios u ON u.correo = s.correo WHERE s.hash = ? AND s.vence > ?`
+    `SELECT u.correo, u.nombre, u.rol, u.pantallas FROM sesiones s JOIN usuarios u ON u.correo = s.correo WHERE s.hash = ? AND s.vence > ?`
   ).bind(await huella(id), seg()).first();
   return fila || null;
 }

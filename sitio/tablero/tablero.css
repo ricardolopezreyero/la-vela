@@ -218,3 +218,41 @@ input[type="checkbox"] { width: 20px; height: 20px; min-height: 0; accent-color:
   .col { flex-basis: 78vw; }
 }
 /* RLR */
+
+/* Usuarios: la matriz de palomitas (usuarios hacia abajo, pantallas a la derecha) */
+.matriz th, .matriz td { text-align: center; padding: 6px 4px; }
+.matriz tbody th { text-align: left; padding-right: 12px; }
+.matriz thead th { writing-mode: vertical-rl; transform: rotate(180deg); text-align: left; padding: 8px 2px; white-space: nowrap; height: 110px; }
+.matriz thead th:first-child { writing-mode: horizontal-tb; transform: none; height: auto; }
+.matriz input[type="checkbox"] { width: 22px; height: 22px; }
+.matriz tr.admin td { color: var(--g5); font-size: 0.75rem; }
+.matriz .todo { font-size: 0.72rem; text-decoration: underline; cursor: pointer; background: none; border: 0; color: var(--g5); padding: 0; }
+.resultados li { padding: 8px 0; border-bottom: 1px solid var(--g3); }
+.resultados small { color: var(--g5); display: block; }
+#tope .al-dia { font-size: 0.75rem; color: var(--g5); white-space: nowrap; }
+#tope .al-dia button { background: none; border: 0; text-decoration: underline; cursor: pointer; color: inherit; font: inherit; padding: 0; }
+.semaforo { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--tinta); vertical-align: middle; margin-right: 5px; }
+.semaforo.lleno { background: var(--tinta); }
+.semaforo.medio { background: var(--g3); }
+.kanban .col .suma { font: 400 0.72rem var(--texto); color: var(--g5); letter-spacing: 0; text-transform: none; }
+.tabla th[data-orden] { cursor: pointer; }
+.tabla th[data-orden]:hover { color: var(--tinta); }
+.plan li { display: grid; grid-template-columns: 90px 1fr auto; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--g3); }
+.plan li.pasa { background: var(--tinta); color: var(--blanco); padding: 7px 6px; }
+.plan li.pasa .barra { background: var(--g7); }
+.plan li.pasa .barra i { background: var(--blanco); }
+
+/* Imprimir: solo lo que esté en #impresion (remisiones, hojas de ruta, órdenes) */
+#impresion { display: none; }
+@media print {
+  body.imprimiendo > #app { display: none !important; }
+  body.imprimiendo #impresion { display: block; font: 12pt var(--texto); color: #000; }
+  #impresion h1 { font-size: 20pt; margin: 0 0 4pt; }
+  #impresion h2 { font-size: 14pt; margin: 14pt 0 4pt; }
+  #impresion table { width: 100%; border-collapse: collapse; margin: 8pt 0; }
+  #impresion th, #impresion td { border-bottom: 1px solid #000; padding: 4pt 6pt; text-align: left; font-size: 11pt; }
+  #impresion .etiqueta-reja { page-break-after: always; border: 2pt solid #000; padding: 24pt; text-align: center; }
+  #impresion .etiqueta-reja b { display: block; font-size: 48pt; }
+  #impresion .firma { margin-top: 36pt; display: flex; gap: 40pt; }
+  #impresion .firma span { flex: 1; border-top: 1px solid #000; padding-top: 4pt; font-size: 10pt; }
+}

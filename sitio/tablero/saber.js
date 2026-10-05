@@ -198,7 +198,15 @@ export const ajustes = {
       <section class="bloque"><h2>Empaque y transporte</h2><div class="forma">${AJ_EMPAQUE.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}</div>
         <p class="tenue">Tarima de 1.0 × 1.2 m: 8 rejas por cama y 4 camas son 32 rejas, 768 piezas y 1.15 m de alto. Se mueve con patín y cabe en una camioneta de 1.5 toneladas junto con otra. Los vehículos se editan en Rutas.</p></section>
       <section class="bloque"><h2>Dinero</h2><div class="forma">${AJ_DINERO.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}
-        <label class="campo"><span>Margen de la tienda (%)</span><input type="number" min="0" step="1" data-ajuste="margen_tienda" value="${S.ajustes.margen_tienda ?? ''}"></label></div></section>
+        <label class="campo"><span>Margen de la tienda (%)</span><input type="number" min="0" step="1" data-ajuste="margen_tienda" value="${S.ajustes.margen_tienda ?? ''}"></label>
+        <label class="campo"><span>Semanas de cobertura al sugerir compras</span><input type="number" min="0" step="1" data-ajuste="semanas_cobertura" value="${S.ajustes.semanas_cobertura ?? 2}"></label>
+        <label class="campo"><span>Días sin pedir antes de avisar</span><input type="number" min="1" step="1" data-ajuste="dias_sin_pedir" value="${S.ajustes.dias_sin_pedir ?? 14}"></label>
+        <label class="campo"><span>Meta de retorno de cartuchos (%)</span><input type="number" min="0" max="100" step="1" data-ajuste="meta_retorno" value="${S.ajustes.meta_retorno ?? 80}"></label></div></section>
+      <section class="bloque doble"><h2>Mensajes de WhatsApp</h2><div class="forma">
+        <label class="campo doble"><span>Primer contacto ({zonas} se rellena solo)</span><textarea data-ajuste="plantilla_contacto" rows="2">${S.ajustes.plantilla_contacto ?? ''}</textarea></label>
+        <label class="campo doble"><span>Mandar las hojas</span><textarea data-ajuste="plantilla_hojas" rows="2">${S.ajustes.plantilla_hojas ?? ''}</textarea></label>
+        <label class="campo doble"><span>Aviso de estado del pedido ({pedido}, {estado} y {detalle} se rellenan solos)</span><textarea data-ajuste="plantilla_estado" rows="2">${S.ajustes.plantilla_estado ?? ''}</textarea></label></div>
+        <p class="tenue">Todos empiezan con «Hola [nombre], te escribo de La Vela.» Se guardan al salir del campo.</p></section>
       <section class="bloque doble"><h2>Cómo nos pagan los distribuidores</h2><div class="forma">
         <label class="campo"><span>CLABE para transferencias</span><input data-ajuste="banco_clabe" value="${S.ajustes.banco_clabe ?? ''}" maxlength="18" inputmode="numeric" placeholder="18 dígitos"></label>
         <label class="campo"><span>Banco</span><input data-ajuste="banco_nombre" value="${S.ajustes.banco_nombre ?? ''}" maxlength="80"></label>

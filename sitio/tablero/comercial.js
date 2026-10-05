@@ -1,6 +1,6 @@
 /* RLR · La Vela — pantallas Hoy, Distribuidores y Pedidos — Ricardo López Reyero */
-import { S, aj, api, aviso, bitacoraDe, borrar, campo, cargar, columnas, crear, diasA, dinero, etiqueta, fecha, guardar, hace, html, hoyISO, interruptor, num, wa } from './nucleo.js';
-import { FASES, abiertos, cartuchos, credito, dist, empaque, lunes, medir, mensajes, paso, pendientes, plazo, porCobrar, producto, saldoDe, tarimasTexto, temporadas, totalDe, zonaTomada } from './cuentas.js';
+import { S, aj, api, aviso, bitacoraDe, borrar, campo, cargar, columnas, crear, crudo, descargar, diasA, dinero, encabezado, etiqueta, fecha, guardar, hace, html, hoyISO, imprimir, interruptor, num, ordenar, wa } from './nucleo.js';
+import { FASES, abiertos, actividad, cartuchos, credito, dist, empaque, lunes, medir, mensajeCobro, mensajeEstado, mensajes, paso, pendientes, plazo, porCobrar, producto, saldoDe, semaforo, tarimasTexto, temporadas, totalDe, zonaTomada } from './cuentas.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
@@ -23,13 +23,21 @@ function avanceFase(n) {
 
 export const hoy = {
   id: 'hoy', titulo: 'Hoy', grupo: '',
+  botones: () => html`<button class="boton" data-a="copiar-pendientes">Copiar pendientes</button>`,
+  acciones: {
+    async 'copiar-pendientes'() {
+      const ps = pendientes(), t = [`La Vela · pendientes ${fecha(hoyISO())}`, ...ps.map((p, i) => `${i + 1}. ${p.titulo} — ${p.detalle}`)].join('\n');
+      try { await navigator.clipboard.writeText(t); aviso('Pendientes copiados'); } catch { aviso('No se pudo copiar', true); }
+    },
+    posponer: (el) => (el.dataset.rec === 'tareas' ? guardar('tareas', el.dataset.id, { fecha: hoyISO(1) }) : guardar('distribuidores', el.dataset.id, { proxima_fecha: hoyISO(1) })),
+  },
   pintar() {
     const ps = pendientes(), f = FASES.find((x) => x.n === aj('fase_actual', 1)) || FASES[0], ts = temporadas().slice(0, 4);
     const semana = S.pedidos.filter((p) => p.creado.slice(0, 10) >= lunes()), piezasSem = semana.reduce((s, p) => s + p.piezas, 0), c = cartuchos();
     const nuevos = S.distribuidores.filter((d) => d.estado === 'Nuevo').length, activos = S.distribuidores.filter((d) => ['Piloto', 'Activo'].includes(d.estado)).length;
     return html`<div class="rejilla">
       <section class="bloque doble"><h2>Pendiente ahora<span class="cuenta">${ps.length}</span></h2>
-        <ul class="pendientes">${ps.map((p) => html`<li class="u${p.urg}"><a href="${p.liga}"><b>${p.titulo}</b><span>${p.detalle}</span></a>${p.wa ? html`<a class="boton chico" href="${p.wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</li>`)}
+        <ul class="pendientes">${ps.map((p) => { const m = p.liga.match(/^#\/(distribuidores|proyecto)\/(\d+)$/); return html`<li class="u${p.urg}"><a href="${p.liga}"><b>${p.titulo}</b><span>${p.detalle}</span></a>${p.wa ? html`<a class="boton chico" href="${p.wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}${m && /seguimiento|Era para|Es para hoy|Tarea/.test(p.detalle + p.titulo) ? html`<button class="boton chico" data-a="posponer" data-rec="${m[1] === 'proyecto' ? 'tareas' : 'distribuidores'}" data-id="${m[2]}" title="Posponer un día">Mañana</button>` : ''}</li>`; })}
         ${ps.length ? '' : html`<li class="vacio">Nada pendiente. Buen momento para prender una vela de prueba.</li>`}</ul></section>
       <section class="bloque"><h2>Enfoque</h2>
         <p class="cifra">Fase ${f.n} · ${f.nombre}</p><p><b>${f.metrica}.</b> Se pasa cuando: ${f.pasa.charAt(0).toLowerCase() + f.pasa.slice(1)}</p>
@@ -53,7 +61,7 @@ export const hoy = {
 const tarjetaDist = (d) => {
   const pl = plazo(d), venc = d.proxima_fecha && diasA(d.proxima_fecha) < 0 && !['Descartado', 'En pausa'].includes(d.estado);
   return html`<article class="tarjeta ${(pl && pl.vencido) || venc ? 'roja' : ''}" draggable="true" data-arr="${d.id}" data-a="ir" data-ruta="distribuidores/${d.id}" tabindex="0">
-    <header>${etiqueta(d.tipo, 'tipo t' + d.tipo)}<b>${d.empresa}</b></header>
+    <header>${etiqueta(d.tipo, 'tipo t' + d.tipo)}<b>${d.credito ? html`<span class="semaforo ${semaforo(d)}" title="Crédito"></span>` : ''}${d.empresa}</b></header>
     <p>${d.nombre}${d.zonas ? ' · ' + d.zonas : ''}</p>
     ${d.puntos ? html`<p class="tenue">${d.puntos} puntos · ${d.visita.toLowerCase()}</p>` : ''}
     ${pl ? html`<p class="plazo">${pl.texto}</p>` : ''}
@@ -62,8 +70,18 @@ const tarjetaDist = (d) => {
 };
 
 function filtrados() {
-  const t = S.ui.filtro.tipo || '', b = (S.ui.buscar || '').toLowerCase();
-  return S.distribuidores.filter((d) => (!t || d.tipo === t) && (!b || `${d.empresa} ${d.nombre} ${d.zonas} ${d.zona} ${d.responsable}`.toLowerCase().includes(b)));
+  const t = S.ui.filtro.tipo || '', b = (S.ui.buscar || '').toLowerCase(), e = S.ui.filtro.etapa || '', c = S.ui.filtro.canal || '', pend = S.ui.filtro.pendiente === '1', hoy = hoyISO();
+  return S.distribuidores.filter((d) => (!t || d.tipo === t) && (!e || d.estado === e) && (!c || (d.canal || 'tienditas') === c)
+    && (!pend || plazo(d) || (d.proxima_fecha && d.proxima_fecha <= hoy && !['Descartado', 'En pausa'].includes(d.estado)))
+    && (!b || `${d.empresa} ${d.nombre} ${d.zonas} ${d.zona} ${d.responsable} ${d.ciudad} ${d.correo}`.toLowerCase().includes(b)));
+}
+const filaCSV = (d) => [d.id, d.empresa, d.nombre, d.whatsapp, d.correo, d.tipo, d.estado, d.canal, d.zonas, d.zona, d.ciudad, d.direccion, d.tiendas, d.credito, d.responsable, d.proxima_accion, d.proxima_fecha, d.creada.slice(0, 10)];
+function estadoDeCuenta(d) {
+  const ps = S.pedidos.filter((p) => p.distribuidor_id === d.id && p.entregado_fecha), saldo = saldoDe(d.id);
+  return `<h1>Estado de cuenta · ${d.empresa}</h1><p>${d.nombre || ''} · ${d.whatsapp || ''} · al ${fecha(hoyISO())}</p>
+    <table><thead><tr><th>Pedido</th><th>Entregado</th><th>Piezas</th><th>Vacíos</th><th>Total</th><th>Pago</th></tr></thead><tbody>
+    ${ps.map((p) => `<tr><td>#${p.id}</td><td>${fecha(p.entregado_fecha)}</td><td>${num(p.piezas)}</td><td>${num(p.vacios)}</td><td>${dinero(p.total, 2)}</td><td>${p.cobro === 'Cobrado' ? `Pagado · ${p.pago_metodo || ''} · ${fecha(p.cobrado_fecha)}` : 'Pendiente'}</td></tr>`).join('')}</tbody></table>
+    <h2>Saldo por pagar: ${dinero(saldo, 2)}</h2>${d.credito ? `<p>Crédito autorizado: ${dinero(d.credito)}</p>` : ''}<p>La Vela · vela.capitaltorreon.com</p>`;
 }
 
 function panelDist(sub) {
@@ -83,6 +101,10 @@ function panelDist(sub) {
     ${pl ? html`<p class="alerta ${pl.vencido ? 'roja' : ''}">${pl.texto}</p>` : ''}
     ${tomada ? html`<p class="alerta">Esa zona ya tiene exclusividad: <b>${tomada.empresa}</b>. Va a lista de espera.</p>` : ''}
     <div class="botones">${mensajes(d).map(([t, m]) => html`<a class="boton ${t === 'Primer contacto' ? 'lleno' : ''}" href="${wa(d.whatsapp, m)}" target="_blank" rel="noopener">WhatsApp · ${t}</a>`)}</div>
+    <div class="botones">${S.estados.distribuidores.indexOf(d.estado) < S.estados.distribuidores.indexOf('Activo') ? html`<button class="boton lleno" data-a="siguiente-etapa" data-id="${d.id}">Pasar a «${S.estados.distribuidores[S.estados.distribuidores.indexOf(d.estado) + 1]}»</button>` : ''}
+      ${d.responsable !== S.yo.correo ? html`<button class="boton" data-a="yo-responsable" data-id="${d.id}">Me lo quedo yo</button>` : ''}
+      <button class="boton" data-a="estado-cuenta" data-id="${d.id}">Imprimir estado de cuenta</button><button class="boton" data-a="csv-dist" data-id="${d.id}">CSV</button></div>
+    ${(() => { const a = actividad(d); return a.ultimo ? html`<p class="tenue">Último pedido: #${a.ultimo.id} hace ${a.dias} día(s) · ${a.pedidos.length} pedido(s) en total · ${num(a.piezas)} piezas · ${dinero(a.total)}${a.dias >= aj('dias_sin_pedir', 14) && ['Piloto', 'Activo'].includes(d.estado) ? html` · <b>lleva ${a.dias} días sin pedir</b>` : ''}</p>` : ''; })()}
     <div class="forma">
       ${campo('distribuidores', d.id, 'estado', d.estado, { rotulo: 'Etapa', opciones: S.estados.distribuidores })}
       ${campo('distribuidores', d.id, 'responsable', d.responsable, { rotulo: 'Responsable', opciones: [['', 'Sin asignar'], ...S.usuarios.map((u) => [u.correo, u.nombre || u.correo])] })}
@@ -126,17 +148,31 @@ export const distribuidores = {
   cuenta: () => S.distribuidores.filter((d) => d.estado === 'Nuevo').length,
   botones: () => html`<input class="buscar" type="search" placeholder="Buscar" data-buscar value="${S.ui.buscar || ''}">
     <div class="alterna">${[['', 'Todos'], ['A', 'A'], ['B', 'B'], ['C', 'C']].map(([v, t]) => html`<button type="button" data-a="filtro-tipo" data-v="${v}" aria-pressed="${String((S.ui.filtro.tipo || '') === v)}">${t}</button>`)}</div>
-    ${interruptor('distribuidores', S.ui.vista.distribuidores)}<button class="boton lleno" data-a="ir" data-ruta="distribuidores/nuevo">+ Distribuidor</button>`,
+    <select data-a-cambio="filtro-etapa" aria-label="Etapa"><option value="">Toda etapa</option>${S.estados.distribuidores.map((e) => html`<option ${S.ui.filtro.etapa === e ? html`selected` : ''}>${e}</option>`)}</select>
+    <select data-a-cambio="filtro-canal" aria-label="Canal"><option value="">Todo canal</option>${S.estados.canales.map((c) => html`<option value="${c}" ${S.ui.filtro.canal === c ? html`selected` : ''}>${S.mercados.find((m) => m.tipo === 'Canal' && m.clave === c)?.nombre || c}</option>`)}</select>
+    <div class="alterna"><button type="button" data-a="filtro-pendiente" data-v="${S.ui.filtro.pendiente === '1' ? '' : '1'}" aria-pressed="${String(S.ui.filtro.pendiente === '1')}">Con pendiente</button></div>
+    ${interruptor('distribuidores', S.ui.vista.distribuidores)}<button class="boton" data-a="csv-dist">CSV</button><button class="boton lleno" data-a="ir" data-ruta="distribuidores/nuevo">+ Distribuidor</button>`,
   pintar() {
     const xs = filtrados();
     if (!S.distribuidores.length) return html`<p class="vacio">Todavía no llega ninguna solicitud. Cuando alguien llene el formulario de «Quiero distribuir», aparece aquí ya calificada y te llega un correo.</p>`;
-    if (S.ui.vista.distribuidores === 'tabla') return html`<div class="tabla-caja"><table class="tabla"><thead><tr><th>Empresa</th><th>Tipo</th><th>Etapa</th><th>Dónde</th><th>Puntos</th><th>Próxima acción</th><th>Para</th><th>Responsable</th><th>Llegó</th></tr></thead><tbody>
-      ${xs.map((d) => html`<tr data-a="ir" data-ruta="distribuidores/${d.id}"><th>${d.empresa}<small>${d.nombre}</small></th><td>${etiqueta(d.tipo, 'tipo t' + d.tipo)}</td><td>${d.estado}</td><td>${d.zonas}</td><td>${d.puntos}</td><td>${d.proxima_accion}</td><td>${fecha(d.proxima_fecha)}</td><td>${(d.responsable || '').split('@')[0]}</td><td>${fecha(d.creada)}</td></tr>`)}</tbody></table></div>`;
+    if (S.ui.vista.distribuidores === 'tabla') {
+      const excl = S.distribuidores.filter((d) => d.exclusividad && ['Piloto', 'Activo'].includes(d.estado));
+      return html`<div class="tabla-caja"><table class="tabla"><thead><tr>${encabezado('distribuidores', 'empresa', 'Empresa')}${encabezado('distribuidores', 'tipo', 'Tipo')}${encabezado('distribuidores', 'estado', 'Etapa')}<th>Dónde</th><th>Puntos</th>${encabezado('distribuidores', 'tiendas', 'Tiendas')}<th>Próxima acción</th>${encabezado('distribuidores', 'proxima_fecha', 'Para')}<th>Responsable</th>${encabezado('distribuidores', 'creada', 'Llegó')}</tr></thead><tbody>
+      ${ordenar('distribuidores', xs).map((d) => html`<tr data-a="ir" data-ruta="distribuidores/${d.id}"><th>${d.empresa}<small>${d.nombre}</small></th><td>${etiqueta(d.tipo, 'tipo t' + d.tipo)}</td><td>${d.estado}</td><td>${d.zonas}</td><td>${d.puntos}</td><td>${d.tiendas || ''}</td><td>${d.proxima_accion}</td><td>${fecha(d.proxima_fecha)}</td><td>${(d.responsable || '').split('@')[0]}</td><td>${fecha(d.creada)}</td></tr>`)}</tbody></table></div>
+      ${excl.length ? html`<section class="bloque" style="margin-top:16px"><h2>Zonas con exclusividad</h2><ul class="lista">${excl.map((d) => html`<li><b>${d.zona || d.zonas}</b><span><a href="#/distribuidores/${d.id}">${d.empresa}</a> · ${d.estado}</span></li>`)}</ul></section>` : ''}`;
+    }
     return columnas({ rec: 'distribuidores', cols: S.estados.distribuidores, items: xs, tarjeta: tarjetaDist });
   },
   panel: panelDist,
   acciones: {
     'filtro-tipo': (el) => { S.ui.filtro.tipo = el.dataset.v; },
+    'filtro-etapa': (el) => { S.ui.filtro.etapa = el.value; },
+    'filtro-canal': (el) => { S.ui.filtro.canal = el.value; },
+    'filtro-pendiente': (el) => { S.ui.filtro.pendiente = el.dataset.v; },
+    'siguiente-etapa': (el) => { const d = dist(Number(el.dataset.id)); return guardar('distribuidores', d.id, { estado: S.estados.distribuidores[S.estados.distribuidores.indexOf(d.estado) + 1] }); },
+    'yo-responsable': (el) => guardar('distribuidores', el.dataset.id, { responsable: S.yo.correo }),
+    'estado-cuenta': (el) => imprimir(estadoDeCuenta(dist(Number(el.dataset.id)))),
+    'csv-dist': (el) => descargar('La_Vela_Distribuidores', [['id', 'empresa', 'nombre', 'whatsapp', 'correo', 'tipo', 'etapa', 'canal', 'zonas', 'zona', 'ciudad', 'direccion', 'tiendas', 'credito', 'responsable', 'proxima_accion', 'proxima_fecha', 'llego'], ...(el.dataset.id ? [filaCSV(dist(Number(el.dataset.id)))] : filtrados().map(filaCSV))]),
     async liga(el) {
       const d = dist(Number(el.dataset.id));
       if (d.liga && !confirm('La liga anterior dejará de servir. ¿Crear una nueva?')) return;
@@ -160,7 +196,7 @@ const tarjetaPedido = (p) => {
   return html`<article class="tarjeta ${tarde ? 'roja' : ''}" draggable="true" data-arr="${p.id}" data-a="ir" data-ruta="pedidos/${p.id}" tabindex="0">
     <header><b>#${p.id} · ${dist(p.distribuidor_id)?.empresa || 'Sin distribuidor'}</b></header>
     <p>${resumenLineas(p)}</p><p class="tenue">${num(p.piezas)} piezas · ${p.rejas} rejas · ${dinero(p.total)}${p.vacios ? ` · regresa ${num(p.vacios)}` : ''}</p>
-    ${p.fecha_prometida ? html`<p class="${tarde ? 'plazo' : 'sigue'}">${tarde ? 'Atrasado: era para el' : 'Para el'} ${fecha(p.fecha_prometida)}</p>` : ''}
+    ${p.fecha_prometida && !p.entregado_fecha ? html`<p class="${tarde ? 'plazo' : 'sigue'}">${tarde ? 'Atrasado: era para el' : 'Para el'} ${fecha(p.fecha_prometida)}${!tarde ? ` · ${diasA(p.fecha_prometida) === 0 ? 'hoy' : 'en ' + diasA(p.fecha_prometida) + ' día(s)'}` : ''}</p>` : ''}
     ${p.entregado_fecha && p.cobro !== 'Cobrado' ? html`<p class="plazo">Por cobrar · ${-diasA(p.entregado_fecha)} días</p>` : ''}
     ${p.anticipado ? html`<p class="sigue">Anticipado</p>` : ''}${p.pago_aviso && p.cobro !== 'Cobrado' ? html`<p class="plazo">Transferencia por confirmar</p>` : p.cobro === 'Cobrado' && !p.entregado_fecha ? html`<p class="sigue">Pagado por adelantado</p>` : ''}
   </article>`;
@@ -201,10 +237,12 @@ function panelPedido(sub) {
     <div class="botones">${sig ? html`<button class="boton lleno" data-a="mover-pedido" data-id="${p.id}" data-v="${sig}">Pasar a «${sig}»</button>` : ''}
       ${ant ? html`<button class="boton" data-a="mover-pedido" data-id="${p.id}" data-v="${ant}">Regresar a «${ant}»</button>` : ''}</div>
     <ol class="pasos-pedido">${S.estados.pedidos.map((e, n) => html`<li class="${n < i ? 'hecho' : n === i ? 'aqui' : ''}">${e}</li>`)}</ol>
+    <div class="botones">${d?.whatsapp ? html`<a class="boton chico" href="${wa(d.whatsapp, p.entregado_fecha && p.cobro !== 'Cobrado' ? mensajeCobro(p, d) : mensajeEstado(p, d))}" target="_blank" rel="noopener">WhatsApp · ${p.entregado_fecha && p.cobro !== 'Cobrado' ? 'recordar el cobro' : 'avisar «' + p.estado + '»'}</a>` : ''}
+      <button class="boton chico" data-a="remision" data-id="${p.id}">Imprimir remisión</button><button class="boton chico" data-a="etiquetas" data-id="${p.id}">Etiquetas de reja (${p.rejas})</button><button class="boton chico" data-a="duplicar-pedido" data-id="${p.id}">Duplicar</button></div>
     <form class="forma" data-f="pedido-lineas" data-id="${p.id}">
       ${S.productos.filter((x) => x.activo || p.lineas.some((l) => l.clave === x.clave)).map((x) => html`<label class="campo"><span>${x.nombre}<small>cajas de ${x.piezas_caja}</small></span>
         <input name="cajas:${x.clave}" type="number" min="0" step="1" value="${p.lineas.find((l) => l.clave === x.clave)?.cajas || ''}" ${p.descontado || p.cobro === 'Cobrado' ? html`disabled` : ''} data-envia></label>`)}
-      <label class="campo"><span>Cartuchos vacíos que entrega</span><input name="vacios" type="number" min="0" step="1" value="${p.vacios || ''}" ${p.descontado || p.cobro === 'Cobrado' ? html`disabled` : ''} data-envia></label>
+      <label class="campo"><span>Cartuchos vacíos que entrega${p.descontado ? html`<small>Se puede corregir hasta que se cobre</small>` : ''}</span><input name="vacios" type="number" min="0" step="1" value="${p.vacios || ''}" ${p.cobro === 'Cobrado' ? html`disabled` : ''} data-envia></label>
     </form>
     ${p.descontado ? html`<p class="tenue">Ya se fabricó y el material bajó del inventario: las piezas ya no se cambian.</p>` : p.cobro === 'Cobrado' ? html`<p class="tenue">Ya está pagado: las piezas no se cambian.</p>` : ''}
     ${desglose(t, p.lineas, p.estado === 'Recibido' ? d : null)}
@@ -221,22 +259,62 @@ function panelPedido(sub) {
     ${p.descontado ? '' : html`<p class="fin"><button class="enlace" data-a="borrar-pedido" data-id="${p.id}">Borrar este pedido</button></p>`}`;
 }
 
+function pedidosFiltrados() {
+  const d = Number(S.ui.filtro.dist) || 0, e = S.ui.filtro.estadoP || '';
+  return S.pedidos.filter((p) => (!d || p.distribuidor_id === d) && (!e || p.estado === e));
+}
+// Cada columna del tablero lleva sus piezas y sus pesos debajo del título
+function crudoConTotales(k, xs) {
+  let s = k.s;
+  for (const e of S.estados.pedidos) {
+    const ps = xs.filter((p) => p.estado === e);
+    if (!ps.length) continue;
+    s = s.replace(`<h3>${e}<span>${ps.length}</span></h3>`, `<h3>${e}<span>${ps.length}</span></h3><p class="suma">${num(ps.reduce((t, p) => t + p.piezas, 0))} pzas · ${dinero(ps.reduce((t, p) => t + p.total, 0))}</p>`);
+  }
+  return crudo(s);
+}
+function remision(p) {
+  const d = dist(p.distribuidor_id) || {}, t = totalDe(p.lineas, p.vacios);
+  return `<h1>Nota de remisión · Pedido #${p.id}</h1><p>La Vela · vela.capitaltorreon.com · ${fecha(hoyISO())}</p>
+    <p><b>${d.empresa || ''}</b> · ${d.nombre || ''} · ${d.whatsapp || ''}<br>${[d.direccion, d.ciudad].filter(Boolean).join(', ')}</p>
+    <table><thead><tr><th>Producto</th><th>Cajas</th><th>Piezas</th><th>Precio por pieza</th><th>Importe</th></tr></thead><tbody>
+    ${p.lineas.map((l) => { const x = producto(l.clave); return `<tr><td>${x?.nombre || l.clave}</td><td>${l.cajas}</td><td>${l.cajas * (x?.piezas_caja || 12)}</td><td>${dinero(x?.precio_dist || 0, 2)}</td><td>${dinero(l.cajas * (x?.piezas_caja || 12) * (x?.precio_dist || 0), 2)}</td></tr>`; }).join('')}
+    ${(p.promos || []).map((x) => `<tr><td>${S.promos.find((y) => y.clave === x.clave)?.nombre || x.clave}</td><td>${x.cantidad}</td><td></td><td></td><td></td></tr>`).join('')}
+    <tr><td colspan="4">Depósito de cartuchos (${num(p.piezas)} × ${dinero(p.deposito)})</td><td>${dinero(t.cargo, 2)}</td></tr>
+    <tr><td colspan="4">Cartuchos vacíos que entrega (${num(p.vacios)})</td><td>${dinero(-t.abono, 2)}</td></tr>
+    <tr><th colspan="4">Total, con IVA</th><th>${dinero(p.total, 2)}</th></tr></tbody></table>
+    <p>${p.rejas} reja(s) · ${num(p.kg)} kg · ${p.cobro === 'Cobrado' ? `Pagado por ${p.pago_metodo || 'adelantado'}` : 'Por cobrar'}${p.notas ? `<br>Notas: ${p.notas}` : ''}</p>
+    <div class="firma"><span>Entregó</span><span>Recibió (nombre y firma)</span><span>Vacíos contados</span></div>`;
+}
+const etiquetasReja = (p) => { const d = dist(p.distribuidor_id) || {}; return Array.from({ length: Math.max(1, p.rejas) }, (_, i) => `<div class="etiqueta-reja"><p>La Vela · Pedido #${p.id}</p><b>${i + 1} / ${Math.max(1, p.rejas)}</b><p style="font-size:20pt">${d.empresa || ''}</p><p>${[d.direccion, d.ciudad].filter(Boolean).join(', ')}</p><p>${resumenLineas(p)}</p><p>Reja retornable: regresa con los cartuchos vacíos</p></div>`).join(''); };
 const leerLineas = (d) => ({ lineas: Object.keys(d).filter((k) => k.startsWith('cajas:')).map((k) => ({ clave: k.slice(6), cajas: Number(d[k]) || 0 })), vacios: Number(d.vacios) || 0 });
 
 export const pedidos = {
   id: 'pedidos', titulo: 'Pedidos', grupo: 'Comercial',
   cuenta: () => S.pedidos.filter((p) => p.estado === 'Recibido').length,
-  botones: () => html`${interruptor('pedidos', S.ui.vista.pedidos)}<button class="boton lleno" data-a="ir" data-ruta="pedidos/nuevo">+ Pedido</button>`,
+  botones: () => html`<select data-a-cambio="filtro-dist" aria-label="Distribuidor"><option value="">Todos los distribuidores</option>${S.distribuidores.filter((d) => S.pedidos.some((p) => p.distribuidor_id === d.id)).map((d) => html`<option value="${d.id}" ${String(S.ui.filtro.dist || '') === String(d.id) ? html`selected` : ''}>${d.empresa}</option>`)}</select>
+    <select data-a-cambio="filtro-estado-p" aria-label="Estado"><option value="">Todo estado</option>${S.estados.pedidos.map((e) => html`<option ${S.ui.filtro.estadoP === e ? html`selected` : ''}>${e}</option>`)}</select>
+    ${interruptor('pedidos', S.ui.vista.pedidos)}<button class="boton" data-a="csv-pedidos">CSV</button><button class="boton lleno" data-a="ir" data-ruta="pedidos/nuevo">+ Pedido</button>`,
   pintar() {
     if (!S.pedidos.length) return html`<p class="vacio">Aún no hay pedidos. Se crean aquí con «+ Pedido», o los hace el distribuidor desde su liga privada (se crea en su ficha).</p>`;
-    if (S.ui.vista.pedidos === 'tabla') return html`<div class="tabla-caja"><table class="tabla"><thead><tr><th>Pedido</th><th>Estado</th><th>Piezas</th><th>Total</th><th>Vacíos</th><th>Prometido</th><th>Cobro</th><th>Creado</th></tr></thead><tbody>
-      ${S.pedidos.map((p) => html`<tr data-a="ir" data-ruta="pedidos/${p.id}"><th>#${p.id} · ${dist(p.distribuidor_id)?.empresa || ''}<small>${resumenLineas(p)}</small></th><td>${p.estado}</td><td>${num(p.piezas)}</td><td>${dinero(p.total)}</td><td>${num(p.vacios)}</td><td>${fecha(p.fecha_prometida)}</td><td>${p.cobro}</td><td>${fecha(p.creado)}</td></tr>`)}</tbody></table></div>`;
-    return columnas({ rec: 'pedidos', cols: S.estados.pedidos, items: S.pedidos, tarjeta: tarjetaPedido });
+    const xs = pedidosFiltrados();
+    if (S.ui.vista.pedidos === 'tabla') return html`<div class="tabla-caja"><table class="tabla"><thead><tr>${encabezado('pedidos', 'id', 'Pedido')}${encabezado('pedidos', 'estado', 'Estado')}${encabezado('pedidos', 'piezas', 'Piezas')}${encabezado('pedidos', 'total', 'Total')}<th>Vacíos</th>${encabezado('pedidos', 'fecha_prometida', 'Prometido')}<th>Cobro</th>${encabezado('pedidos', 'creado', 'Creado')}</tr></thead><tbody>
+      ${ordenar('pedidos', xs).map((p) => html`<tr data-a="ir" data-ruta="pedidos/${p.id}"><th>#${p.id} · ${dist(p.distribuidor_id)?.empresa || ''}<small>${resumenLineas(p)}</small></th><td>${p.estado}</td><td>${num(p.piezas)}</td><td>${dinero(p.total)}</td><td>${num(p.vacios)}</td><td>${fecha(p.fecha_prometida)}</td><td>${p.cobro}${p.pago_metodo ? ' · ' + p.pago_metodo : ''}</td><td>${fecha(p.creado)}</td></tr>`)}
+      <tr><th>${xs.length} pedido(s)</th><td></td><td>${num(xs.reduce((s, p) => s + p.piezas, 0))}</td><td>${dinero(xs.reduce((s, p) => s + p.total, 0))}</td><td>${num(xs.reduce((s, p) => s + p.vacios, 0))}</td><td colspan="3"></td></tr></tbody></table></div>`;
+    const k = columnas({ rec: 'pedidos', cols: S.estados.pedidos, items: xs, tarjeta: tarjetaPedido });
+    // Totales por columna: piezas y pesos
+    return html`${k}`.s ? crudoConTotales(k, xs) : k;
   },
   panel: panelPedido,
   vivo: { pedido: (d) => desglose(totalDe(leerLineas(d).lineas, d.vacios), leerLineas(d).lineas, dist(Number(d.distribuidor_id))) },
   acciones: {
     'mover-pedido': (el) => guardar('pedidos', el.dataset.id, { estado: el.dataset.v }),
+    'filtro-dist': (el) => { S.ui.filtro.dist = el.value; },
+    'filtro-estado-p': (el) => { S.ui.filtro.estadoP = el.value; },
+    remision: (el) => imprimir(remision(S.pedidos.find((x) => x.id === Number(el.dataset.id)))),
+    etiquetas: (el) => imprimir(etiquetasReja(S.pedidos.find((x) => x.id === Number(el.dataset.id)))),
+    async 'duplicar-pedido'(el) { const p = S.pedidos.find((x) => x.id === Number(el.dataset.id)); const r = await crear('pedidos', { distribuidor_id: p.distribuidor_id, lineas: p.lineas, vacios: 0, promos: [], fecha_prometida: hoyISO(aj('dias_entrega', 5)), notas: `Copia del pedido #${p.id}` }); if (r) location.hash = `#/pedidos/${r.id}`; },
+    'csv-pedidos': () => descargar('La_Vela_Pedidos', [['id', 'distribuidor', 'estado', 'piezas', 'cajas', 'rejas', 'kg', 'subtotal', 'deposito', 'vacios', 'total', 'cobro', 'pago', 'prometido', 'entregado', 'anticipado', 'creado'], ...pedidosFiltrados().map((p) => [p.id, dist(p.distribuidor_id)?.empresa || '', p.estado, p.piezas, p.cajas, p.rejas, p.kg, p.subtotal, p.deposito, p.vacios, p.total, p.cobro, p.pago_metodo, p.fecha_prometida, p.entregado_fecha || '', p.anticipado, p.creado.slice(0, 10)])]),
     'confirmar-pago': (el) => { if (confirm('¿Ya está el dinero en el banco? El pedido queda pagado y, si estaba en Recibido, pasa a Confirmado.')) return guardar('pedidos', el.dataset.id, { confirmar_pago: 1 }); },
     async 'borrar-pedido'(el) { if (await borrar('pedidos', el.dataset.id, '¿Borrar este pedido?')) location.hash = '#/pedidos'; },
   },
@@ -245,7 +323,7 @@ export const pedidos = {
       const r = await crear('pedidos', { distribuidor_id: Number(d.distribuidor_id), ...leerLineas(d), fecha_prometida: d.fecha_prometida, notas: d.notas });
       if (r) location.hash = `#/pedidos/${r.id}`;
     },
-    'pedido-lineas': (f, d) => guardar('pedidos', f.dataset.id, leerLineas(d)),
+    'pedido-lineas': (f, d) => { const p = S.pedidos.find((x) => x.id === Number(f.dataset.id)); return guardar('pedidos', f.dataset.id, p && p.descontado ? { vacios: Number(d.vacios) || 0 } : leerLineas(d)); },
   },
 };
 void _RLR; void _k; void _rev;

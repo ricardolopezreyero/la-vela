@@ -101,7 +101,7 @@ Nada de esto está validado todavía. Son estimados que hay que confirmar en est
 
 | | |
 |---|---|
-| [`docs/`](docs/) | Los 15 documentos del proyecto: [origen](docs/01-origen-y-vision.md) · [ingeniería de la vela](docs/02-ingenieria-de-la-vela.md) · [pruebas de encendido](docs/03-pruebas-de-encendido.md) · [proveedores](docs/04-proveedores-arranque.md) · [checklist](docs/05-checklist-proyecto.md) · [salida al mercado](docs/06-go-to-market.md) · [modelo de negocio](docs/07-modelo-de-negocio.md) · [cartucho retornable](docs/08-cartucho-retornable.md) · [manifiesto](docs/09-manifiesto.md) · [sitio](docs/10-sitio-web.md) · [tablero](docs/11-tablero-operacion.md) · [riesgos](docs/12-riesgos-y-supuestos.md) · [fuentes](docs/13-fuentes.md) · [guía de estilos](docs/14-guia-de-estilos.md) · [equipo y mercado](docs/15-equipo-y-mercado.md) |
+| [`docs/`](docs/) | Los 16 documentos del proyecto: [origen](docs/01-origen-y-vision.md) · [ingeniería de la vela](docs/02-ingenieria-de-la-vela.md) · [pruebas de encendido](docs/03-pruebas-de-encendido.md) · [proveedores](docs/04-proveedores-arranque.md) · [checklist](docs/05-checklist-proyecto.md) · [salida al mercado](docs/06-go-to-market.md) · [modelo de negocio](docs/07-modelo-de-negocio.md) · [cartucho retornable](docs/08-cartucho-retornable.md) · [manifiesto](docs/09-manifiesto.md) · [sitio](docs/10-sitio-web.md) · [tablero](docs/11-tablero-operacion.md) · [riesgos](docs/12-riesgos-y-supuestos.md) · [fuentes](docs/13-fuentes.md) · [guía de estilos](docs/14-guia-de-estilos.md) · [equipo y mercado](docs/15-equipo-y-mercado.md) · [las siguientes 100](docs/16-las-siguientes-100.md) |
 | [`modelo/`](modelo/) | El Excel del modelo (21 hojas, 36 meses, tres escenarios) y `escenarios.json` |
 | [`sitio/`](sitio/) | El sitio público, la liga de pedidos de los distribuidores y el tablero de operación |
 | [`src/`](src/) | El Worker de Cloudflare: solicitudes, acceso (Login de CapitalTorreon o enlace al correo), tablero y pedidos |
@@ -118,7 +118,8 @@ Nada de esto está validado todavía. Son estimados que hay que confirmar en est
 | [`/distribuir`](https://vela.capitaltorreon.com/distribuir) | La solicitud para distribuidores y las tres hojas para imprimir |
 | [`/blog/`](https://vela.capitaltorreon.com/blog/) | Cinco artículos sobre la veladora |
 | `/distribuidor/` | El panel del distribuidor: entra con su cuenta de Google (Login de CapitalTorreon), pide en un clic, ve cómo va cada pedido, paga con tarjeta (Stripe) o por transferencia, pide anticipado para las temporadas, ve lo que gana y pide material de promoción |
-| `/tablero/` | La empresa completa: Hoy y Datos (sala de datos); Distribuidores, Pedidos, Ventas y Mercado; Producción, Compras, Rutas, Cartuchos e Indicadores; Pagos y Contabilidad; Equipo, Proyecto, Receta y Modelo. Pide sesión |
+| `/ruta?r=…` | La hoja de ruta del repartidor en el teléfono, sin login: paradas en orden, mapa, WhatsApp, entregado y efectivo cobrado |
+| `/tablero/` | La empresa completa: Hoy y Datos (sala de datos); Distribuidores, Pedidos, Ventas y Mercado; Producción, Compras, Rutas, Cartuchos e Indicadores; Pagos y Contabilidad; Equipo, Proyecto, Receta, Modelo y Usuarios (quién ve qué, por palomita). Pide sesión |
 | `/pedir?d=…` | La liga privada con la que cada distribuidor hace sus pedidos |
 
 ### Cómo se actualiza

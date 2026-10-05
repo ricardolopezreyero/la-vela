@@ -10,6 +10,7 @@ import { entrarConPase, paginaAcceso, pedirEnlace, privado, quienEntra, salir, u
 import { avisar, pedir } from './pedir.js';
 import { tablero } from './tablero.js';
 import { apiDistribuidor } from './distribuidor.js';
+import { apiRuta } from './ruta.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
@@ -85,6 +86,7 @@ export default {
       if (p === '/api/entrar-pase') return await entrarConPase(req, env);
       if (p === '/api/salir') return await salir(req, env);
       if (p === '/api/pedir') return await pedir(req, env, ctx);
+      if (p === '/api/ruta') return await apiRuta(req, env, ctx);
       if (p === '/acceso') return req.method === 'POST' ? await usarEnlace(req, env) : await paginaAcceso(req, env);
       if (p.startsWith('/api/t/')) {
         const yo = await quienEntra(req, env);
@@ -101,7 +103,7 @@ export default {
         return privado(await env.ASSETS.fetch(req));
       }
       if (p === '/entrar' && (await quienEntra(req, env))) return Response.redirect(`${url.origin}/tablero/`, 302);
-      if (p === '/pedir') return privado(await env.ASSETS.fetch(req));
+      if (p === '/pedir' || p === '/ruta') return privado(await env.ASSETS.fetch(req));
     } catch (err) {
       console.error(err);
       if (p.startsWith('/api/')) return json({ error: 'Algo falló. Intenta de nuevo.' }, 500);

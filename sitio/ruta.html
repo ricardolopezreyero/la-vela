@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- RLR · La Vela — la hoja de ruta del repartidor — Ricardo López Reyero · Torreón, Coahuila · octubre 2026 -->
+<html lang="es-MX" data-k="eye" data-rev="181218">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi ruta · La Vela</title>
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta name="author" content="Ricardo López Reyero">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/estilos.css">
+<style>
+.ruta .seccion { padding: var(--e3) 0; }
+.ruta .seccion > .caja > * + * { margin-top: var(--e2); }
+.ruta h1 { font-size: 2rem; }
+.ruta .resumen { display: flex; flex-wrap: wrap; gap: var(--e2); font-size: .95rem; color: var(--gris-700); }
+.parada { border: 2px solid var(--tinta); padding: var(--e2); }
+.parada + .parada { margin-top: var(--e2); }
+.parada.hecha { background: var(--gris-100); border-color: var(--gris-300); }
+.parada header { display: flex; gap: 12px; align-items: baseline; }
+.parada .n { font: 700 1rem var(--texto); background: var(--tinta); color: var(--blanco); min-width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+.parada.hecha .n { background: var(--gris-300); color: var(--tinta); }
+.parada h2 { font-size: 1.3rem; }
+.parada p { font-size: .95rem; }
+.parada .ligas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.parada .ligas a, .parada .ligas button { font: 600 .9rem var(--texto); border: 1.5px solid var(--tinta); background: var(--blanco); color: var(--tinta); padding: 8px 12px; text-decoration: none; cursor: pointer; }
+.parada .entrega { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--gris-300); display: grid; gap: 8px; }
+.parada label { display: block; font-weight: 600; font-size: .85rem; }
+.parada input { width: 100%; min-height: 48px; border: 2px solid var(--tinta); padding: 0 12px; font: 1rem var(--texto); border-radius: 0; }
+.parada .boton { width: 100%; min-height: 56px; }
+.aviso { padding: 12px; border: 2px solid var(--tinta); font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="barra"><div class="caja"><span class="marca"><svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.5 6 4 7.5 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>La Vela</span></div></header>
+<main class="ruta"><section class="seccion" style="border-top:0"><div class="caja" id="pagina"><p class="grande">Cargando tu ruta…</p></div></section></main>
+<script>
+/* RLR · la ruta del repartidor: paradas en orden, mapa, WhatsApp, entregado y efectivo — Ricardo López Reyero */
+(function () {
+  var _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
+  var r = new URLSearchParams(location.search).get('r') || '', pagina = document.getElementById('pagina'), D = null;
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var pesos = function (n) { return '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  var tel = function (t) { var d = String(t || '').replace(/\D/g, ''); return d.length === 10 ? '52' + d : d; };
+  function pintar() {
+    var pend = D.paradas.filter(function (p) { return !p.entregado_fecha; });
+    pagina.innerHTML = '<p class="etiqueta">Ruta del ' + esc(D.ruta.fecha) + '</p><h1>' + esc(D.ruta.repartidor || 'Repartidor') + '</h1>'
+      + '<div class="resumen"><span>' + D.paradas.length + ' paradas</span><span>' + D.paradas.reduce(function (s, p) { return s + p.rejas; }, 0) + ' rejas</span><span>' + Math.round(D.paradas.reduce(function (s, p) { return s + p.kg; }, 0)) + ' kg</span><span>recoge ' + D.paradas.reduce(function (s, p) { return s + p.vacios; }, 0) + ' vacíos</span>' + (D.vehiculo ? '<span>' + esc(D.vehiculo.nombre) + '</span>' : '') + (D.centro ? '<span>sale de ' + esc(D.centro.nombre) + '</span>' : '') + '</div>'
+      + (D.ruta.notas ? '<p class="aviso">' + esc(D.ruta.notas) + '</p>' : '')
+      + (D.ruta.estado !== 'En camino' && D.ruta.estado !== 'Terminada' && pend.length ? '<div class="botones"><button class="boton lleno" id="salir" type="button">Ya salí</button></div>' : '')
+      + (pend.length ? '' : '<p class="aviso">Ruta terminada. Todo entregado.</p>')
+      + D.paradas.map(function (p, i) {
+        var dir = [p.direccion, p.ciudad].filter(Boolean).join(', '), cobrar = p.cobro !== 'Cobrado';
+        return '<article class="parada ' + (p.entregado_fecha ? 'hecha' : '') + '" id="p' + p.id + '"><header><span class="n">' + (i + 1) + '</span><h2>' + esc(p.empresa) + '</h2></header>'
+          + '<p>' + esc(dir || 'Sin dirección anotada') + (p.nombre ? ' · ' + esc(p.nombre) : '') + '</p>'
+          + '<p>Pedido #' + p.id + ' · ' + esc(p.lineas) + ' · ' + p.rejas + ' rejas · ' + Math.round(p.kg) + ' kg' + (p.vacios ? ' · recoge ' + p.vacios + ' vacíos' : '') + '</p>'
+          + '<p><b>' + (cobrar ? 'Cobrar ' + pesos(p.total) : 'Ya pagado (' + esc(p.pago_metodo || 'antes') + ')') + '</b></p>'
+          + (p.notas ? '<p class="nota">' + esc(p.notas) + '</p>' : '')
+          + '<div class="ligas">' + (dir ? '<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(dir) + '" target="_blank" rel="noopener">Mapa</a>' : '')
+          + (p.whatsapp ? '<a href="https://wa.me/' + tel(p.whatsapp) + '?text=' + encodeURIComponent('Hola, soy el repartidor de La Vela. Voy en camino con tu pedido #' + p.id + '.') + '" target="_blank" rel="noopener">WhatsApp</a><a href="tel:' + tel(p.whatsapp) + '">Llamar</a>' : '') + '</div>'
+          + (p.entregado_fecha ? '<p class="nota">Entregado.</p>' : '<div class="entrega"><label>Cartuchos vacíos que entregó<input type="number" min="0" step="1" inputmode="numeric" id="v' + p.id + '" value="' + p.vacios + '"></label>'
+            + (cobrar ? '<label>Efectivo cobrado (deja 0 si paga después)<input type="number" min="0" step="any" inputmode="decimal" id="e' + p.id + '" value="0"></label>' : '')
+            + '<button class="boton lleno" type="button" data-entregar="' + p.id + '">Entregado</button></div>')
+          + '</article>';
+      }).join('');
+    var s = document.getElementById('salir');
+    if (s) s.addEventListener('click', function () { mandar({ accion: 'salir', pedido_id: D.paradas[0].id }, s); });
+  }
+  function mandar(cuerpo, boton) {
+    boton.disabled = true; cuerpo.r = r;
+    fetch('/api/ruta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(cuerpo) })
+      .then(function (x) { return x.json().then(function (j) { if (!x.ok) throw new Error(j.error); return j; }); })
+      .then(cargar).catch(function (e) { alert(e.message || 'No se pudo.'); boton.disabled = false; });
+  }
+  pagina.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-entregar]');
+    if (!b) return;
+    var id = b.dataset.entregar, v = document.getElementById('v' + id), e = document.getElementById('e' + id);
+    if (!confirm('¿Entregado el pedido #' + id + '?')) return;
+    mandar({ accion: 'entregar', pedido_id: Number(id), vacios: Number(v.value) || 0, efectivo: e ? Number(e.value) || 0 : 0 }, b);
+  });
+  function cargar() {
+    return fetch('/api/ruta?r=' + encodeURIComponent(r)).then(function (x) { return x.json().then(function (j) { if (!x.ok) throw new Error(j.error); return j; }); })
+      .then(function (j) { D = j; pintar(); }).catch(function (e) { pagina.innerHTML = '<h1>Esta liga no está activa</h1><p class="grande">' + esc(e.message || '') + '</p>'; });
+  }
+  cargar();
+  void _RLR; void _k; void _rev;
+})();
+</script>
+<!-- RLR · Ricardo López Reyero -->
+</body>
+</html>

@@ -1,7 +1,7 @@
 /* RLR · La Vela — pantallas Mercado, Equipo y Datos — Ricardo López Reyero
    Mercado: la meta (25% de las velas de México), los canales, las regiones y dónde buscar comercializadores.
    Equipo: los puestos antes que la gente; el tablero dice cuándo toca contratar. Datos: la sala de datos, todo en una pantalla. */
-import { S, aj, aviso, bitacoraDe, borrar, campo, columnas, crear, crudo, diasA, dinero, etiqueta, fecha, guardar, html, interruptor, num } from './nucleo.js';
+import { S, aj, api, aviso, bitacoraDe, borrar, campo, cargar, columnas, crear, crudo, diasA, dinero, etiqueta, fecha, guardar, html, interruptor, num } from './nucleo.js';
 import { FASES, abiertos, caja, cartuchos, dist, escalon, mesHoy, nomina, pendientes, piezasSemana, plantilla, plazas, porCobrar, porFabricar, porPagar, resultado, temporadas } from './cuentas.js';
 import { cargaDe } from './logistica.js';
 
@@ -12,8 +12,10 @@ const compacto = (n) => (n >= 1e6 ? num(n / 1e6, n >= 1e7 ? 0 : 1) + ' M' : n >=
 
 // ───────── Mercado ─────────
 const piezasCanal = (clave) => S.pedidos.filter((p) => p.estado !== 'Recibido' && (dist(p.distribuidor_id)?.canal || 'tienditas') === clave).reduce((s, p) => s + p.piezas, 0);
+// Distribuidores activos cuya zona menciona alguna palabra del nombre de la región
+const distsRegion = (m) => { const ws = `${m.nombre} ${m.descripcion}`.toLowerCase().split(/[^a-záéíóúñü]+/).filter((w) => w.length > 4); return S.distribuidores.filter((d) => ['Piloto', 'Activo'].includes(d.estado) && `${d.zona} ${d.zonas} ${d.ciudad}`.toLowerCase().split(/[^a-záéíóúñü]+/).some((w) => w.length > 4 && ws.includes(w))); };
 const tarjetaMercado = (m) => html`<article class="tarjeta" draggable="true" data-arr="${m.id}" data-a="ir" data-ruta="mercado/${m.id}" tabindex="0">
-  <p><b>${m.nombre}</b></p><p class="chips">${etiqueta('Fase ' + m.fase)}${m.prioridad === 'Alta' ? etiqueta('Alta', 'negra') : ''}${m.tipo === 'Canal' && m.meta_semana ? etiqueta(`${num(piezasCanal(m.clave))} de ${num(m.meta_semana)}/sem`) : ''}</p>
+  <p><b>${m.nombre}</b></p><p class="chips">${etiqueta('Fase ' + m.fase)}${m.prioridad === 'Alta' ? etiqueta('Alta', 'negra') : ''}${m.tipo === 'Canal' && m.meta_semana ? etiqueta(`${num(piezasCanal(m.clave))} de ${num(m.meta_semana)}/sem`) : ''}${m.tipo === 'Región' && distsRegion(m).length ? etiqueta(`${distsRegion(m).length} distribuidor(es)`) : ''}</p>
   <p class="tenue">${m.descripcion.slice(0, 110)}${m.descripcion.length > 110 ? '…' : ''}</p>${m.responsable ? html`<p class="sigue">${m.responsable.split('@')[0]}</p>` : ''}</article>`;
 
 export const mercado = {
@@ -112,6 +114,7 @@ export const equipo = {
         ${S.ui.vista.equipo === 'tabla' ? html`<div class="tabla-caja"><table class="tabla"><thead><tr><th>#</th><th>Puesto</th><th>Área</th><th>Se contrata desde</th><th>Una plaza por cada</th><th>Hoy</th><th>Hacen falta</th><th>Sueldo</th><th>Estado</th><th>Quién</th></tr></thead><tbody>
           ${xs.map((p, i) => { const n = plazas(p, hoy); return html`<tr data-a="ir" data-ruta="equipo/${p.id}" class="${n > p.ocupadas ? 'gris' : ''}"><td>${i + 1}</td><th>${p.nombre}</th><td>${p.area}</td><td>${p.disparador ? num(p.disparador) + ' pzas/sem' : 'el inicio'}</td><td>${p.por_piezas ? num(p.por_piezas) + ' pzas/sem' : 'una sola'}</td><td>${p.ocupadas}</td><td>${n > p.ocupadas ? html`<b>${n - p.ocupadas}</b>` : ''}</td><td>${p.sueldo ? dinero(p.sueldo) : ''}</td><td>${p.estado}</td><td>${p.persona}</td></tr>`; })}</tbody></table></div>`
           : columnas({ rec: 'puestos', cols: S.estados.puestos, items: xs, tarjeta: tarjetaPuesto })}</section>
+      <section class="bloque doble"><h2>Organigrama</h2><div class="dos">${['Dirección', 'Producción', 'Comercial', 'Logística', 'Compras', 'Dinero', 'Personas', 'Datos', 'Calidad'].filter((a) => S.puestos.some((p) => p.area === a)).map((a) => html`<div><h4>${a}</h4><ul class="lista">${S.puestos.filter((p) => p.area === a).sort((x, y) => x.orden - y.orden).map((p) => html`<li><b><a href="#/equipo/${p.id}">${p.nombre}</a></b><span>${p.ocupadas ? `${p.persona || p.ocupadas + ' persona(s)'}` : 'vacante'}</span></li>`)}</ul></div>`)}</div></section>
       <section class="bloque doble"><h2>Cómo se contrata aquí</h2><ul class="lista simple">
         <li><b>1 · El puesto ya existe en el tablero,</b> con qué hace, qué debe saber, qué mide y cuánto gana. Nadie se inventa el puesto el día que hace falta.</li>
         <li><b>2 · Toca cuando las piezas lo dicen,</b> no cuando alguien se cansa. El disparador está en piezas por semana y «Hoy» avisa.</li>
@@ -153,7 +156,7 @@ export const equipo = {
       </div>
       <h4>Candidatos<span class="cuenta">${cs.length}</span></h4>
       ${cs.length ? html`<div class="tabla-caja"><table class="tabla editable"><thead><tr><th>Nombre</th><th>Fuente</th><th>Estado</th><th>Calif.</th><th></th></tr></thead><tbody>
-        ${cs.map((c) => html`<tr><th>${c.nombre}<small>${c.whatsapp ? html`<a href="https://wa.me/${(c.whatsapp.replace(/\D/g, '').length === 10 ? '52' : '') + c.whatsapp.replace(/\D/g, '')}" target="_blank" rel="noopener">${c.whatsapp}</a>` : ''}</small></th><td>${c.fuente}</td><td>${campo('candidatos', c.id, 'estado', c.estado, { opciones: S.estados.candidatos })}</td><td>${campo('candidatos', c.id, 'calificacion', c.calificacion, { tipo: 'number', paso: '1' })}</td><td><button class="enlace" data-a="borrar-candidato" data-id="${c.id}" aria-label="Borrar">✕</button></td></tr>`)}</tbody></table></div>` : ''}
+        ${cs.map((c) => html`<tr><th>${c.nombre}<small>${c.whatsapp ? html`<a href="https://wa.me/${(c.whatsapp.replace(/\D/g, '').length === 10 ? '52' : '') + c.whatsapp.replace(/\D/g, '')}" target="_blank" rel="noopener">${c.whatsapp}</a>` : ''}</small></th><td>${c.fuente}</td><td>${campo('candidatos', c.id, 'estado', c.estado, { opciones: S.estados.candidatos })}</td><td>${campo('candidatos', c.id, 'calificacion', c.calificacion, { tipo: 'number', paso: '1' })}</td><td>${c.estado === 'Contratado' ? '' : html`<button class="enlace" data-a="contratar" data-id="${c.id}">Contratar</button> `}<button class="enlace" data-a="borrar-candidato" data-id="${c.id}" aria-label="Borrar">✕</button></td></tr>`)}</tbody></table></div>` : ''}
       <form data-f="candidato" data-id="${p.id}" class="forma enlinea"><label class="campo"><span>Nombre</span><input name="nombre" required></label><label class="campo"><span>WhatsApp</span><input name="whatsapp" type="tel"></label><label class="campo"><span>Fuente</span><input name="fuente" placeholder="Referido, Facebook, OCC…"></label><button class="boton">+ Candidato</button></form>
       <p class="tenue">Cuando un candidato pasa a «Contratado», súbele una plaza ocupada al puesto y anótalo en «Quién lo ocupa».</p>
       ${bitacoraDe('puestos', p.id)}
@@ -162,6 +165,13 @@ export const equipo = {
   acciones: {
     async 'borrar-puesto'(el) { if (await borrar('puestos', el.dataset.id, '¿Borrar este puesto y sus candidatos?')) location.hash = '#/equipo'; },
     'borrar-candidato': (el) => borrar('candidatos', el.dataset.id, '¿Borrar este candidato?'),
+    async contratar(el) {
+      const c = S.candidatos.find((x) => x.id === Number(el.dataset.id)), p = S.puestos.find((x) => x.id === c.puesto_id);
+      if (!confirm(`¿Contratar a ${c.nombre} como ${p.nombre}? Sube una plaza ocupada y queda anotado.`)) return;
+      await guardar('candidatos', c.id, { estado: 'Contratado' }, { callado: true });
+      await guardar('puestos', p.id, { ocupadas: p.ocupadas + 1, estado: 'Contratado', persona: [p.persona, c.nombre].filter(Boolean).join(', ') });
+      try { await api('POST', 'nota', { cosa: 'puestos', cosa_id: p.id, texto: `Contratado: ${c.nombre} (${c.fuente || 'sin fuente'})` }); await cargar(); } catch { /* la nota es extra */ }
+    },
   },
   formularios: {
     async 'puesto-nuevo'(f, d) { const r = await crear('puestos', { ...d, disparador: Number(d.disparador), por_piezas: Number(d.por_piezas), sueldo: Number(d.sueldo), orden: S.puestos.length + 1 }); if (r) location.hash = `#/equipo/${r.fila.id}`; },

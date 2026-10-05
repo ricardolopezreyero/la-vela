@@ -1,6 +1,6 @@
 /* RLR · La Vela — pantallas Ventas, Compras, Pagos y Contabilidad — Ricardo López Reyero
    El dinero y las compras viven aquí. Los cobros de pedidos y los pagos de compras se anotan solos en el servidor. */
-import { S, aj, api, aviso, bitacoraDe, borrar, campo, cargar, columnas, crear, crudo, diasA, dinero, etiqueta, fecha, guardar, html, hoyISO, interruptor, num } from './nucleo.js';
+import { S, aj, api, aviso, bitacoraDe, borrar, campo, cargar, columnas, crear, crudo, descargar, diasA, dinero, etiqueta, fecha, guardar, html, hoyISO, imprimir, interruptor, num, wa } from './nucleo.js';
 import { caja, costoPieza, dist, inv, mes, mesHoy, mesesAtras, nombreMes, nomina, piezasSemana, porCobrar, porFabricar, porPagar, producto, prov, resultado } from './cuentas.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
@@ -35,8 +35,8 @@ export const ventas = {
         <div><b>${num(pipeline)}</b><span>piezas por semana en propuesta o piloto (tiendas × ${aj('piezas_tienda_semana', 8)})</span></div>
         <div><b>${tiendas ? dinero((sem / tiendas) * 4.33 * ((producto('semanal')?.precio_publico || 55) * 0.27)) : '—'}</b><span>lo que gana una tienda al mes con lo que vende hoy</span></div></div>
         <p class="tenue">La venta se cuenta cuando el pedido se confirma; lo entregado y lo cobrado van en Contabilidad y Pagos. Una tienda del plan vende 8 piezas por semana.</p></section>
-      <section class="bloque doble"><h2>Por mes</h2><div class="tabla-caja"><table class="tabla"><thead><tr><th>Mes</th><th>Pedidos</th><th>Distribuidores</th><th>Piezas</th><th>Venta sin IVA</th><th></th></tr></thead><tbody>
-        ${filas.map((f) => html`<tr class="${f.m === hoyM ? 'gris' : ''}"><th>${nombreMes(f.m)}</th><td>${f.n}</td><td>${f.dists}</td><td>${num(f.piezas)}</td><td>${dinero(f.venta)}</td><td style="min-width:140px">${barra(f.venta, maxV)}</td></tr>`)}</tbody></table></div></section>
+      <section class="bloque doble"><h2>Por mes</h2><div class="tabla-caja"><table class="tabla"><thead><tr><th>Mes</th><th>Pedidos</th><th>Distribuidores</th><th>Piezas</th><th>Contra el mes anterior</th><th>Venta sin IVA</th><th></th></tr></thead><tbody>
+        ${filas.map((f, i) => { const a = filas[i - 1], d = a && a.piezas ? ((f.piezas - a.piezas) / a.piezas) * 100 : null; return html`<tr class="${f.m === hoyM ? 'gris' : ''}"><th>${nombreMes(f.m)}</th><td>${f.n}</td><td>${f.dists}</td><td>${num(f.piezas)}</td><td>${d == null ? '' : (d >= 0 ? '▲ +' : '▼ ') + num(d) + '%'}</td><td>${dinero(f.venta)}</td><td style="min-width:140px">${barra(f.venta, maxV)}</td></tr>`; })}</tbody></table></div></section>
       <section class="bloque"><h2>Por canal</h2>${Object.keys(porCanal).length ? html`<ul class="lista barras">${Object.entries(porCanal).sort((a, b) => b[1] - a[1]).map(([c, n]) => html`<li><b>${canalNombre(c)}</b>${barra(n, maxC)}<span>${num(n)} pzas</span></li>`)}</ul>` : html`<p class="vacio">Sin pedidos todavía. El canal se pone en la ficha de cada distribuidor.</p>`}
         <p class="tenue">Lo que cada canal debe aportar está en <a href="#/mercado">Mercado</a>.</p></section>
       <section class="bloque"><h2>Por producto, en pesos</h2>${Object.keys(porProd).length ? html`<ul class="lista barras">${Object.entries(porProd).sort((a, b) => b[1] - a[1]).map(([k, n]) => html`<li><b>${producto(k)?.nombre.split(' (')[0] || k}</b>${barra(n, maxP)}<span>${dinero(n)}</span></li>`)}</ul>` : html`<p class="vacio">Sin pedidos todavía.</p>`}</section>
@@ -46,7 +46,9 @@ export const ventas = {
 };
 
 // ───────── Compras ─────────
-const sugerencia = () => { const f = porFabricar(); return S.inventario.map((i) => ({ i, n: Math.max((f.pide[i.clave] || 0) - i.existencia, i.minimo - i.existencia) })).filter((c) => c.n > 0); };
+// Sugerencia: lo que piden los pedidos confirmados, el mínimo, y N semanas de cobertura al ritmo de hoy (Ajustes)
+const consumoSemana = (clave) => { const n = piezasSemana(); return clave === 'cera' ? (n * gramos()) / 1000 : clave === 'caja' ? n / 12 : n; };
+const sugerencia = () => { const f = porFabricar(), sem = aj('semanas_cobertura', 2); return S.inventario.map((i) => ({ i, n: Math.max((f.pide[i.clave] || 0) - i.existencia, i.minimo - i.existencia, consumoSemana(i.clave) * sem + (f.pide[i.clave] || 0) - i.existencia) })).filter((c) => c.n > 0); };
 const proveedorDe = (clave) => S.proveedores.find((p) => p.estado === 'Activo' && p.insumos.split(/\s+/).includes(clave)) || S.proveedores.find((p) => p.insumos.split(/\s+/).includes(clave));
 const resumenCompra = (c) => c.lineas.map((l) => `${num(l.cantidad, inv(l.clave)?.unidad === 'kg' ? 1 : 0)} ${inv(l.clave)?.unidad || ''} ${inv(l.clave)?.nombre.split(' (')[0].toLowerCase() || l.clave}`).join(' · ');
 const tarjetaCompra = (c) => {
@@ -82,6 +84,7 @@ function panelCompra(sub) {
   const i = S.estados.compras.indexOf(c.estado), sig = c.estado === 'Pagada' || c.estado === 'Cancelada' ? null : S.estados.compras[i + 1], p = prov(c.proveedor_id);
   return html`<header><div>${etiqueta(c.estado)}<h2>Compra #${c.id}</h2><p class="tenue">${p ? p.nombre : 'Sin proveedor'} · ${fecha(c.fecha)}</p></div><button class="cerrar" data-a="cerrar" aria-label="Cerrar">✕</button></header>
     <div class="botones">${sig ? html`<button class="boton lleno" data-a="mover-compra" data-id="${c.id}" data-v="${sig}">${sig === 'Recibida' ? 'Ya llegó: meter al inventario' : sig === 'Pagada' ? 'Ya se pagó' : `Pasar a «${sig}»`}</button>` : ''}
+      ${p?.whatsapp ? html`<a class="boton" href="${wa(p.whatsapp, textoOrden(c))}" target="_blank" rel="noopener">WhatsApp al proveedor</a>` : ''}<button class="boton" data-a="imprimir-compra" data-id="${c.id}">Imprimir</button>
       ${c.estado !== 'Cancelada' && !c.recibida ? html`<button class="boton" data-a="mover-compra" data-id="${c.id}" data-v="Cancelada">Cancelar</button>` : ''}</div>
     <ol class="pasos-pedido">${S.estados.compras.slice(0, 4).map((e, n) => html`<li class="${n < i ? 'hecho' : n === i ? 'aqui' : ''}">${e}</li>`)}</ol>
     ${lineasCompra(c, !c.recibida)}
@@ -97,10 +100,20 @@ function panelCompra(sub) {
     ${bitacoraDe('compras', c.id)}
     ${c.recibida ? '' : html`<p class="fin"><button class="enlace" data-a="borrar-compra" data-id="${c.id}">Borrar esta orden</button></p>`}`;
 }
+const textoOrden = (c) => `Hola, de La Vela. Orden de compra #${c.id}:\n${c.lineas.map((l) => `· ${num(l.cantidad, inv(l.clave)?.unidad === 'kg' ? 1 : 0)} ${inv(l.clave)?.unidad || ''} de ${inv(l.clave)?.nombre || l.clave} a ${dinero(l.costo, 2)}`).join('\n')}\nTotal ${dinero(c.total, 2)}.${c.fecha_esperada ? ` La necesitamos el ${fecha(c.fecha_esperada)}.` : ''} ¿Me confirmas?`;
+function ordenImpresa(c) {
+  const p = prov(c.proveedor_id);
+  return `<h1>Orden de compra #${c.id}</h1><p>La Vela · ${fecha(c.fecha)}${c.fecha_esperada ? ` · entrega: ${fecha(c.fecha_esperada)}` : ''}</p><p><b>${p?.nombre || 'Proveedor por elegir'}</b>${p ? ` · ${p.contacto || ''} ${p.whatsapp || ''} ${p.correo || ''}` : ''}</p>
+    <table><thead><tr><th>Material</th><th>Cantidad</th><th>Costo por unidad</th><th>Importe</th></tr></thead><tbody>${c.lineas.map((l) => `<tr><td>${inv(l.clave)?.nombre || l.clave}</td><td>${num(l.cantidad, inv(l.clave)?.unidad === 'kg' ? 1 : 0)} ${inv(l.clave)?.unidad || ''}</td><td>${dinero(l.costo, 2)}</td><td>${dinero(l.cantidad * l.costo, 2)}</td></tr>`).join('')}<tr><th colspan="3">Total</th><th>${dinero(c.total, 2)}</th></tr></tbody></table>
+    ${c.notas ? `<p>${c.notas}</p>` : ''}<div class="firma"><span>Autorizó</span><span>Recibió</span></div>`;
+}
 function panelProveedor(sub) {
   const p = prov(Number(sub.split('-')[1]));
   if (!p) return null;
   const cs = S.compras.filter((c) => c.proveedor_id === p.id);
+  // Historial de precios: cada compra recibida de este proveedor, por insumo
+  const precios = {};
+  for (const c of cs.filter((x) => x.recibida)) for (const l of c.lineas) (precios[l.clave] ||= []).push({ fecha: c.recibida_fecha, costo: l.costo, cantidad: l.cantidad });
   return html`<header><div>${etiqueta(p.estado)}<h2>${p.nombre}</h2></div><button class="cerrar" data-a="cerrar" aria-label="Cerrar">✕</button></header>
     <div class="forma">
       ${campo('proveedores', p.id, 'nombre', p.nombre, { rotulo: 'Nombre', ancho: 'doble' })}
@@ -115,6 +128,7 @@ function panelProveedor(sub) {
       ${campo('proveedores', p.id, 'liga', p.liga, { rotulo: 'Liga', ancho: 'doble' })}
       ${campo('proveedores', p.id, 'notas', p.notas, { rotulo: 'Notas', tipo: 'area', ancho: 'doble', marcador: 'Precio cotizado, mínimo de compra, flete, plazo…' })}
     </div>
+    ${Object.keys(precios).length ? html`<h4>Historial de precios</h4><div class="tabla-caja"><table class="tabla"><thead><tr><th>Material</th><th>Fecha</th><th>Cantidad</th><th>Costo por unidad</th></tr></thead><tbody>${Object.entries(precios).flatMap(([k, xs]) => xs.map((x) => html`<tr><th>${inv(k)?.nombre || k}</th><td>${fecha(x.fecha)}</td><td>${num(x.cantidad)}</td><td>${dinero(x.costo, 2)}</td></tr>`))}</tbody></table></div>` : ''}
     ${cs.length ? html`<h4>Compras</h4><ul class="lista">${cs.map((c) => html`<li><a href="#/compras/${c.id}"><b>#${c.id} · ${c.estado}</b></a><span>${dinero(c.total)} · ${fecha(c.fecha)}</span></li>`)}</ul>` : ''}
     ${bitacoraDe('proveedores', p.id)}
     <p class="fin"><button class="enlace" data-a="borrar-proveedor" data-id="${p.id}">Borrar este proveedor</button></p>`;
@@ -123,16 +137,15 @@ function panelProveedor(sub) {
 export const compras = {
   id: 'compras', titulo: 'Compras', grupo: 'Operación',
   cuenta: () => sugerencia().length + S.compras.filter((c) => c.estado === 'Pedida' && c.fecha_esperada && diasA(c.fecha_esperada) < 0).length,
-  botones: () => html`${interruptor('compras', S.ui.vista.compras)}<button class="boton" data-a="ir" data-ruta="compras/proveedor-nuevo">+ Proveedor</button><button class="boton lleno" data-a="ir" data-ruta="compras/nueva">+ Orden</button>`,
+  botones: () => html`${interruptor('compras', S.ui.vista.compras)}<button class="boton" data-a="csv-compras">CSV</button><button class="boton" data-a="ir" data-ruta="compras/proveedor-nuevo">+ Proveedor</button><button class="boton lleno" data-a="ir" data-ruta="compras/nueva">+ Orden</button>`,
   pintar() {
     const sug = sugerencia(), abiertas = S.compras.filter((c) => !['Pagada', 'Cancelada'].includes(c.estado));
     // Consumo por semana de cada material, al ritmo de pedidos de hoy
-    const consumo = (clave) => { const n = piezasSemana(); return clave === 'cera' ? (n * gramos()) / 1000 : clave === 'caja' ? n / 12 : n; };
-    const dias = S.inventario.map((i) => { const porSem = consumo(i.clave); return { i, dias: porSem ? Math.round((i.existencia / porSem) * 7) : null }; });
+    const dias = S.inventario.map((i) => { const porSem = consumoSemana(i.clave); return { i, dias: porSem ? Math.round((i.existencia / porSem) * 7) : null }; });
     return html`<div class="rejilla">
       <section class="bloque"><h2>Hay que comprar<span class="cuenta">${sug.length}</span></h2>
         ${sug.length ? html`<ul class="lista">${sug.map(({ i, n }) => html`<li><b>${num(n, dec(i))} ${i.unidad} de ${i.nombre.toLowerCase()}</b><span>≈ ${dinero(n * i.costo)}${proveedorDe(i.clave) ? ' · ' + proveedorDe(i.clave).nombre : ''}</span></li>`)}</ul>
-          <p class="tenue">Total aproximado: ${dinero(sug.reduce((s, c) => s + c.n * c.i.costo, 0))}. Cubre los pedidos confirmados y deja cada material en su mínimo.</p>
+          <p class="tenue">Total aproximado: ${dinero(sug.reduce((s, c) => s + c.n * c.i.costo, 0))}. Cubre los pedidos confirmados, el mínimo y ${aj('semanas_cobertura', 2)} semana(s) de cobertura al ritmo de hoy (se cambia en Ajustes).</p>
           <div class="botones"><button class="boton lleno" data-a="ir" data-ruta="compras/nueva-sugerida">Crear la orden con esto</button></div>` : html`<p class="vacio">Con lo que hay alcanza para lo confirmado y nada está bajo el mínimo.</p>`}</section>
       <section class="bloque"><h2>Cobertura</h2><ul class="lista">${dias.map(({ i, dias: d }) => html`<li><b>${i.nombre}</b><span>${num(i.existencia, dec(i))} ${i.unidad}${d != null ? ` · ${d} días al ritmo de hoy` : ''}</span></li>`)}</ul>
         <p class="tenue">Al ritmo de ${num(piezasSemana())} piezas por semana. El material baja solo cuando un pedido pasa a «Curando»; sube solo cuando una compra se marca como recibida.</p></section>
@@ -153,6 +166,8 @@ export const compras = {
       <button class="boton lleno">Agregar</button></form>` : sub.startsWith('proveedor-') ? panelProveedor(sub) : panelCompra(sub)),
   acciones: {
     'mover-compra': (el) => guardar('compras', el.dataset.id, { estado: el.dataset.v }),
+    'imprimir-compra': (el) => imprimir(ordenImpresa(S.compras.find((x) => x.id === Number(el.dataset.id)))),
+    'csv-compras': () => descargar('La_Vela_Compras', [['id', 'proveedor', 'estado', 'total', 'fecha', 'llega', 'recibida', 'pagada', 'factura', 'renglones'], ...S.compras.map((c) => [c.id, prov(c.proveedor_id)?.nombre || '', c.estado, c.total, c.fecha, c.fecha_esperada, c.recibida_fecha || '', c.pagada_fecha || '', c.factura, resumenCompra(c)])]),
     async 'borrar-compra'(el) { if (await borrar('compras', el.dataset.id, '¿Borrar esta orden?')) location.hash = '#/compras'; },
     async 'borrar-proveedor'(el) { if (await borrar('proveedores', el.dataset.id, '¿Borrar este proveedor?')) location.hash = '#/compras'; },
   },
@@ -167,7 +182,7 @@ export const compras = {
 export const pagos = {
   id: 'pagos', titulo: 'Pagos', grupo: 'Dinero',
   cuenta: () => porCobrar().filter((p) => -diasA(p.entregado_fecha) > aj('dias_cobro', 30)).length + porPagar().length,
-  botones: () => html`<select data-a-cambio="filtro-mes" aria-label="Mes"><option value="">Todos los meses</option>${mesesAtras(12).reverse().map((m) => html`<option value="${m}" ${S.ui.filtro.mes === m ? html`selected` : ''}>${nombreMes(m)}</option>`)}</select><button class="boton lleno" data-a="ir" data-ruta="pagos/nuevo">+ Movimiento</button>`,
+  botones: () => html`<select data-a-cambio="filtro-mes" aria-label="Mes"><option value="">Todos los meses</option>${mesesAtras(12).reverse().map((m) => html`<option value="${m}" ${S.ui.filtro.mes === m ? html`selected` : ''}>${nombreMes(m)}</option>`)}</select><button class="boton" data-a="repetir-fijos">Repetir los fijos del mes pasado</button><button class="boton" data-a="pagar-nomina">Pagar la nómina</button><button class="boton lleno" data-a="ir" data-ruta="pagos/nuevo">+ Movimiento</button>`,
   pintar() {
     const c = caja(), pc = porCobrar(), pp = porPagar(), m = S.ui.filtro.mes || '', hoyM = mesHoy();
     const movs = S.movimientos.filter((x) => !m || mes(x.fecha) === m), cobM = S.movimientos.filter((x) => x.tipo === 'Cobro' && mes(x.fecha) === hoyM).reduce((s, x) => s + x.monto, 0), pagM = S.movimientos.filter((x) => x.tipo === 'Pago' && mes(x.fecha) === hoyM).reduce((s, x) => s + x.monto, 0);
@@ -190,11 +205,14 @@ export const pagos = {
         ${pc.length ? html`<ul class="lista">${pc.sort((a, b) => a.entregado_fecha.localeCompare(b.entregado_fecha)).map((p) => html`<li><div><b><a href="#/pedidos/${p.id}">#${p.id} · ${dist(p.distribuidor_id)?.empresa || ''}</a></b><br><small class="${-diasA(p.entregado_fecha) > aj('dias_cobro', 30) ? 'plazo' : 'tenue'}">Entregado hace ${-diasA(p.entregado_fecha)} días</small></div><span>${dinero(p.total)}<br><button class="enlace" data-a="cobrar" data-id="${p.id}">Ya se cobró</button></span></li>`)}</ul>` : html`<p class="vacio">Nada por cobrar.</p>`}</section>
       <section class="bloque"><h2>Por pagar<span class="cuenta">${pp.length}</span></h2>
         ${pp.length ? html`<ul class="lista">${pp.map((x) => html`<li><div><b><a href="#/compras/${x.id}">Compra #${x.id} · ${prov(x.proveedor_id)?.nombre || ''}</a></b><br><small class="tenue">Recibida el ${fecha(x.recibida_fecha)}${prov(x.proveedor_id)?.credito_dias ? ` · vence ${fecha(hoyISO(prov(x.proveedor_id).credito_dias + diasA(x.recibida_fecha)))}` : ''}</small></div><span>${dinero(x.total)}<br><button class="enlace" data-a="pagar" data-id="${x.id}">Ya se pagó</button></span></li>`)}</ul>` : html`<p class="vacio">Nada por pagar.</p>`}</section>
+      <section class="bloque doble"><h2>Las próximas cuatro semanas</h2><div class="tabla-caja"><table class="tabla"><thead><tr><th>Semana</th><th>Por cobrar (vence)</th><th>Por pagar (vence)</th><th>Neto</th><th>Caja al cierre</th></tr></thead><tbody>
+        ${(() => { let saldo = c.saldo; const dc = aj('dias_cobro', 30); return [0, 1, 2, 3].map((n) => { const desde = hoyISO(n * 7), hasta = hoyISO(n * 7 + 6); const cobra = pc.filter((p) => { const v = hoyISO(dc + diasA(p.entregado_fecha)); return (n === 0 && v < desde) || (v >= desde && v <= hasta); }).reduce((s, p) => s + p.total, 0) + S.pedidos.filter((p) => !p.entregado_fecha && p.cobro !== 'Cobrado' && p.fecha_prometida >= desde && p.fecha_prometida <= hasta && p.estado !== 'Recibido').reduce((s, p) => s + p.total, 0); const paga = pp.filter((x) => { const v = hoyISO((prov(x.proveedor_id)?.credito_dias || 0) + diasA(x.recibida_fecha)); return (n === 0 && v < desde) || (v >= desde && v <= hasta); }).reduce((s, x) => s + x.total, 0) + (n === 1 || n === 3 ? nomina() / 2 : 0); saldo += cobra - paga; return html`<tr><th>${fecha(desde)} a ${fecha(hasta)}</th><td>${dinero(cobra)}</td><td>${dinero(paga)}</td><td>${dinero(cobra - paga)}</td><td><b>${dinero(saldo)}</b></td></tr>`; }); })()}</tbody></table></div>
+        <p class="tenue">Por cobrar: lo entregado al vencer sus ${aj('dias_cobro', 30)} días y lo confirmado al entregarse. Por pagar: compras recibidas al vencer su crédito y la nómina en dos quincenas. Es una estimación para no quedarse sin caja.</p></section>
       <section class="bloque"><h2>En qué se va${m ? ` · ${nombreMes(m)}` : ''}</h2>${Object.keys(porCat).length ? html`<ul class="lista barras">${Object.entries(porCat).sort((a, b) => b[1] - a[1]).map(([k, n]) => html`<li><b>${k}</b>${barra(n, maxCat)}<span>${dinero(n)}</span></li>`)}</ul>` : html`<p class="vacio">Sin pagos todavía.</p>`}</section>
       <section class="bloque doble"><h2>Movimientos${m ? ` · ${nombreMes(m)}` : ''}<span class="cuenta">${movs.length}</span></h2>
-        ${movs.length ? html`<div class="tabla-caja"><table class="tabla"><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Método</th><th>Entra</th><th>Sale</th><th></th></tr></thead><tbody>
+        ${movs.length ? html`<div class="tabla-caja"><table class="tabla"><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Método</th><th>Entra</th><th>Sale</th><th title="Conciliado con el banco">Banco</th><th></th></tr></thead><tbody>
           ${movs.slice(0, 300).map((x) => html`<tr><th>${fecha(x.fecha)}</th><td>${x.pedido_id ? html`<a href="#/pedidos/${x.pedido_id}">${x.concepto}</a>` : x.compra_id ? html`<a href="#/compras/${x.compra_id}">${x.concepto}</a>` : x.concepto}${x.referencia ? html`<small>${x.referencia}</small>` : ''}</td><td>${x.categoria}</td><td>${x.metodo}</td>
-            <td>${x.tipo === 'Cobro' ? dinero(x.monto, 2) : ''}</td><td>${x.tipo === 'Pago' ? dinero(x.monto, 2) : ''}</td><td>${x.pedido_id || x.compra_id ? '' : html`<button class="enlace" data-a="borrar-mov" data-id="${x.id}" aria-label="Borrar">✕</button>`}</td></tr>`)}</tbody></table></div>`
+            <td>${x.tipo === 'Cobro' ? dinero(x.monto, 2) : ''}</td><td>${x.tipo === 'Pago' ? dinero(x.monto, 2) : ''}</td><td>${campo('movimientos', x.id, 'conciliado', x.conciliado, { tipo: 'checkbox' })}</td><td>${x.pedido_id || x.compra_id ? '' : html`<button class="enlace" data-a="borrar-mov" data-id="${x.id}" aria-label="Borrar">✕</button>`}</td></tr>`)}</tbody></table></div>`
           : html`<p class="vacio">Sin movimientos. El primero llega solo cuando un pedido se marque «Cobrado», o se captura con «+ Movimiento».</p>`}</section>
     </div>`;
   },
@@ -215,6 +233,20 @@ export const pagos = {
   acciones: {
     'filtro-mes': (el) => { S.ui.filtro.mes = el.value; },
     cobrar: (el) => guardar('pedidos', el.dataset.id, { estado: 'Cobrado' }),
+    async 'repetir-fijos'() {
+      const ant = mesesAtras(2)[0], fijos = S.movimientos.filter((x) => x.tipo === 'Pago' && mes(x.fecha) === ant && !x.pedido_id && !x.compra_id && ['Renta', 'Servicios', 'Nómina', 'Marketing', 'Otro'].includes(x.categoria));
+      if (!fijos.length) return aviso(`No hay pagos fijos en ${nombreMes(ant)}.`, true);
+      if (!confirm(`Se anotan ${fijos.length} pago(s) de ${nombreMes(ant)} con fecha de hoy: ${fijos.map((x) => x.concepto).join(', ')}. ¿Seguimos?`)) return;
+      for (const x of fijos) await api('POST', 'movimientos', { tipo: 'Pago', categoria: x.categoria, concepto: x.concepto, monto: x.monto, fecha: hoyISO(), metodo: x.metodo, notas: `Repetido de ${nombreMes(ant)}` });
+      await cargar(); aviso('Pagos anotados');
+    },
+    async 'pagar-nomina'() {
+      const ps = S.puestos.filter((p) => p.ocupadas && p.sueldo), total = ps.reduce((s, p) => s + p.ocupadas * p.sueldo, 0);
+      if (!total) return aviso('No hay nómina en Equipo.', true);
+      if (!confirm(`Se anota la nómina de ${nombreMes(mesHoy())}: ${dinero(total)} (${ps.map((p) => `${p.ocupadas} ${p.nombre}`).join(', ')}). ¿Seguimos?`)) return;
+      await api('POST', 'movimientos', { tipo: 'Pago', categoria: 'Nómina', concepto: `Nómina de ${nombreMes(mesHoy())}`, monto: total, fecha: hoyISO(), metodo: 'Transferencia', notas: ps.map((p) => `${p.ocupadas} × ${p.nombre} a ${dinero(p.sueldo)}`).join('; ') });
+      await cargar(); aviso('Nómina anotada');
+    },
     'confirmar-transferencia': (el) => guardar('pedidos', el.dataset.id, { confirmar_pago: 1 }),
     pagar: (el) => guardar('compras', el.dataset.id, { estado: 'Pagada' }),
     'borrar-mov': (el) => borrar('movimientos', el.dataset.id, '¿Borrar este movimiento?'),

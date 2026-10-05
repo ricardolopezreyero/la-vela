@@ -7,14 +7,19 @@ import { ajustes, modelo, proyecto, receta } from './saber.js';
 import { compras, contabilidad, pagos, ventas } from './empresa.js';
 import { rutas } from './logistica.js';
 import { datos, equipo, mercado } from './crecer.js';
+import { buscarTodo, usuarios, ve } from './control.js';
+import { fecha } from './nucleo.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
-const VISTAS = Object.fromEntries([hoy, datos, distribuidores, pedidos, ventas, mercado, produccion, compras, rutas, cartuchosVista, indicadores, pagos, contabilidad, equipo, proyecto, receta, modelo, ajustes].map((v) => [v.id, v]));
+const VISTAS = Object.fromEntries([hoy, datos, distribuidores, pedidos, ventas, mercado, produccion, compras, rutas, cartuchosVista, indicadores, pagos, contabilidad, equipo, proyecto, receta, modelo, usuarios, ajustes].map((v) => [v.id, v]));
+// Lo que esta persona puede ver: los administradores todo; los demás, sus pantallas palomeadas (y Ajustes solo para cerrar sesión)
+const permitida = (id) => id === 'ajustes' || (VISTAS[id].soloAdmin ? S.yo.rol === 'admin' : ve(id));
+const primera = () => Object.keys(VISTAS).find(permitida) || 'ajustes';
 const GRUPOS = ['', 'Comercial', 'Operación', 'Dinero', 'Empresa'];
 const LLAMA = '<svg viewBox="0 0 15 24" aria-hidden="true"><path fill="currentColor" d="M7.5 0C9 4 13 6.5 13 11a5.5 5.5 0 0 1-11 0C2 6.5 6 4 7.5 0Z"/><rect fill="currentColor" x="1" y="19" width="13" height="5"/></svg>';
 
-const ruta = () => { const [sec = 'hoy', ...resto] = location.hash.replace(/^#\/?/, '').split('/'); return [VISTAS[sec] ? sec : 'hoy', resto.join('/')]; };
+const ruta = () => { const [sec = 'hoy', ...resto] = location.hash.replace(/^#\/?/, '').split('/'); return [VISTAS[sec] && (!S.listo || permitida(sec)) ? sec : S.listo ? primera() : 'hoy', resto.join('/')]; };
 let pintada = '';
 
 // Lo que la persona tiene escrito y aún no se guarda: se respeta al repintar
@@ -40,12 +45,14 @@ function pintar() {
   if (!S.listo) return;
   const [sec, sub] = ruta(), v = VISTAS[sec], escrito = recordarEscrito();
   $('#lado').innerHTML = html`<a class="marca" href="#/hoy">${crudo(LLAMA)}La Vela</a>
-    <nav>${GRUPOS.map((g) => html`${g ? html`<p class="grupo">${g}</p>` : ''}${Object.values(VISTAS).filter((x) => x.grupo === g && x.id !== 'ajustes').map((x) => { const n = x.cuenta ? x.cuenta() : 0;
-      return html`<a href="#/${x.id}" aria-current="${x.id === sec ? 'page' : 'false'}">${x.titulo}${n ? html`<span class="cuenta">${n}</span>` : ''}</a>`; })}`)}</nav>
+    <nav>${GRUPOS.map((g) => { const xs = Object.values(VISTAS).filter((x) => x.grupo === g && x.id !== 'ajustes' && permitida(x.id)); return html`${g && xs.length ? html`<p class="grupo">${g}</p>` : ''}${xs.map((x) => { const n = x.cuenta ? x.cuenta() : 0;
+      return html`<a href="#/${x.id}" aria-current="${x.id === sec ? 'page' : 'false'}">${x.titulo}${n ? html`<span class="cuenta">${n}</span>` : ''}</a>`; })}`; })}</nav>
     <div class="abajo"><a href="#/ajustes" aria-current="${sec === 'ajustes' ? 'page' : 'false'}">Ajustes</a><a href="/" class="tenue">Ver el sitio</a><p>${S.yo.nombre || S.yo.correo}</p></div>`;
-  $('#tope').innerHTML = html`<button class="menu" data-a="menu" aria-label="Menú">☰</button><h1>${v.titulo}</h1><div class="acciones">${v.botones ? v.botones() : ''}</div>`;
-  const clave = v.fijo ? sec : '';
-  if (!clave || clave !== pintada) $('#vista').innerHTML = v.pintar(sub);
+  const resultados = S.ui.buscarTodo ? buscarTodo(S.ui.buscarTodo) : null;
+  $('#tope').innerHTML = html`<button class="menu" data-a="menu" aria-label="Menú">☰</button><h1>${v.titulo}</h1><div class="acciones"><input class="buscar" type="search" placeholder="Buscar en todo (/)" data-buscar-todo value="${S.ui.buscarTodo || ''}" aria-label="Buscar en todo el tablero">${v.botones ? v.botones() : ''}<span class="al-dia">al día ${fecha(ultimaISO).toLowerCase() === fecha(new Date().toISOString()).toLowerCase() ? 'a las ' + new Date(ultima).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : fecha(ultimaISO)} · <button type="button" data-a="refrescar">refrescar</button></span></div>`;
+  const clave = v.fijo && !resultados ? sec : '';
+  if (resultados) $('#vista').innerHTML = html`<section class="bloque"><h2>Resultados<span class="cuenta">${resultados.length}</span></h2>${resultados.length ? html`<ul class="resultados">${resultados.map((r) => html`<li><a href="${r.liga}" data-a="ir-resultado"><b>${r.titulo}</b></a><small>${r.tipo} · ${r.detalle}</small></li>`)}</ul>` : html`<p class="vacio">Nada con «${S.ui.buscarTodo}».</p>`}</section>`;
+  else if (!clave || clave !== pintada) $('#vista').innerHTML = v.pintar(sub);
   pintada = clave;
   $('#vista').className = 'v-' + sec;
   const p = v.panel && sub ? v.panel(sub) : null, panel = $('#panel');
@@ -59,6 +66,9 @@ alRepintar(pintar);
 
 const accionesBase = {
   ir: (el) => { location.hash = '#/' + el.dataset.ruta; },
+  'ir-resultado': () => { S.ui.buscarTodo = ''; },
+  refrescar: () => refrescar(true),
+  ordenar: (el) => { const o = S.ui.orden[el.dataset.rec] || '', c = el.dataset.orden; S.ui.orden[el.dataset.rec] = o === c ? '-' + c : o === '-' + c ? '' : c; },
   cerrar: () => { location.hash = '#/' + ruta()[0]; },
   vista: (el) => { S.ui.vista[el.dataset.rec] = el.dataset.v; },
   menu: () => document.body.classList.toggle('con-menu'),
@@ -85,12 +95,15 @@ document.addEventListener('click', (ev) => {
 });
 document.addEventListener('keydown', (ev) => {
   if (ev.key === 'Escape' && !$('#panel').hidden) accionesBase.cerrar();
+  if (ev.key === 'Escape' && S.ui.buscarTodo) { S.ui.buscarTodo = ''; pintar(); }
+  if (ev.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) { ev.preventDefault(); $('[data-buscar-todo]')?.focus(); }
   if (ev.key === 'Enter' && ev.target.matches('.tarjeta')) correr('ir', ev.target, ev);
 });
 
 // Guardar al cambiar: cada campo dice qué es con data-g = cosa:id:campo
 document.addEventListener('change', (ev) => {
   const el = ev.target;
+  if (el.dataset.pantalla) return VISTAS.usuarios.acciones.pantalla(el).then(() => pintar());
   if (el.dataset.g) {
     const [rec, id, nombre] = el.dataset.g.split(':');
     const valor = el.type === 'checkbox' ? (el.checked ? 1 : 0) : el.type === 'number' ? (el.value === '' ? null : Number(el.value)) : el.value;
@@ -102,6 +115,7 @@ document.addEventListener('change', (ev) => {
 document.addEventListener('input', (ev) => {
   const el = ev.target;
   if ('buscar' in el.dataset) { S.ui.buscar = el.value; pintar(); return; }
+  if ('buscarTodo' in el.dataset) { S.ui.buscarTodo = el.value; pintar(); return; }
   const f = el.closest('form[data-vivo]');
   if (f) { const v = VISTAS[ruta()[0]].vivo?.[f.dataset.vivo]; if (v) $('#vivo-' + f.dataset.vivo).innerHTML = v(Object.fromEntries(new FormData(f))); }
 });
@@ -140,13 +154,13 @@ document.addEventListener('drop', (ev) => {
 window.addEventListener('hashchange', () => { S.ui.editando = S.ui.editando && ruta()[0] === 'receta' ? S.ui.editando : 0; pintar(); window.scrollTo(0, 0); });
 
 // Se pone al día solo, sin pisar lo que alguien está escribiendo
-let ultima = Date.now();
-async function refrescar() {
-  if (document.hidden || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) return;
-  try { await cargar(); ultima = Date.now(); pintar(); } catch { /* se intenta en la próxima */ }
+let ultima = Date.now(), ultimaISO = new Date().toISOString();
+async function refrescar(aFuerza = false) {
+  if (!aFuerza && (document.hidden || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || ''))) return;
+  try { await cargar(); ultima = Date.now(); ultimaISO = new Date().toISOString(); pintar(); if (aFuerza) aviso('Al día'); } catch { /* se intenta en la próxima */ }
 }
 setInterval(refrescar, 90000);
 window.addEventListener('focus', () => { if (Date.now() - ultima > 30000) refrescar(); });
 
-cargar().then(pintar).catch((e) => { $('#vista').innerHTML = html`<p class="vacio">No se pudo cargar el tablero: ${e.message}</p>`; });
+cargar().then(() => { if (!permitida(ruta()[0])) location.hash = '#/' + primera(); pintar(); }).catch((e) => { $('#vista').innerHTML = html`<p class="vacio">No se pudo cargar el tablero: ${e.message}</p>`; });
 void _RLR; void _k; void _rev;

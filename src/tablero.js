@@ -1,6 +1,7 @@
 // RLR · La Vela — API del tablero de operación (docs/11) — Ricardo López Reyero
 // Todo pasa por aquí con sesión. Un solo GET trae el tablero completo; cada cambio es un PATCH chico.
-import { ahora, azar, hoyMX, json, mismoOrigen, parrafo, texto } from './comun.js';
+import { CASA, ahora, azar, hoyMX, json, mismoOrigen, parrafo, texto } from './comun.js';
+import { enviar, plantilla } from './correo.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
@@ -16,8 +17,17 @@ const CANALES = ['tienditas', 'corporativo', 'parroquia', 'restaurante', 'recaud
 const CATEGORIAS = ['Ventas', 'Depósitos', 'Insumos', 'Nómina', 'Renta', 'Transporte', 'Servicios', 'Marketing', 'Impuestos', 'Equipo', 'Inversión', 'Otro'];
 const AJUSTES = ['fase_actual', 'deposito', 'dias_entrega', 'dias_cobro', 'meta_semanal', 'receta_activa', 'bajas_cartuchos', 'capacidad_dia', 'pedido_minimo_cajas',
   'rejas_tarima', 'reja_kg', 'tarima_kg', 'iva', 'transf_pieza', 'mercado_piezas_anio', 'meta_participacion', 'piezas_tienda_semana', 'tiendas_distribuidor', 'piezas_centro_semana', 'gasto_fijo_mes', 'piezas_semana_hoy', 'ebitda_pieza',
-  'margen_tienda', 'banco_nombre', 'banco_clabe', 'banco_beneficiario', 'whatsapp_negocio'];
-const BITACORA = ['distribuidores', 'pedidos', 'tareas', 'compras', 'rutas', 'puestos', 'mercados', 'proveedores'];
+  'margen_tienda', 'banco_nombre', 'banco_clabe', 'banco_beneficiario', 'whatsapp_negocio', 'meta_retorno', 'semanas_cobertura', 'plantilla_contacto', 'plantilla_hojas', 'plantilla_estado', 'dias_sin_pedir'];
+const BITACORA = ['distribuidores', 'pedidos', 'tareas', 'compras', 'rutas', 'puestos', 'mercados', 'proveedores', 'inventario'];
+// RLR · las pantallas del tablero y qué pantalla da permiso de tocar cada cosa. Un administrador ve y toca todo.
+export const PANTALLAS = ['hoy', 'datos', 'distribuidores', 'pedidos', 'ventas', 'mercado', 'produccion', 'compras', 'rutas', 'cartuchos', 'indicadores', 'pagos', 'contabilidad', 'equipo', 'proyecto', 'receta', 'modelo'];
+const PERMISO = {
+  distribuidores: ['distribuidores'], pedidos: ['pedidos', 'rutas', 'pagos'], tareas: ['proyecto'], lotes: ['produccion'], inventario: ['produccion', 'compras'], recetas: ['receta'], pruebas: ['receta'], sesiones: ['receta'],
+  proveedores: ['compras'], compras: ['compras', 'pagos'], movimientos: ['pagos', 'contabilidad'], rutas: ['rutas'], vehiculos: ['rutas'], centros: [], puestos: ['equipo'], candidatos: ['equipo'], mercados: ['mercado'],
+  productos: [], usuarios: [], promos: [], nota: ['distribuidores', 'pedidos', 'proyecto', 'compras', 'rutas', 'equipo', 'mercado', 'produccion'],
+};
+export const pantallasDe = (u) => (u.rol === 'admin' ? PANTALLAS : String(u.pantallas || '').split(/\s+/).filter((p) => PANTALLAS.includes(p)));
+const puede = (yo, rec) => yo.rol === 'admin' || (PERMISO[rec] || []).some((p) => pantallasDe(yo).includes(p));
 
 /* Qué se puede tocar de cada cosa. Tipos: s texto corto · p párrafo · n número o vacío · m número (0 si vacío)
    b sí/no · f fecha AAAA-MM-DD · o una de varias opciones · j objeto */
@@ -40,7 +50,7 @@ const R = {
   },
   lotes: {
     tabla: 'lotes', borrar: true, pide: ['codigo'],
-    campos: { codigo: ['s', 40], receta_id: ['n'], piezas: ['m'], fecha: ['f'], gph: ['n'], horas: ['n'], resultado: ['o', ['En prueba', 'Aprobado', 'Rechazado']], notas: ['p', 2000] },
+    campos: { codigo: ['s', 40], receta_id: ['n'], piezas: ['m'], rechazadas: ['m'], fecha: ['f'], gph: ['n'], horas: ['n'], resultado: ['o', ['En prueba', 'Aprobado', 'Rechazado']], notas: ['p', 2000] },
   },
   recetas: { tabla: 'recetas', sello: 'actualizada', firma: 'por', borrar: true, pide: ['nombre'], campos: { nombre: ['s', 160], datos: ['j'] } },
   pruebas: {
@@ -63,7 +73,7 @@ const R = {
   },
   usuarios: {
     tabla: 'usuarios', pk: 'correo', soloAdmin: true, borrar: true,
-    campos: { nombre: ['s', 120], rol: ['o', ['admin', 'equipo']] },
+    campos: { nombre: ['s', 120], rol: ['o', ['admin', 'equipo']], pantallas: ['s', 400] },
     alCrear: (v) => ({ creado: ahora(), rol: 'equipo', ...v }),
   },
   promos: {
@@ -84,7 +94,7 @@ const R = {
   },
   movimientos: {
     tabla: 'movimientos', firma: 'por', borrar: true, pide: ['tipo', 'fecha'],
-    campos: { tipo: ['o', ['Cobro', 'Pago']], categoria: ['o', CATEGORIAS], concepto: ['s', 200], monto: ['m'], fecha: ['f'], metodo: ['o', ['Transferencia', 'Efectivo', 'Tarjeta', 'Cheque']], referencia: ['s', 80], distribuidor_id: ['n'], proveedor_id: ['n'], notas: ['p', 1000] },
+    campos: { tipo: ['o', ['Cobro', 'Pago']], categoria: ['o', CATEGORIAS], concepto: ['s', 200], monto: ['m'], fecha: ['f'], metodo: ['o', ['Transferencia', 'Efectivo', 'Tarjeta', 'Cheque']], referencia: ['s', 80], distribuidor_id: ['n'], proveedor_id: ['n'], notas: ['p', 1000], conciliado: ['b'] },
     alCrear: (v) => ({ creado: ahora(), ...v }),
   },
   centros: { tabla: 'centros', borrar: true, pide: ['nombre'], campos: { nombre: ['s', 120], ciudad: ['s', 160], tipo: ['o', ['Planta', 'Maquila', 'Centro']], estado: ['o', ['Planeado', 'Activo', 'Cerrado']], piezas_semana: ['m'], abre: ['s', 20], notas: ['p', 2000], orden: ['m'] } },
@@ -142,7 +152,7 @@ async function ajustes(env) {
 async function todo(env, yo) {
   const c = (s) => env.DB.prepare(s);
   const [us, di, bi, ta, pr, pe, inv, lo, re, pb, se, aj, pv, co, mo, ce, ve, ru, pu, ca, me, pm] = await env.DB.batch([
-    c('SELECT correo, nombre, rol FROM usuarios ORDER BY creado'),
+    c('SELECT correo, nombre, rol, pantallas FROM usuarios ORDER BY creado'),
     c('SELECT * FROM solicitudes ORDER BY id DESC'),
     c('SELECT * FROM bitacora ORDER BY id DESC LIMIT 1200'),
     c('SELECT * FROM tareas ORDER BY id'),
@@ -166,13 +176,15 @@ async function todo(env, yo) {
     c('SELECT * FROM promos ORDER BY orden, clave'),
   ]);
   const j = (t, d) => { try { return JSON.parse(t); } catch { return d; } };
+  // Quien no es administrador solo recibe lo que sus pantallas usan; el resto llega vacío
+  const ps = pantallasDe(yo), mira = (...xs) => yo.rol === 'admin' || xs.some((x) => ps.includes(x)), corta = (ok, filas) => (ok ? filas : []);
   return json({
-    yo, usuarios: us.results, distribuidores: di.results, bitacora: bi.results, tareas: ta.results, productos: pr.results,
+    yo: { ...yo, pantallas: ps }, usuarios: yo.rol === 'admin' ? us.results : us.results.map((u) => ({ correo: u.correo, nombre: u.nombre, rol: u.rol })), distribuidores: di.results, bitacora: bi.results, tareas: ta.results, productos: pr.results,
     pedidos: pe.results.map((p) => ({ ...p, lineas: j(p.lineas, []), promos: j(p.promos, []) })), inventario: inv.results, lotes: lo.results, promos: pm.results,
-    recetas: re.results.map((r) => ({ ...r, datos: j(r.datos, {}) })), pruebas: pb.results, sesiones: se.results,
-    ajustes: Object.fromEntries(aj.results.map((r) => [r.clave, r.valor])),
-    proveedores: pv.results, compras: co.results.map((x) => ({ ...x, lineas: j(x.lineas, []) })), movimientos: mo.results,
-    centros: ce.results, vehiculos: ve.results, rutas: ru.results, puestos: pu.results, candidatos: ca.results, mercados: me.results,
+    recetas: corta(mira('receta', 'produccion', 'contabilidad', 'datos'), re.results.map((r) => ({ ...r, datos: j(r.datos, {}) }))), pruebas: corta(mira('receta', 'hoy'), pb.results), sesiones: corta(mira('receta', 'hoy'), se.results),
+    ajustes: Object.fromEntries(aj.results.filter((r) => yo.rol === 'admin' || !r.clave.startsWith('banco_')).map((r) => [r.clave, r.valor])),
+    proveedores: corta(mira('compras', 'pagos', 'hoy', 'datos'), pv.results), compras: corta(mira('compras', 'pagos', 'contabilidad', 'hoy', 'datos'), co.results.map((x) => ({ ...x, lineas: j(x.lineas, []) }))), movimientos: corta(mira('pagos', 'contabilidad', 'datos'), mo.results),
+    centros: ce.results, vehiculos: ve.results, rutas: ru.results, puestos: corta(mira('equipo', 'mercado', 'datos', 'contabilidad', 'hoy'), pu.results), candidatos: corta(mira('equipo'), ca.results), mercados: me.results,
     estados: { distribuidores: ESTADOS_DIST, pedidos: ESTADOS_PEDIDO, tareas: ESTADOS_TAREA, compras: ESTADOS_COMPRA, rutas: ESTADOS_RUTA, puestos: ESTADOS_PUESTO, candidatos: ESTADOS_CANDIDATO, mercados: ESTADOS_MERCADO, canales: CANALES, categorias: CATEGORIAS },
   });
 }
@@ -182,6 +194,7 @@ async function crear(env, yo, rec, cuerpo) {
   const def = R[rec], pk = def.pk || 'id';
   let v = limpiar(def.campos, cuerpo);
   if (def.alCrear) v = def.alCrear(v);
+  if (rec === 'usuarios') v.pantallas = String(v.pantallas || '').split(/\s+/).filter((x) => PANTALLAS.includes(x)).join(' ');
   for (const c of def.pide || []) if (v[c] === '' || v[c] == null) throw new Mal(`Falta «${c}».`);
   if (pk !== 'id') {
     const clave = pk === 'correo' ? texto(cuerpo.correo, 160).toLowerCase() : texto(cuerpo.clave, 40).toLowerCase().replace(/[^a-z0-9_]+/g, '_');
@@ -206,6 +219,7 @@ async function cambiar(env, yo, rec, id, cuerpo) {
   if (!Object.keys(v).length) throw new Mal('Nada que guardar.');
   for (const c of def.pide || []) if (c in v && (v[c] === '' || v[c] == null)) throw new Mal(`«${c}» no puede quedar vacío.`);
   if (rec === 'usuarios' && id === yo.correo && v.rol && v.rol !== 'admin') throw new Mal('No puedes quitarte a ti mismo el acceso de administrador.');
+  if (rec === 'usuarios' && 'pantallas' in v) v.pantallas = v.pantallas.split(/\s+/).filter((x) => PANTALLAS.includes(x)).join(' ');
   const extra = [];
   if (rec === 'distribuidores' && 'correo' in v) {
     v.correo = v.correo.toLowerCase();
@@ -305,10 +319,10 @@ export function pagarPedido(env, p, metodo, por, referencia = '') {
   return lote;
 }
 
-async function cambiarPedido(env, yo, id, cuerpo) {
+export async function cambiarPedido(env, yo, id, cuerpo, ctx) {
   const p = await uno(env, 'pedidos', 'id', id);
   if (!p) throw new Mal('Ya no existe.', 404);
-  const v = {}, lote = [];
+  const v = {}, lote = [], avisos = [];
   if ('notas' in cuerpo) v.notas = parrafo(cuerpo.notas, 2000);
   if ('fecha_prometida' in cuerpo) v.fecha_prometida = /^\d{4}-\d{2}-\d{2}$/.test(cuerpo.fecha_prometida || '') ? cuerpo.fecha_prometida : '';
   if ('lote_id' in cuerpo) v.lote_id = Number(cuerpo.lote_id) || null;
@@ -321,7 +335,9 @@ async function cambiarPedido(env, yo, id, cuerpo) {
   }
   if ('parada' in cuerpo) v.parada = Math.max(0, Math.floor(Number(cuerpo.parada) || 0));
   if ('lineas' in cuerpo || 'vacios' in cuerpo || 'promos' in cuerpo) {
-    if (p.descontado) throw new Mal('Ya se fabricó: las piezas no se pueden cambiar.');
+    // Los vacíos que de verdad entregó se pueden corregir hasta que se cobre; las piezas se congelan al fabricar o al pagar
+    const soloVacios = !('lineas' in cuerpo) && !('promos' in cuerpo);
+    if (p.descontado && !soloVacios) throw new Mal('Ya se fabricó: las piezas no se pueden cambiar.');
     if (p.cobro === 'Cobrado') throw new Mal('Ya está pagado: las piezas no se cambian. Haz otro pedido.');
     const c = await calcularPedido(env, 'lineas' in cuerpo ? cuerpo.lineas : JSON.parse(p.lineas), 'vacios' in cuerpo ? cuerpo.vacios : p.vacios, 'promos' in cuerpo ? cuerpo.promos : JSON.parse(p.promos || '[]'));
     if (!c.piezas) throw new Mal('El pedido no tiene piezas.');
@@ -332,6 +348,7 @@ async function cambiarPedido(env, yo, id, cuerpo) {
     if (a < 0) throw new Mal('Estado no permitido.');
     v.estado = cuerpo.estado;
     lote.push(nota(env, 'pedidos', id, `${p.estado} → ${cuerpo.estado}`, yo.correo));
+    if (['Confirmado', 'Listo', 'En ruta', 'Entregado'].includes(cuerpo.estado)) avisos.push(cuerpo.estado);
     const piezas = v.piezas ?? p.piezas, conVaso = v.piezas_vaso ?? p.piezas_vaso, cajas = v.cajas ?? p.cajas, vacios = v.vacios ?? p.vacios;
     // Al fabricarse (pasa a Curando o más allá) baja el material del inventario, una sola vez
     if (a >= ESTADOS_PEDIDO.indexOf('Curando') && !p.descontado) {
@@ -362,7 +379,19 @@ async function cambiarPedido(env, yo, id, cuerpo) {
   v.actualizado = ahora();
   const cols = Object.keys(v);
   await env.DB.batch([env.DB.prepare(`UPDATE pedidos SET ${cols.map((c) => `${c} = ?`).join(', ')} WHERE id = ?`).bind(...cols.map((c) => v[c]), id), ...lote]);
+  // El distribuidor con correo se entera solo de los pasos que le importan
+  if (avisos.length && ctx) ctx.waitUntil(avisarDistribuidor(env, p.distribuidor_id, id, avisos[avisos.length - 1], v.fecha_prometida ?? p.fecha_prometida));
   return json({ ok: true, recargar: true });
+}
+
+const TEXTO_ESTADO = { Confirmado: 'quedó confirmado y entra a producción', Listo: 'ya está listo y empacado; sale en la próxima ruta', 'En ruta': 'va en camino', Entregado: 'quedó entregado. Gracias' };
+async function avisarDistribuidor(env, distId, pedidoId, estado, fecha) {
+  const d = await env.DB.prepare('SELECT correo, nombre, empresa FROM solicitudes WHERE id = ?').bind(distId).first();
+  if (!d || !d.correo) return;
+  const liga = `https://${CASA}/distribuidor/?pedido=${pedidoId}`;
+  return enviar(env, { para: d.correo, asunto: `Tu pedido #${pedidoId} ${estado === 'En ruta' ? 'va en camino' : estado.toLowerCase()} · La Vela`,
+    html: plantilla({ titulo: `Pedido #${pedidoId}: ${estado}`, lineas: [`Hola ${(d.nombre || '').split(' ')[0] || d.empresa}: tu pedido #${pedidoId} ${TEXTO_ESTADO[estado] || estado.toLowerCase()}.${fecha && estado !== 'Entregado' ? ` Entrega: ${fecha}.` : ''}`], boton: 'Ver mi pedido', liga, pie: 'Este correo sale solo cuando tu pedido cambia de paso.' }),
+    texto: `Tu pedido #${pedidoId} ${TEXTO_ESTADO[estado] || estado}. ${liga}` });
 }
 
 async function borrarPedido(env, id) {
@@ -443,7 +472,9 @@ export async function tablero(req, env, ctx, yo, ruta) {
     if (m !== 'DELETE') { try { cuerpo = await req.json(); } catch { throw new Mal('No se pudo leer.'); } }
     if (!cuerpo || typeof cuerpo !== 'object') throw new Mal('No se pudo leer.');
 
+    if (rec !== 'ajustes' && !puede(yo, rec === 'nota' ? 'nota' : rec)) throw new Mal('Tu cuenta no tiene esa pantalla.', 403);
     if (rec === 'ajustes' && m === 'PATCH') {
+      if (yo.rol !== 'admin' && !['capacidad_dia', 'bajas_cartuchos', 'receta_activa'].includes(idCrudo)) throw new Mal('Solo un administrador cambia los ajustes.', 403);
       if (!AJUSTES.includes(idCrudo)) throw new Mal('Ajuste desconocido.');
       await env.DB.prepare('INSERT INTO ajustes (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor').bind(idCrudo, texto(String(cuerpo.valor ?? ''), 200)).run();
       return json({ ok: true });
@@ -456,7 +487,7 @@ export async function tablero(req, env, ctx, yo, ruta) {
     }
     if (rec === 'pedidos') {
       if (m === 'POST') return await crearPedido(env, yo, cuerpo);
-      if (m === 'PATCH') return await cambiarPedido(env, yo, Number(idCrudo), cuerpo);
+      if (m === 'PATCH') return await cambiarPedido(env, yo, Number(idCrudo), cuerpo, ctx);
       if (m === 'DELETE') return await borrarPedido(env, Number(idCrudo));
     }
     if (rec === 'compras' && m === 'POST' && !idCrudo) return await crearCompra(env, yo, cuerpo);
@@ -477,6 +508,13 @@ export async function tablero(req, env, ctx, yo, ruta) {
       for (const [pid, n] of ps) lote.push(env.DB.prepare('UPDATE pedidos SET ruta_id = ?, parada = ?, actualizado = ? WHERE id = ? AND entregado_fecha IS NULL').bind(r.id, n, ahora(), pid));
       await env.DB.batch(lote);
       return json({ ok: true, recargar: true });
+    }
+    if (rec === 'rutas' && accion === 'liga' && m === 'POST') {
+      const r = await uno(env, 'rutas', 'id', Number(idCrudo));
+      if (!r) throw new Mal('Ya no existe.', 404);
+      const liga = cuerpo.nueva || !r.liga ? azar(20) : r.liga;
+      if (liga !== r.liga) await env.DB.batch([env.DB.prepare('UPDATE rutas SET liga = ? WHERE id = ?').bind(liga, r.id), nota(env, 'rutas', r.id, r.liga ? 'Liga del repartidor renovada' : 'Liga del repartidor creada', yo.correo)]);
+      return json({ ok: true, liga, recargar: true });
     }
     if (rec === 'distribuidores' && accion === 'liga' && m === 'POST') {
       const d = await uno(env, 'solicitudes', 'id', Number(idCrudo));

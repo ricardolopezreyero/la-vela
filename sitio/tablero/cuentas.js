@@ -117,11 +117,29 @@ export function temporadas() {
 }
 
 export const saludo = (d) => `Hola ${(d.nombre || '').split(' ')[0] || ''}, te escribo de La Vela.`.replace('Hola ,', 'Hola,');
+// Las plantillas se editan en Ajustes; {zonas} {pedido} {estado} {detalle} se rellenan aquí
+const rellenar = (clave, defecto, datos) => (S.ajustes[clave] || defecto).replace(/\{(\w+)\}/g, (m, k) => (k in datos ? datos[k] : m));
 export const mensajes = (d) => [
-  ['Primer contacto', `${saludo(d)} Recibimos tu solicitud para distribuir${d.zonas ? ' en ' + d.zonas : ''}. ¿Te puedo llamar hoy para platicarte cómo funciona y enseñarte los números?`],
-  ['Mandar las hojas', `${saludo(d)} Aquí puedes ver cómo funciona y descargar las hojas para ti, para la tienda y para el cliente: https://vela.capitaltorreon.com/distribuir#descargas`],
+  ['Primer contacto', `${saludo(d)} ${rellenar('plantilla_contacto', 'Recibimos tu solicitud para distribuir{zonas}. ¿Te puedo llamar hoy para platicarte cómo funciona y enseñarte los números?', { zonas: d.zonas ? ' en ' + d.zonas : '' })}`],
+  ['Mandar las hojas', `${saludo(d)} ${rellenar('plantilla_hojas', 'Aquí puedes ver cómo funciona y descargar las hojas para ti, para la tienda y para el cliente: https://vela.capitaltorreon.com/distribuir#descargas', {})}`],
   ...(d.liga ? [['Su liga de pedidos', `${saludo(d)} Esta es tu liga para hacer pedidos, ver tu saldo y repetir el último: ${location.origin}/pedir?d=${d.liga}`]] : []),
+  ...(d.correo ? [['Su panel', `${saludo(d)} Ya tienes tu panel: entra con tu cuenta de Google (${d.correo}) en ${location.origin}/distribuidor/ para pedir en un clic, ver cómo va cada pedido y pagar.`]] : []),
 ];
+const TEXTO_ESTADO = { Confirmado: 'ya está confirmado y entra a producción', 'En producción': 'ya se está fabricando', Listo: 'ya está listo y sale en la próxima ruta', 'En ruta': 'va en camino', Entregado: 'quedó entregado, gracias' };
+export const mensajeEstado = (p, d) => `${saludo(d || {})} ${rellenar('plantilla_estado', 'Tu pedido #{pedido} {estado}. {detalle}', { pedido: p.id, estado: TEXTO_ESTADO[p.estado] || 'está en «' + p.estado.toLowerCase() + '»', detalle: p.fecha_prometida && p.estado !== 'Entregado' ? `Entrega: ${fecha(p.fecha_prometida)}.` : '' })}`.trim();
+export const mensajeCobro = (p, d) => `${saludo(d || {})} Te recuerdo el pedido #${p.id} por ${dinero(p.total, 2)}, entregado el ${fecha(p.entregado_fecha)}. ¿Me confirmas el pago?`;
+
+// Último pedido y días sin pedir de un distribuidor
+export function actividad(d) {
+  const ps = S.pedidos.filter((p) => p.distribuidor_id === d.id), ultimo = ps[0];
+  return { pedidos: ps, ultimo, piezas: ps.reduce((s, p) => s + p.piezas, 0), total: ps.reduce((s, p) => s + p.total, 0), dias: ultimo ? Math.max(0, -diasA(ultimo.creado.slice(0, 10))) : null };
+}
+// Semáforo de crédito: vacío = sin crédito definido o al día; medio = más de la mitad; lleno = excedido
+export function semaforo(d) {
+  if (!d.credito) return '';
+  const c = credito(d);
+  return c.excede ? 'lleno' : c.saldo > d.credito / 2 ? 'medio' : '';
+}
 
 // RLR · lo que pide atención hoy, de lo más urgente a lo menos
 export function pendientes() {
@@ -160,7 +178,26 @@ export function pendientes() {
   const listos = S.pedidos.filter((x) => x.estado === 'Listo' && !x.ruta_id);
   if (listos.length) p.push({ urg: 1, titulo: `${listos.length} pedido(s) listos sin ruta`, detalle: `${listos.reduce((s, x) => s + x.rejas, 0)} rejas esperando repartidor`, liga: '#/rutas' });
   for (const f of plantilla(piezasSemana()).faltan) p.push({ urg: 1, titulo: `Toca contratar: ${f.p.nombre.toLowerCase()}`, detalle: `Hacen falta ${f.faltan} a ${num(piezasSemana())} piezas por semana`, liga: `#/equipo/${f.p.id}` });
+  // Distribuidores activos que dejaron de pedir, anticipados que ya hay que producir, capacidad corta y retorno bajo
+  const sinPedir = aj('dias_sin_pedir', 14);
+  for (const d of S.distribuidores) {
+    if (!['Piloto', 'Activo'].includes(d.estado)) continue;
+    const a = actividad(d);
+    if (a.ultimo && a.dias >= sinPedir) p.push({ urg: 1, titulo: `${d.empresa} lleva ${a.dias} días sin pedir`, detalle: `Su último pedido fue el ${fecha(a.ultimo.creado)} · ${num(a.ultimo.piezas)} piezas`, liga: `#/distribuidores/${d.id}`, wa: wa(d.whatsapp, `${saludo(d)} ¿Cómo va la venta? ¿Te mando el pedido de la semana?`) });
+  }
+  for (const x of S.pedidos) if (x.anticipado && x.estado === 'Confirmado' && x.fecha_prometida && diasA(x.fecha_prometida) <= 7) p.push({ urg: 2, titulo: `Producir ya el anticipado #${x.id} · ${dist(x.distribuidor_id)?.empresa || ''}`, detalle: `${num(x.piezas)} piezas para el ${fecha(x.fecha_prometida)}`, liga: `#/pedidos/${x.id}` });
+  const cap = aj('capacidad_dia'), semana = S.pedidos.filter((x) => ['Confirmado', 'En producción'].includes(x.estado) && x.fecha_prometida && diasA(x.fecha_prometida) <= 7).reduce((s, x) => s + x.piezas, 0);
+  if (cap && semana > cap * 6) p.push({ urg: 2, titulo: 'La semana pide más de lo que la planta puede', detalle: `${num(semana)} piezas para los próximos 7 días; a ${num(cap)} por día son ${num(cap * 6)}`, liga: '#/produccion' });
+  const meta = aj('meta_retorno', 80), c = cartuchos();
+  for (const [id, v] of Object.entries(c.porDist)) if (v.enviados >= 100 && (v.regresados / v.enviados) * 100 < meta) p.push({ urg: 0, titulo: `${dist(Number(id))?.empresa || ''}: regresa ${Math.round((v.regresados / v.enviados) * 100)}% de los cartuchos`, detalle: `La meta es ${meta}%. Revisar con sus tiendas el cambio con depósito`, liga: `#/cartuchos` });
   return p.sort((a, b) => b.urg - a.urg);
+}
+
+// Semanas hacia atrás: piezas pedidas (confirmadas o más) en cada una
+export function semanas(n) {
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) { const hasta = hoyISO(-7 * i), desde = hoyISO(-7 * (i + 1)); out.push({ desde, hasta, piezas: S.pedidos.filter((p) => p.creado.slice(0, 10) > desde && p.creado.slice(0, 10) <= hasta && p.estado !== 'Recibido').reduce((s, p) => s + p.piezas, 0) }); }
+  return out;
 }
 
 // Lunes de esta semana

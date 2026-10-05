@@ -2,10 +2,11 @@
    Estado en memoria, llamadas al servidor y las piezas que usan todas las pantallas. */
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
-export const S = { listo: false, ui: { vista: {}, filtro: {}, buscar: '' } };
+export const S = { listo: false, ui: { vista: {}, filtro: {}, orden: {}, buscar: '' } };
 const PK = { inventario: 'clave', productos: 'clave', usuarios: 'correo', promos: 'clave' };
+export const pkDe = (rec) => PK[rec] || 'id';
 try { Object.assign(S.ui, JSON.parse(localStorage.getItem('vela.ui') || '{}')); } catch { /* sin memoria local */ }
-export function recordar() { try { localStorage.setItem('vela.ui', JSON.stringify({ vista: S.ui.vista, filtro: S.ui.filtro })); } catch { /* da igual */ } }
+export function recordar() { try { localStorage.setItem('vela.ui', JSON.stringify({ vista: S.ui.vista, filtro: S.ui.filtro, orden: S.ui.orden || {} })); } catch { /* da igual */ } }
 
 export const $ = (s, r = document) => r.querySelector(s);
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -133,6 +134,27 @@ export function bitacoraDe(cosa, id) {
     <form data-f="nota" data-cosa="${cosa}" data-id="${id}"><input name="texto" placeholder="Escribe una nota y presiona Enter" autocomplete="off"></form>
     <ul>${notas.map((n) => html`<li><p>${n.texto}</p><small>${n.por.split('@')[0]} · ${hace(n.fecha)}</small></li>`)}${notas.length ? '' : html`<li class="vacio">Sin movimientos todavía.</li>`}</ul></div>`;
 }
+
+// Imprimir sin abrir otra página: lo que se mete en #impresion es lo único que sale en papel
+export function imprimir(contenido) {
+  const caja = $('#impresion');
+  caja.innerHTML = String(contenido);
+  document.body.classList.add('imprimiendo');
+  const fin = () => { document.body.classList.remove('imprimiendo'); caja.innerHTML = ''; window.removeEventListener('afterprint', fin); };
+  window.addEventListener('afterprint', fin);
+  setTimeout(() => window.print(), 50);
+}
+// Un CSV listo para descargar (liga con data:)
+export const csv = (filas) => 'data:text/csv;charset=utf-8,\ufeff' + encodeURIComponent(filas.map((f) => f.map((x) => `"${String(x ?? '').replace(/"/g, '""')}"`).join(',')).join('\n'));
+export const descargar = (nombre, filas) => { const a = document.createElement('a'); a.href = csv(filas); a.download = `${nombre}_${hoyISO()}.csv`; document.body.append(a); a.click(); a.remove(); };
+// Ordenar una lista por una columna (S.ui.orden[rec] = 'campo' o '-campo')
+export function ordenar(rec, items, defecto = '') {
+  const o = S.ui.orden?.[rec] || defecto;
+  if (!o) return items;
+  const desc = o.startsWith('-'), k = o.replace(/^-/, '');
+  return [...items].sort((a, b) => { const x = a[k] ?? '', y = b[k] ?? ''; const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'es'); return desc ? -r : r; });
+}
+export const encabezado = (rec, campo, titulo) => { const o = S.ui.orden?.[rec] || ''; return html`<th data-a="ordenar" data-rec="${rec}" data-orden="${campo}">${titulo}${o === campo ? ' ↑' : o === '-' + campo ? ' ↓' : ''}</th>`; };
 
 export const wa = (tel, texto) => {
   let d = String(tel || '').replace(/\D/g, '');

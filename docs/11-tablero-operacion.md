@@ -49,6 +49,14 @@ Entra con su cuenta de Google por el Login de CapitalTorreon; su correo se liga 
 
 La liga privada `/pedir?d=…` sigue sirviendo para quien no tenga Google.
 
+### Quién ve qué (`Usuarios`)
+
+Solo los administradores entran a Usuarios y a Ajustes. La pantalla es una matriz: usuarios hacia abajo, pantallas a la derecha, una palomita por celda que se guarda al instante. Un usuario «equipo» ve solo sus pantallas palomeadas; el servidor recorta lo que manda (`todo()` no entrega movimientos, compras o puestos a quien no tiene esas pantallas) y rechaza escrituras fuera de ellas (`PERMISO` en `src/tablero.js`). Administradores en producción: los correos de Ricardo (superleads, gmail e ingenieriadigital) y el de Conecta Velas.
+
+### Las siguientes 100
+
+La lista de lo que el tablero iba a necesitar vive en Proyecto, sección «Tablero» (100 tarjetas, 59 hechas en la primera pasada) y en `docs/16-las-siguientes-100.md`. Entre lo hecho: buscador de todo (tecla «/»), refrescar y hora, copiar pendientes, posponer, alertas de días sin pedir, anticipados por producir, capacidad corta y retorno bajo; filtros, orden y CSV en Distribuidores y Pedidos; remisión y etiquetas de reja imprimibles; plan de la semana, merma y ajuste de inventario con motivo; sugerencia de compra por semanas de cobertura, historial de precios, WhatsApp al proveedor; hoja de ruta imprimible y **liga del repartidor** (`/ruta?r=…`); conciliación, repetir fijos, pagar nómina y flujo de cuatro semanas; contratar en un clic y organigrama; correo al distribuidor cuando su pedido cambia de paso; mensajes de WhatsApp editables en Ajustes.
+
 Lo que se automatizó:
 
 - Una solicitud nueva o un pedido hecho desde la liga manda un correo a los administradores.
