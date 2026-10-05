@@ -9,6 +9,7 @@ import { CASA, escapar, json, mismoOrigen, texto } from './comun.js';
 import { entrarConPase, paginaAcceso, pedirEnlace, privado, quienEntra, salir, usarEnlace } from './acceso.js';
 import { avisar, pedir } from './pedir.js';
 import { tablero } from './tablero.js';
+import { apiDistribuidor } from './distribuidor.js';
 
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
@@ -90,7 +91,11 @@ export default {
         if (!yo) return json({ error: 'Tu sesión terminó. Vuelve a entrar.' }, 401);
         return await tablero(req, env, ctx, yo, p.slice(7));
       }
+      if (p.startsWith('/api/d/')) return await apiDistribuidor(req, env, ctx, p.slice(7));
       if (p.startsWith('/api/')) return json({ error: 'No existe.' }, 404);
+      // El panel del distribuidor: la página se sirve siempre; los datos piden su sesión (/api/d/todo)
+      if (p === '/distribuidor') return Response.redirect(`${url.origin}/distribuidor/`, 301);
+      if (p.startsWith('/distribuidor/')) return privado(await env.ASSETS.fetch(req));
       if (p === '/tablero' || p.startsWith('/tablero/')) {
         if (!(await quienEntra(req, env))) return Response.redirect(`${url.origin}/entrar`, 302);
         return privado(await env.ASSETS.fetch(req));

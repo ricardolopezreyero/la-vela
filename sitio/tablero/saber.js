@@ -197,7 +197,17 @@ export const ajustes = {
         <p class="tenue">Los precios al distribuidor llevan IVA y salen del modelo (escenario Rentable). Cambiarlos aquí cambia los pedidos nuevos, no los que ya existen. Reja de 24 = dos cajas de 12 (6 × 4 vasos de 7.5 cm en una reja de 50 × 33 × 25 cm).</p></section>
       <section class="bloque"><h2>Empaque y transporte</h2><div class="forma">${AJ_EMPAQUE.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}</div>
         <p class="tenue">Tarima de 1.0 × 1.2 m: 8 rejas por cama y 4 camas son 32 rejas, 768 piezas y 1.15 m de alto. Se mueve con patín y cabe en una camioneta de 1.5 toneladas junto con otra. Los vehículos se editan en Rutas.</p></section>
-      <section class="bloque"><h2>Dinero</h2><div class="forma">${AJ_DINERO.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}</div></section>
+      <section class="bloque"><h2>Dinero</h2><div class="forma">${AJ_DINERO.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}
+        <label class="campo"><span>Margen de la tienda (%)</span><input type="number" min="0" step="1" data-ajuste="margen_tienda" value="${S.ajustes.margen_tienda ?? ''}"></label></div></section>
+      <section class="bloque doble"><h2>Cómo nos pagan los distribuidores</h2><div class="forma">
+        <label class="campo"><span>CLABE para transferencias</span><input data-ajuste="banco_clabe" value="${S.ajustes.banco_clabe ?? ''}" maxlength="18" inputmode="numeric" placeholder="18 dígitos"></label>
+        <label class="campo"><span>Banco</span><input data-ajuste="banco_nombre" value="${S.ajustes.banco_nombre ?? ''}" maxlength="80"></label>
+        <label class="campo"><span>Beneficiario</span><input data-ajuste="banco_beneficiario" value="${S.ajustes.banco_beneficiario ?? ''}" maxlength="120"></label>
+        <label class="campo"><span>WhatsApp del negocio (para el panel)</span><input data-ajuste="whatsapp_negocio" value="${S.ajustes.whatsapp_negocio ?? ''}" maxlength="30" type="tel"></label></div>
+        <p class="tenue">En su panel el distribuidor paga con tarjeta (Stripe, con la llave de la bóveda) o ve estos datos para transferir y avisa con su referencia; la transferencia se confirma en Pagos. Mientras la CLABE esté vacía, el panel le pide los datos por WhatsApp.</p></section>
+      <section class="bloque doble"><h2>Material de promoción</h2><div class="tabla-caja"><table class="tabla editable"><thead><tr><th>Artículo</th><th>Descripción</th><th>Precio (0 = gratis)</th><th>Condición</th><th>Liga de descarga</th><th>Se ofrece</th></tr></thead><tbody>
+        ${S.promos.map((x) => html`<tr><th>${campo('promos', x.clave, 'nombre', x.nombre)}</th><td>${campo('promos', x.clave, 'descripcion', x.descripcion)}</td><td>${campo('promos', x.clave, 'precio', x.precio, { tipo: 'number' })}</td><td>${campo('promos', x.clave, 'condicion', x.condicion)}</td><td>${campo('promos', x.clave, 'liga', x.liga)}</td><td>${campo('promos', x.clave, 'activo', x.activo, { tipo: 'checkbox' })}</td></tr>`)}</tbody></table></div>
+        <form data-f="promo-nueva" class="forma enlinea"><label class="campo"><span>Clave</span><input name="clave" required maxlength="40" placeholder="lona_muertos"></label><label class="campo"><span>Artículo</span><input name="nombre" required></label><label class="campo"><span>Precio</span><input name="precio" type="number" min="0" value="0"></label><button class="boton">+ Artículo</button></form></section>
       <section class="bloque doble"><h2>Escala: los supuestos de la meta</h2><div class="forma tres">${AJ_ESCALA.map(([k, t, paso]) => html`<label class="campo"><span>${t}</span><input type="number" min="0" step="${paso}" data-ajuste="${k}" value="${S.ajustes[k] ?? ''}"></label>`)}</div>
         <p class="tenue">697 millones de velas al año en México (Solunion, 2024). 8 piezas por tienda por semana y 150 tiendas por distribuidor salen del Excel. Con estos números Mercado arma la escalera hacia la meta.</p></section>
       <section class="bloque doble"><h2>Centros de distribución</h2><div class="tabla-caja"><table class="tabla editable"><thead><tr><th>Centro</th><th>Ciudad</th><th>Tipo</th><th>Estado</th><th>Piezas por semana</th><th>Abre</th></tr></thead><tbody>
@@ -218,6 +228,6 @@ export const ajustes = {
     async salir() { await fetch('/api/salir', { method: 'POST' }); location.href = '/entrar'; },
     'centro-nuevo': () => crear('centros', { nombre: 'Centro nuevo', tipo: 'Centro', estado: 'Planeado', piezas_semana: 60000, orden: S.centros.length + 1 }),
   },
-  formularios: { 'usuario-nuevo': (f, d) => crear('usuarios', d) },
+  formularios: { 'usuario-nuevo': (f, d) => crear('usuarios', d), 'promo-nueva': (f, d) => crear('promos', { ...d, precio: Number(d.precio) || 0 }) },
 };
 void _RLR; void _k; void _rev; void interruptor;

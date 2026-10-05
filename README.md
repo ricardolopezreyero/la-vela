@@ -117,6 +117,7 @@ Nada de esto está validado todavía. Son estimados que hay que confirmar en est
 | [`/manifiesto`](https://vela.capitaltorreon.com/manifiesto) | La vela, como Dios manda |
 | [`/distribuir`](https://vela.capitaltorreon.com/distribuir) | La solicitud para distribuidores y las tres hojas para imprimir |
 | [`/blog/`](https://vela.capitaltorreon.com/blog/) | Cinco artículos sobre la veladora |
+| `/distribuidor/` | El panel del distribuidor: entra con su cuenta de Google (Login de CapitalTorreon), pide en un clic, ve cómo va cada pedido, paga con tarjeta (Stripe) o por transferencia, pide anticipado para las temporadas, ve lo que gana y pide material de promoción |
 | `/tablero/` | La empresa completa: Hoy y Datos (sala de datos); Distribuidores, Pedidos, Ventas y Mercado; Producción, Compras, Rutas, Cartuchos e Indicadores; Pagos y Contabilidad; Equipo, Proyecto, Receta y Modelo. Pide sesión |
 | `/pedir?d=…` | La liga privada con la que cada distribuidor hace sus pedidos |
 

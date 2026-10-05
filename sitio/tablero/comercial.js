@@ -111,6 +111,8 @@ function panelDist(sub) {
       ${campo('distribuidores', d.id, 'credito', d.credito || '', { rotulo: 'Crédito autorizado ($)', tipo: 'number', paso: '100' })}
       <div class="campo"><span>Saldo por cobrar</span><p class="cifra chica">${dinero(saldo)}</p></div>
     </div>
+    <div class="forma">${campo('distribuidores', d.id, 'correo', d.correo, { rotulo: 'Su cuenta de Google (entra a su panel con ella)', tipo: 'email', ancho: 'doble', marcador: 'correo@gmail.com' })}</div>
+    <p class="tenue">${d.correo ? html`Con ese correo entra en <b>${location.origin}/distribuidor/</b>: pide en un clic, ve cómo va cada pedido, paga con tarjeta o transferencia y pide material de promoción.` : 'Sin correo no puede entrar a su panel; mientras, usa su liga privada.'}</p>
     ${d.liga ? html`<p class="liga"><input readonly value="${location.origin}/pedir?d=${d.liga}" aria-label="Liga de pedidos"><button class="boton chico" data-a="copiar-liga" data-id="${d.id}">Copiar</button></p>` : ''}
     <div class="botones"><button class="boton" data-a="ir" data-ruta="pedidos/nuevo-${d.id}">+ Pedido</button>
       <button class="boton" data-a="liga" data-id="${d.id}">${d.liga ? 'Renovar su liga de pedidos' : 'Crear su liga de pedidos'}</button></div>
@@ -160,6 +162,7 @@ const tarjetaPedido = (p) => {
     <p>${resumenLineas(p)}</p><p class="tenue">${num(p.piezas)} piezas · ${p.rejas} rejas · ${dinero(p.total)}${p.vacios ? ` · regresa ${num(p.vacios)}` : ''}</p>
     ${p.fecha_prometida ? html`<p class="${tarde ? 'plazo' : 'sigue'}">${tarde ? 'Atrasado: era para el' : 'Para el'} ${fecha(p.fecha_prometida)}</p>` : ''}
     ${p.entregado_fecha && p.cobro !== 'Cobrado' ? html`<p class="plazo">Por cobrar · ${-diasA(p.entregado_fecha)} días</p>` : ''}
+    ${p.anticipado ? html`<p class="sigue">Anticipado</p>` : ''}${p.pago_aviso && p.cobro !== 'Cobrado' ? html`<p class="plazo">Transferencia por confirmar</p>` : p.cobro === 'Cobrado' && !p.entregado_fecha ? html`<p class="sigue">Pagado por adelantado</p>` : ''}
   </article>`;
 };
 
@@ -193,17 +196,17 @@ function panelPedido(sub) {
   if (!p) return null;
   const d = dist(p.distribuidor_id), i = paso(p.estado), sig = S.estados.pedidos[i + 1], ant = S.estados.pedidos[i - 1];
   const t = totalDe(p.lineas, p.vacios);
-  return html`<header><div>${etiqueta(p.estado)} ${p.origen === 'liga' ? etiqueta('Lo pidió desde su liga') : ''}<h2>Pedido #${p.id}</h2>
+  return html`<header><div>${etiqueta(p.estado)} ${p.origen === 'liga' ? etiqueta('Lo pidió desde su liga') : p.origen === 'panel' ? etiqueta('Lo pidió desde su panel') : ''} ${p.anticipado ? etiqueta('Anticipado', 'negra') : ''} ${p.cobro === 'Cobrado' ? etiqueta(`Pagado · ${p.pago_metodo || 'al entregar'}`, 'negra') : p.pago_aviso ? etiqueta('Transferencia por confirmar') : ''}<h2>Pedido #${p.id}</h2>
       <p class="tenue"><a href="#/distribuidores/${p.distribuidor_id}">${d ? d.empresa : 'Sin distribuidor'}</a> · ${hace(p.creado)}</p></div><button class="cerrar" data-a="cerrar" aria-label="Cerrar">✕</button></header>
     <div class="botones">${sig ? html`<button class="boton lleno" data-a="mover-pedido" data-id="${p.id}" data-v="${sig}">Pasar a «${sig}»</button>` : ''}
       ${ant ? html`<button class="boton" data-a="mover-pedido" data-id="${p.id}" data-v="${ant}">Regresar a «${ant}»</button>` : ''}</div>
     <ol class="pasos-pedido">${S.estados.pedidos.map((e, n) => html`<li class="${n < i ? 'hecho' : n === i ? 'aqui' : ''}">${e}</li>`)}</ol>
     <form class="forma" data-f="pedido-lineas" data-id="${p.id}">
       ${S.productos.filter((x) => x.activo || p.lineas.some((l) => l.clave === x.clave)).map((x) => html`<label class="campo"><span>${x.nombre}<small>cajas de ${x.piezas_caja}</small></span>
-        <input name="cajas:${x.clave}" type="number" min="0" step="1" value="${p.lineas.find((l) => l.clave === x.clave)?.cajas || ''}" ${p.descontado ? html`disabled` : ''} data-envia></label>`)}
-      <label class="campo"><span>Cartuchos vacíos que entrega</span><input name="vacios" type="number" min="0" step="1" value="${p.vacios || ''}" ${p.descontado ? html`disabled` : ''} data-envia></label>
+        <input name="cajas:${x.clave}" type="number" min="0" step="1" value="${p.lineas.find((l) => l.clave === x.clave)?.cajas || ''}" ${p.descontado || p.cobro === 'Cobrado' ? html`disabled` : ''} data-envia></label>`)}
+      <label class="campo"><span>Cartuchos vacíos que entrega</span><input name="vacios" type="number" min="0" step="1" value="${p.vacios || ''}" ${p.descontado || p.cobro === 'Cobrado' ? html`disabled` : ''} data-envia></label>
     </form>
-    ${p.descontado ? html`<p class="tenue">Ya se fabricó y el material bajó del inventario: las piezas ya no se cambian.</p>` : ''}
+    ${p.descontado ? html`<p class="tenue">Ya se fabricó y el material bajó del inventario: las piezas ya no se cambian.</p>` : p.cobro === 'Cobrado' ? html`<p class="tenue">Ya está pagado: las piezas no se cambian.</p>` : ''}
     ${desglose(t, p.lineas, p.estado === 'Recibido' ? d : null)}
     <div class="forma">
       ${campo('pedidos', p.id, 'fecha_prometida', p.fecha_prometida, { rotulo: 'Entrega prometida', tipo: 'date' })}
@@ -211,7 +214,9 @@ function panelPedido(sub) {
       ${campo('pedidos', p.id, 'ruta_id', p.ruta_id || '', { rotulo: 'Ruta', opciones: [['', 'Sin ruta'], ...S.rutas.filter((r) => r.estado !== 'Terminada' || r.id === p.ruta_id).map((r) => [r.id, `${fecha(r.fecha)} · ${r.repartidor || 'sin repartidor'}`])] })}
       ${campo('pedidos', p.id, 'notas', p.notas, { rotulo: 'Notas', tipo: 'area', ancho: 'doble' })}
     </div>
-    <dl class="datos"><dt>Cobro</dt><dd>${p.cobro}${p.cobrado_fecha ? ' · ' + fecha(p.cobrado_fecha) : ''}</dd>${p.entregado_fecha ? html`<dt>Entregado</dt><dd>${fecha(p.entregado_fecha)}</dd>` : ''}${d?.direccion || d?.ciudad ? html`<dt>Entregar en</dt><dd>${[d.direccion, d.ciudad].filter(Boolean).join(', ')}</dd>` : ''}</dl>
+    ${p.promos?.length ? html`<h4>Material de promoción</h4><ul class="lista">${p.promos.map((x) => html`<li><b>${S.promos.find((y) => y.clave === x.clave)?.nombre || x.clave}</b><span>${x.cantidad}</span></li>`)}</ul>` : ''}
+    ${p.cobro !== 'Cobrado' ? html`<div class="botones">${p.pago_aviso ? html`<p class="alerta doble">Avisó que transfirió el ${fecha(p.pago_aviso_fecha)} · referencia: ${p.pago_aviso}. Al verla en el banco:</p>` : ''}<button class="boton ${p.pago_aviso ? 'lleno' : ''}" data-a="confirmar-pago" data-id="${p.id}">${p.pago_aviso ? 'Confirmar la transferencia' : 'Marcar como pagado por adelantado'}</button></div>` : ''}
+    <dl class="datos"><dt>Cobro</dt><dd>${p.cobro}${p.pago_metodo ? ' · ' + p.pago_metodo : ''}${p.cobrado_fecha ? ' · ' + fecha(p.cobrado_fecha) : ''}</dd>${p.entregado_fecha ? html`<dt>Entregado</dt><dd>${fecha(p.entregado_fecha)}</dd>` : ''}${d?.direccion || d?.ciudad ? html`<dt>Entregar en</dt><dd>${[d.direccion, d.ciudad].filter(Boolean).join(', ')}</dd>` : ''}</dl>
     ${bitacoraDe('pedidos', p.id)}
     ${p.descontado ? '' : html`<p class="fin"><button class="enlace" data-a="borrar-pedido" data-id="${p.id}">Borrar este pedido</button></p>`}`;
 }
@@ -232,6 +237,7 @@ export const pedidos = {
   vivo: { pedido: (d) => desglose(totalDe(leerLineas(d).lineas, d.vacios), leerLineas(d).lineas, dist(Number(d.distribuidor_id))) },
   acciones: {
     'mover-pedido': (el) => guardar('pedidos', el.dataset.id, { estado: el.dataset.v }),
+    'confirmar-pago': (el) => { if (confirm('¿Ya está el dinero en el banco? El pedido queda pagado y, si estaba en Recibido, pasa a Confirmado.')) return guardar('pedidos', el.dataset.id, { confirmar_pago: 1 }); },
     async 'borrar-pedido'(el) { if (await borrar('pedidos', el.dataset.id, '¿Borrar este pedido?')) location.hash = '#/pedidos'; },
   },
   formularios: {

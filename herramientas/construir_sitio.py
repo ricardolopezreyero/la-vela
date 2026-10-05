@@ -316,7 +316,7 @@ def mapa(arts):
     ligas = ["/", "/manifiesto", "/distribuir", "/blog/"] + [f"/blog/{a['liga']}" for a in arts]
     (SITIO / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
                                        + "".join(f"  <url><loc>{CASA}{l}</loc><lastmod>{FECHA}</lastmod></url>\n" for l in ligas) + "</urlset>\n", encoding="utf-8")
-    (SITIO / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /tablero/\nDisallow: /pedir\nDisallow: /acceso\n\nSitemap: {CASA}/sitemap.xml\n", encoding="utf-8")
+    (SITIO / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /tablero/\nDisallow: /distribuidor/\nDisallow: /pedir\nDisallow: /acceso\n\nSitemap: {CASA}/sitemap.xml\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

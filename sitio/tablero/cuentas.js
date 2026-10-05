@@ -155,6 +155,7 @@ export function pendientes() {
     if (c.estado === 'Pedida' && c.fecha_esperada && c.fecha_esperada < hoy) p.push({ urg: 2, titulo: `La compra #${c.id} no ha llegado`, detalle: `Se esperaba el ${fecha(c.fecha_esperada)} · ${dinero(c.total)}`, liga: `#/compras/${c.id}` });
     if (c.estado === 'Recibida') { const pv = (S.proveedores || []).find((x) => x.id === c.proveedor_id), vence = pv ? -diasA(c.recibida_fecha) >= pv.credito_dias : true; if (vence) p.push({ urg: 1, titulo: `Pagar la compra #${c.id}${pv ? ' · ' + pv.nombre : ''}`, detalle: `${dinero(c.total)} · recibida el ${fecha(c.recibida_fecha)}`, liga: `#/compras/${c.id}` }); }
   }
+  for (const x of S.pedidos) if (x.pago_aviso && x.cobro !== 'Cobrado') p.push({ urg: 1, titulo: `Confirmar la transferencia del pedido #${x.id} · ${dist(x.distribuidor_id)?.empresa || ''}`, detalle: `${dinero(x.total)} · referencia ${x.pago_aviso} · avisó el ${fecha(x.pago_aviso_fecha)}`, liga: `#/pedidos/${x.id}` });
   for (const r of S.rutas || []) if (r.fecha === hoy && ['Planeada', 'Cargada'].includes(r.estado)) p.push({ urg: 1, titulo: `Ruta de hoy · ${r.repartidor || 'sin repartidor'}`, detalle: `${S.pedidos.filter((x) => x.ruta_id === r.id).length} paradas · ${r.estado}`, liga: `#/rutas/${r.id}` });
   const listos = S.pedidos.filter((x) => x.estado === 'Listo' && !x.ruta_id);
   if (listos.length) p.push({ urg: 1, titulo: `${listos.length} pedido(s) listos sin ruta`, detalle: `${listos.reduce((s, x) => s + x.rejas, 0)} rejas esperando repartidor`, liga: '#/rutas' });

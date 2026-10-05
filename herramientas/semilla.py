@@ -248,6 +248,20 @@ for n, (titulo, sec, fase, prio, notas) in enumerate([
 ], len(tareas) + 1):
     sql.append(f"INSERT OR IGNORE INTO tareas (id, titulo, seccion, fase, prioridad, notas, creada) VALUES ({n}, {q(titulo)}, {q(sec)}, {fase}, {q(prio)}, {q(notas)}, {q(AHORA)});")
 
+# ───────── El panel del distribuidor (migración 0004): promoción y ajustes de pago ─────────
+for i, (clave, nombre, desc, precio, cond, liga) in enumerate([
+    ("exhibidor", "Exhibidor de mostrador", "Exhibidor de cartón para 12 velas junto a la caja de la tienda. Trae el cartel «Aquí se cambia tu cartucho».", 0, "Gratis: uno por tienda con su primer pedido.", ""),
+    ("cartel", "Cartel «Aquí se cambia tu cartucho»", "Cartel tamaño carta para la puerta o el mostrador. Es lo que hace que el cliente regrese a esa tienda.", 0, "Gratis, hasta dos por tienda.", ""),
+    ("hoja_tienda", "Hoja para la tienda", "Una página: qué gana la tienda, cómo funciona el depósito y qué decirle al cliente.", 0, "Se descarga; imprímela para cada tienda nueva.", "/descargas/La_Vela_Hoja_Tienda_v1_2026-10-03.pdf"),
+    ("hoja_cliente", "Hoja para el cliente", "Una página para dejar en el mostrador: cómo se cambia el cartucho y por qué conviene.", 0, "Se descarga.", "/descargas/La_Vela_Hoja_Cliente_v1_2026-10-03.pdf"),
+    ("hoja_distribuidor", "Hoja del distribuidor", "Tu página: los números de tu ruta y cómo armar el piloto de 50 tiendas.", 0, "Se descarga.", "/descargas/La_Vela_Hoja_Distribuidor_v1_2026-10-03.pdf"),
+    ("calcomania", "Calcomanía para la puerta", "Calcomanía de 15 cm con la vela y «Cartucho retornable aquí».", 0, "Gratis, una por tienda.", ""),
+    ("lona", "Lona de temporada", "Lona de 1 × 0.6 m para la temporada en curso (San Judas, Muertos, Guadalupe).", 180, "Para tiendas que venden más de 20 piezas por semana.", ""),
+], 1):
+    sql.append(f"INSERT OR IGNORE INTO promos (clave, nombre, descripcion, precio, condicion, liga, orden) VALUES ({q(clave)}, {q(nombre)}, {q(desc)}, {precio}, {q(cond)}, {q(liga)}, {i});")
+for clave, valor in [("margen_tienda", 27), ("banco_nombre", ""), ("banco_clabe", ""), ("banco_beneficiario", ""), ("whatsapp_negocio", "")]:
+    sql.append(f"INSERT OR IGNORE INTO ajustes (clave, valor) VALUES ({q(clave)}, {q(str(valor))});")
+
 # ───────── docs/15: el equipo y el mercado, escritos desde estos mismos datos ─────────
 doc = ["# 15 · Equipo y mercado", "", "Generado por `herramientas/semilla.py`: lo que vive en las pantallas Equipo y Mercado del tablero. No se edita a mano; se edita el tablero o la semilla.", "",
        "## El sistema primero, la gente después", "", "Cada puesto existe en el tablero antes de que exista la persona. El tablero dice cuándo toca contratarlo (piezas por semana), cuántas plazas hacen falta a cada volumen, dónde buscar y con qué prueba elegir.", "",

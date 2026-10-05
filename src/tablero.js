@@ -15,7 +15,8 @@ const ESTADOS_MERCADO = ['Después', 'Explorando', 'Piloto', 'Activo', 'Descarta
 const CANALES = ['tienditas', 'corporativo', 'parroquia', 'restaurante', 'recaudacion', 'personalizada', 'eventos', 'mayorista', 'cadena', 'insumos', 'otro'];
 const CATEGORIAS = ['Ventas', 'Depósitos', 'Insumos', 'Nómina', 'Renta', 'Transporte', 'Servicios', 'Marketing', 'Impuestos', 'Equipo', 'Inversión', 'Otro'];
 const AJUSTES = ['fase_actual', 'deposito', 'dias_entrega', 'dias_cobro', 'meta_semanal', 'receta_activa', 'bajas_cartuchos', 'capacidad_dia', 'pedido_minimo_cajas',
-  'rejas_tarima', 'reja_kg', 'tarima_kg', 'iva', 'transf_pieza', 'mercado_piezas_anio', 'meta_participacion', 'piezas_tienda_semana', 'tiendas_distribuidor', 'piezas_centro_semana', 'gasto_fijo_mes', 'piezas_semana_hoy', 'ebitda_pieza'];
+  'rejas_tarima', 'reja_kg', 'tarima_kg', 'iva', 'transf_pieza', 'mercado_piezas_anio', 'meta_participacion', 'piezas_tienda_semana', 'tiendas_distribuidor', 'piezas_centro_semana', 'gasto_fijo_mes', 'piezas_semana_hoy', 'ebitda_pieza',
+  'margen_tienda', 'banco_nombre', 'banco_clabe', 'banco_beneficiario', 'whatsapp_negocio'];
 const BITACORA = ['distribuidores', 'pedidos', 'tareas', 'compras', 'rutas', 'puestos', 'mercados', 'proveedores'];
 
 /* Qué se puede tocar de cada cosa. Tipos: s texto corto · p párrafo · n número o vacío · m número (0 si vacío)
@@ -27,7 +28,7 @@ const R = {
       nombre: ['s', 120], empresa: ['s', 160], whatsapp: ['s', 30], zonas: ['s', 400], puntos: ['s', 40], tipos: ['s', 200], visita: ['s', 40],
       veladoras: ['s', 40], vehiculos: ['s', 40], pedido: ['s', 40], tipo: ['o', ['A', 'B', 'C']], estado: ['o', ESTADOS_DIST], zona: ['s', 200],
       exclusividad: ['b'], responsable: ['s', 160], proxima_accion: ['s', 300], proxima_fecha: ['f'], notas: ['p', 6000], credito: ['m'], tiendas: ['m'],
-      canal: ['o', CANALES], direccion: ['s', 300], ciudad: ['s', 120], centro_id: ['n'],
+      canal: ['o', CANALES], direccion: ['s', 300], ciudad: ['s', 120], centro_id: ['n'], correo: ['s', 160],
     },
     alCrear: (v) => ({ creada: ahora(), puntaje: 0, origen: 'manual', tipo: 'B', estado: 'Nuevo', whatsapp: '', zonas: '', puntos: '', tipos: '', visita: '', veladoras: '', vehiculos: '', pedido: '', ...v }),
     pide: ['empresa'],
@@ -64,6 +65,11 @@ const R = {
     tabla: 'usuarios', pk: 'correo', soloAdmin: true, borrar: true,
     campos: { nombre: ['s', 120], rol: ['o', ['admin', 'equipo']] },
     alCrear: (v) => ({ creado: ahora(), rol: 'equipo', ...v }),
+  },
+  promos: {
+    tabla: 'promos', pk: 'clave', borrar: true, pide: ['nombre'],
+    campos: { nombre: ['s', 120], descripcion: ['p', 600], precio: ['m'], condicion: ['s', 200], liga: ['s', 300], activo: ['b'], orden: ['m'] },
+    alCrear: (v) => ({ activo: 1, orden: 99, ...v }),
   },
   // ── La empresa completa (migración 0003) ──
   proveedores: {
@@ -124,7 +130,7 @@ function limpiar(campos, datos) {
 }
 
 const uno = (env, tabla, pk, id) => env.DB.prepare(`SELECT * FROM ${tabla} WHERE ${pk} = ?`).bind(id).first();
-const nota = (env, cosa, id, textoNota, por) =>
+export const nota = (env, cosa, id, textoNota, por) =>
   env.DB.prepare('INSERT INTO bitacora (cosa, cosa_id, texto, por, fecha) VALUES (?, ?, ?, ?, ?)').bind(cosa, id, textoNota, por, ahora());
 
 async function ajustes(env) {
@@ -135,7 +141,7 @@ async function ajustes(env) {
 // ───────── RLR · todo el tablero en una sola respuesta ─────────
 async function todo(env, yo) {
   const c = (s) => env.DB.prepare(s);
-  const [us, di, bi, ta, pr, pe, inv, lo, re, pb, se, aj, pv, co, mo, ce, ve, ru, pu, ca, me] = await env.DB.batch([
+  const [us, di, bi, ta, pr, pe, inv, lo, re, pb, se, aj, pv, co, mo, ce, ve, ru, pu, ca, me, pm] = await env.DB.batch([
     c('SELECT correo, nombre, rol FROM usuarios ORDER BY creado'),
     c('SELECT * FROM solicitudes ORDER BY id DESC'),
     c('SELECT * FROM bitacora ORDER BY id DESC LIMIT 1200'),
@@ -157,11 +163,12 @@ async function todo(env, yo) {
     c('SELECT * FROM puestos ORDER BY orden, id'),
     c('SELECT * FROM candidatos ORDER BY id'),
     c('SELECT * FROM mercados ORDER BY orden, id'),
+    c('SELECT * FROM promos ORDER BY orden, clave'),
   ]);
   const j = (t, d) => { try { return JSON.parse(t); } catch { return d; } };
   return json({
     yo, usuarios: us.results, distribuidores: di.results, bitacora: bi.results, tareas: ta.results, productos: pr.results,
-    pedidos: pe.results.map((p) => ({ ...p, lineas: j(p.lineas, []) })), inventario: inv.results, lotes: lo.results,
+    pedidos: pe.results.map((p) => ({ ...p, lineas: j(p.lineas, []), promos: j(p.promos, []) })), inventario: inv.results, lotes: lo.results, promos: pm.results,
     recetas: re.results.map((r) => ({ ...r, datos: j(r.datos, {}) })), pruebas: pb.results, sesiones: se.results,
     ajustes: Object.fromEntries(aj.results.map((r) => [r.clave, r.valor])),
     proveedores: pv.results, compras: co.results.map((x) => ({ ...x, lineas: j(x.lineas, []) })), movimientos: mo.results,
@@ -199,9 +206,16 @@ async function cambiar(env, yo, rec, id, cuerpo) {
   if (!Object.keys(v).length) throw new Mal('Nada que guardar.');
   for (const c of def.pide || []) if (c in v && (v[c] === '' || v[c] == null)) throw new Mal(`«${c}» no puede quedar vacío.`);
   if (rec === 'usuarios' && id === yo.correo && v.rol && v.rol !== 'admin') throw new Mal('No puedes quitarte a ti mismo el acceso de administrador.');
+  const extra = [];
+  if (rec === 'distribuidores' && 'correo' in v) {
+    v.correo = v.correo.toLowerCase();
+    if (v.correo && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.correo)) throw new Mal('Escribe un correo válido.');
+    if (v.correo && (await env.DB.prepare('SELECT id FROM solicitudes WHERE correo = ? AND id <> ?').bind(v.correo, id).first())) throw new Mal('Ese correo ya es de otro distribuidor.');
+    if (v.correo !== antes.correo) extra.push(env.DB.prepare('DELETE FROM sesiones_dist WHERE distribuidor_id = ?').bind(id));
+  }
   if (def.sello) v[def.sello] = ahora();
   if (def.firma) v[def.firma] = yo.correo;
-  const cols = Object.keys(v), lote = [env.DB.prepare(`UPDATE ${def.tabla} SET ${cols.map((c) => `${c} = ?`).join(', ')} WHERE ${pk} = ?`).bind(...cols.map((c) => v[c]), id)];
+  const cols = Object.keys(v), lote = [env.DB.prepare(`UPDATE ${def.tabla} SET ${cols.map((c) => `${c} = ?`).join(', ')} WHERE ${pk} = ?`).bind(...cols.map((c) => v[c]), id), ...extra];
   if (def.bitacora && def.bitacora in v && v[def.bitacora] !== antes[def.bitacora]) lote.push(nota(env, rec, id, `${antes[def.bitacora]} → ${v[def.bitacora]}`, yo.correo));
   await env.DB.batch(lote);
   return json({ fila: await uno(env, def.tabla, pk, id), recargar: lote.length > 1 });
@@ -221,9 +235,17 @@ async function borrar(env, yo, rec, id) {
 }
 
 // ───────── RLR · pedidos: el evento del que nace todo ─────────
-export async function calcularPedido(env, lineas, vacios) {
-  const { results: productos } = await env.DB.prepare('SELECT * FROM productos').all();
+export async function calcularPedido(env, lineas, vacios, promos) {
+  const [{ results: productos }, { results: promosCat }] = await env.DB.batch([env.DB.prepare('SELECT * FROM productos'), env.DB.prepare('SELECT * FROM promos WHERE activo = 1')]);
   const a = await ajustes(env), deposito = Number(a.deposito) || 0, rejaKg = Number(a.reja_kg) || 0;
+  // Material de promoción: va aparte, no lleva depósito ni baja material del inventario
+  const pm = [];
+  let promosTotal = 0;
+  for (const x of Array.isArray(promos) ? promos : []) {
+    const p = promosCat.find((y) => y.clave === x.clave), n = Math.floor(Number(x.cantidad));
+    if (!p || !(n > 0) || n > 1000) continue;
+    pm.push({ clave: p.clave, cantidad: n }); promosTotal += n * p.precio;
+  }
   const limpias = [];
   let piezas = 0, piezasVaso = 0, cajas = 0, subtotal = 0, rejas = 0, kg = 0;
   for (const l of Array.isArray(lineas) ? lineas : []) {
@@ -237,7 +259,8 @@ export async function calcularPedido(env, lineas, vacios) {
   }
   const v = Math.max(0, Math.floor(Number(vacios) || 0)), rejasEnteras = Math.ceil(rejas - 1e-9);
   return { lineas: JSON.stringify(limpias), piezas, piezas_vaso: piezasVaso, cajas, subtotal: Math.round(subtotal * 100) / 100, deposito, vacios: v,
-    total: Math.round((subtotal + deposito * (piezas - v)) * 100) / 100, rejas: rejasEnteras, kg: Math.round((kg + rejasEnteras * rejaKg) * 10) / 10 };
+    promos: JSON.stringify(pm), promos_total: Math.round(promosTotal * 100) / 100,
+    total: Math.round((subtotal + deposito * (piezas - v) + promosTotal) * 100) / 100, rejas: rejasEnteras, kg: Math.round((kg + rejasEnteras * rejaKg) * 10) / 10 };
 }
 
 // Gramos de cera por pieza, según la receta activa
@@ -250,15 +273,36 @@ async function gramosPorPieza(env) {
 async function crearPedido(env, yo, cuerpo) {
   const dist = await uno(env, 'solicitudes', 'id', Number(cuerpo.distribuidor_id));
   if (!dist) throw new Mal('Elige un distribuidor.');
-  const c = await calcularPedido(env, cuerpo.lineas, cuerpo.vacios);
-  if (!c.piezas) throw new Mal('El pedido no tiene piezas.');
+  const c = await calcularPedido(env, cuerpo.lineas, cuerpo.vacios, cuerpo.promos);
+  if (!c.piezas && !c.promos_total && c.promos === '[]') throw new Mal('El pedido no tiene piezas.');
+  const id = await insertarPedido(env, dist.id, c, cuerpo, 'tablero');
+  await nota(env, 'pedidos', id, 'Pedido creado en el tablero', yo.correo).run();
+  return json({ ok: true, id, recargar: true });
+}
+
+// RLR · un pedido nuevo, venga del tablero, de la liga o del panel del distribuidor
+export async function insertarPedido(env, distId, c, cuerpo, origen) {
   const fecha = /^\d{4}-\d{2}-\d{2}$/.test(cuerpo.fecha_prometida || '') ? cuerpo.fecha_prometida : '';
   const r = await env.DB.prepare(
-    `INSERT INTO pedidos (distribuidor_id, estado, lineas, piezas, piezas_vaso, cajas, subtotal, deposito, total, vacios, rejas, kg, fecha_prometida, notas, origen, creado)
-     VALUES (?, 'Recibido', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'tablero', ?)`
-  ).bind(dist.id, c.lineas, c.piezas, c.piezas_vaso, c.cajas, c.subtotal, c.deposito, c.total, c.vacios, c.rejas, c.kg, fecha, parrafo(cuerpo.notas, 2000), ahora()).run();
-  await nota(env, 'pedidos', r.meta.last_row_id, 'Pedido creado en el tablero', yo.correo).run();
-  return json({ ok: true, id: r.meta.last_row_id, recargar: true });
+    `INSERT INTO pedidos (distribuidor_id, estado, lineas, piezas, piezas_vaso, cajas, subtotal, deposito, total, vacios, rejas, kg, promos, promos_total, anticipado, fecha_prometida, notas, origen, creado)
+     VALUES (?, 'Recibido', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(distId, c.lineas, c.piezas, c.piezas_vaso, c.cajas, c.subtotal, c.deposito, c.total, c.vacios, c.rejas, c.kg, c.promos, c.promos_total, cuerpo.anticipado ? 1 : 0, fecha, parrafo(cuerpo.notas, 2000), origen, ahora()).run();
+  return r.meta.last_row_id;
+}
+
+// RLR · marcar un pedido como pagado (Stripe, transferencia confirmada o efectivo): el dinero entra al libro una sola vez
+export function pagarPedido(env, p, metodo, por, referencia = '') {
+  const fecha = p.cobrado_fecha || hoyMX(), dep = p.deposito * (p.piezas - p.vacios), venta = Math.round((p.total - dep) * 100) / 100;
+  const lote = [
+    env.DB.prepare('UPDATE pedidos SET cobro = ?, cobrado_fecha = ?, pago_metodo = ?, actualizado = ?, estado = CASE WHEN estado = ? THEN ? ELSE estado END WHERE id = ?').bind('Cobrado', fecha, metodo, ahora(), 'Recibido', 'Confirmado', p.id),
+    env.DB.prepare('DELETE FROM movimientos WHERE pedido_id = ?').bind(p.id),
+    env.DB.prepare(`INSERT INTO movimientos (tipo, categoria, concepto, monto, fecha, metodo, referencia, pedido_id, distribuidor_id, creado, por) VALUES ('Cobro', 'Ventas', ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .bind(`Pedido #${p.id}`, venta, fecha, metodo === 'Stripe' ? 'Tarjeta' : metodo === 'Efectivo' ? 'Efectivo' : 'Transferencia', texto(referencia, 80), p.id, p.distribuidor_id, ahora(), por),
+    nota(env, 'pedidos', p.id, `Pagado por ${metodo.toLowerCase()}${referencia ? ' · ' + texto(referencia, 80) : ''}${p.estado === 'Recibido' ? ' · pasa a Confirmado' : ''}`, por),
+  ];
+  if (dep) lote.push(env.DB.prepare(`INSERT INTO movimientos (tipo, categoria, concepto, monto, fecha, metodo, pedido_id, distribuidor_id, creado, por) VALUES (?, 'Depósitos', ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .bind(dep > 0 ? 'Cobro' : 'Pago', `Depósitos de cartuchos · pedido #${p.id}`, Math.abs(Math.round(dep * 100) / 100), fecha, metodo === 'Stripe' ? 'Tarjeta' : 'Transferencia', p.id, p.distribuidor_id, ahora(), por));
+  return lote;
 }
 
 async function cambiarPedido(env, yo, id, cuerpo) {
@@ -269,10 +313,17 @@ async function cambiarPedido(env, yo, id, cuerpo) {
   if ('fecha_prometida' in cuerpo) v.fecha_prometida = /^\d{4}-\d{2}-\d{2}$/.test(cuerpo.fecha_prometida || '') ? cuerpo.fecha_prometida : '';
   if ('lote_id' in cuerpo) v.lote_id = Number(cuerpo.lote_id) || null;
   if ('ruta_id' in cuerpo) { v.ruta_id = Number(cuerpo.ruta_id) || null; if (!v.ruta_id) v.parada = 0; }
+  if ('anticipado' in cuerpo) v.anticipado = cuerpo.anticipado ? 1 : 0;
+  if (cuerpo.confirmar_pago) {
+    if (p.cobro === 'Cobrado') throw new Mal('Ya está pagado.');
+    await env.DB.batch(pagarPedido(env, p, p.pago_aviso ? 'Transferencia' : 'Efectivo', yo.correo, p.pago_aviso));
+    return json({ ok: true, recargar: true });
+  }
   if ('parada' in cuerpo) v.parada = Math.max(0, Math.floor(Number(cuerpo.parada) || 0));
-  if ('lineas' in cuerpo || 'vacios' in cuerpo) {
+  if ('lineas' in cuerpo || 'vacios' in cuerpo || 'promos' in cuerpo) {
     if (p.descontado) throw new Mal('Ya se fabricó: las piezas no se pueden cambiar.');
-    const c = await calcularPedido(env, 'lineas' in cuerpo ? cuerpo.lineas : JSON.parse(p.lineas), 'vacios' in cuerpo ? cuerpo.vacios : p.vacios);
+    if (p.cobro === 'Cobrado') throw new Mal('Ya está pagado: las piezas no se cambian. Haz otro pedido.');
+    const c = await calcularPedido(env, 'lineas' in cuerpo ? cuerpo.lineas : JSON.parse(p.lineas), 'vacios' in cuerpo ? cuerpo.vacios : p.vacios, 'promos' in cuerpo ? cuerpo.promos : JSON.parse(p.promos || '[]'));
     if (!c.piezas) throw new Mal('El pedido no tiene piezas.');
     Object.assign(v, c);
   }
@@ -296,15 +347,16 @@ async function cambiarPedido(env, yo, id, cuerpo) {
       if (vacios > 0) lote.push(env.DB.prepare(`UPDATE inventario SET existencia = existencia + ?, actualizado = ? WHERE clave = 'cartucho'`).bind(vacios, ahora()));
     }
     // Al cobrarse, el dinero entra solo al libro de movimientos (y sale si se regresa el estado)
-    if (cuerpo.estado === 'Cobrado') {
-      v.cobro = 'Cobrado'; v.cobrado_fecha = p.cobrado_fecha || hoyMX();
+    if (cuerpo.estado === 'Cobrado' && p.cobro === 'Cobrado') { /* ya se había pagado antes de entregar: el libro ya lo tiene */ }
+    else if (cuerpo.estado === 'Cobrado') {
+      v.cobro = 'Cobrado'; v.cobrado_fecha = p.cobrado_fecha || hoyMX(); v.pago_metodo = p.pago_metodo || 'Efectivo';
       const total = v.total ?? p.total, dep = (v.deposito ?? p.deposito) * (piezas - vacios), venta = Math.round((total - dep) * 100) / 100;
       lote.push(env.DB.prepare('DELETE FROM movimientos WHERE pedido_id = ?').bind(id));
       lote.push(env.DB.prepare(`INSERT INTO movimientos (tipo, categoria, concepto, monto, fecha, metodo, pedido_id, distribuidor_id, creado, por) VALUES ('Cobro', 'Ventas', ?, ?, ?, 'Transferencia', ?, ?, ?, ?)`)
         .bind(`Pedido #${id}`, venta, v.cobrado_fecha, id, p.distribuidor_id, ahora(), yo.correo));
       if (dep) lote.push(env.DB.prepare(`INSERT INTO movimientos (tipo, categoria, concepto, monto, fecha, metodo, pedido_id, distribuidor_id, creado, por) VALUES (?, 'Depósitos', ?, ?, ?, 'Transferencia', ?, ?, ?, ?)`)
         .bind(dep > 0 ? 'Cobro' : 'Pago', `Depósitos de cartuchos · pedido #${id}`, Math.abs(Math.round(dep * 100) / 100), v.cobrado_fecha, id, p.distribuidor_id, ahora(), yo.correo));
-    } else if (de === ESTADOS_PEDIDO.indexOf('Cobrado')) { v.cobro = 'Pendiente'; v.cobrado_fecha = null; lote.push(env.DB.prepare('DELETE FROM movimientos WHERE pedido_id = ?').bind(id)); }
+    } else if (de === ESTADOS_PEDIDO.indexOf('Cobrado') && !['Stripe', 'Transferencia'].includes(p.pago_metodo)) { v.cobro = 'Pendiente'; v.cobrado_fecha = null; v.pago_metodo = ''; lote.push(env.DB.prepare('DELETE FROM movimientos WHERE pedido_id = ?').bind(id)); }
   }
   if (!Object.keys(v).length) throw new Mal('Nada que guardar.');
   v.actualizado = ahora();

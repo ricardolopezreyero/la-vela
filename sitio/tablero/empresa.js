@@ -183,6 +183,9 @@ export const pagos = {
         <div><b>${dinero(pp.reduce((s, x) => s + x.total, 0))}</b><span>por pagar: ${pp.length} compra(s) recibidas</span></div>
         <div><b>${dinero(nomina())}</b><span>nómina mensual del equipo contratado</span></div></div>
         <p class="tenue">Los cobros de pedidos y los pagos de compras se anotan solos al marcarlos; aquí se capturan los demás: renta, nómina, transporte, servicios, aportaciones.</p></section>
+      ${S.pedidos.some((p) => p.pago_aviso && p.cobro !== 'Cobrado') ? html`<section class="bloque doble"><h2>Transferencias por confirmar<span class="cuenta">${S.pedidos.filter((p) => p.pago_aviso && p.cobro !== 'Cobrado').length}</span></h2>
+        <ul class="lista">${S.pedidos.filter((p) => p.pago_aviso && p.cobro !== 'Cobrado').map((p) => html`<li><div><b><a href="#/pedidos/${p.id}">#${p.id} · ${dist(p.distribuidor_id)?.empresa || ''}</a></b><br><small class="tenue">Avisó el ${fecha(p.pago_aviso_fecha)} · referencia: ${p.pago_aviso}</small></div><span>${dinero(p.total, 2)}<br><button class="enlace" data-a="confirmar-transferencia" data-id="${p.id}">Ya está en el banco</button></span></li>`)}</ul>
+        <p class="tenue">Al confirmar, el pedido queda pagado y pasa a Confirmado si estaba en Recibido.</p></section>` : ''}
       <section class="bloque"><h2>Por cobrar<span class="cuenta">${pc.length}</span></h2>
         ${pc.length ? html`<ul class="lista">${pc.sort((a, b) => a.entregado_fecha.localeCompare(b.entregado_fecha)).map((p) => html`<li><div><b><a href="#/pedidos/${p.id}">#${p.id} · ${dist(p.distribuidor_id)?.empresa || ''}</a></b><br><small class="${-diasA(p.entregado_fecha) > aj('dias_cobro', 30) ? 'plazo' : 'tenue'}">Entregado hace ${-diasA(p.entregado_fecha)} días</small></div><span>${dinero(p.total)}<br><button class="enlace" data-a="cobrar" data-id="${p.id}">Ya se cobró</button></span></li>`)}</ul>` : html`<p class="vacio">Nada por cobrar.</p>`}</section>
       <section class="bloque"><h2>Por pagar<span class="cuenta">${pp.length}</span></h2>
@@ -212,6 +215,7 @@ export const pagos = {
   acciones: {
     'filtro-mes': (el) => { S.ui.filtro.mes = el.value; },
     cobrar: (el) => guardar('pedidos', el.dataset.id, { estado: 'Cobrado' }),
+    'confirmar-transferencia': (el) => guardar('pedidos', el.dataset.id, { confirmar_pago: 1 }),
     pagar: (el) => guardar('compras', el.dataset.id, { estado: 'Pagada' }),
     'borrar-mov': (el) => borrar('movimientos', el.dataset.id, '¿Borrar este movimiento?'),
   },

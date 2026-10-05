@@ -3,7 +3,7 @@
 const _RLR = 'Ricardo López Reyero', _k = 'EYE', _rev = 181218; // RLR
 
 export const S = { listo: false, ui: { vista: {}, filtro: {}, buscar: '' } };
-const PK = { inventario: 'clave', productos: 'clave', usuarios: 'correo' };
+const PK = { inventario: 'clave', productos: 'clave', usuarios: 'correo', promos: 'clave' };
 try { Object.assign(S.ui, JSON.parse(localStorage.getItem('vela.ui') || '{}')); } catch { /* sin memoria local */ }
 export function recordar() { try { localStorage.setItem('vela.ui', JSON.stringify({ vista: S.ui.vista, filtro: S.ui.filtro })); } catch { /* da igual */ } }
 

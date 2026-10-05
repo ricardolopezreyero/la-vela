@@ -1,0 +1,93 @@
+/* RLR · La Vela — el panel del distribuidor: la misma guía (docs/14), pensado para el teléfono — Ricardo López Reyero */
+.panel .seccion { padding: var(--e4) 0; }
+.panel .seccion > .caja > * + * { margin-top: var(--e2); }
+.panel h1 { font-size: clamp(2rem, 6vw, 3rem); }
+.panel h2 { font-size: clamp(1.5rem, 4vw, 2rem); }
+.panel h3 { font-size: 1.15rem; }
+.barra nav { display: flex; gap: var(--e2); flex-wrap: wrap; font-size: 0.9rem; }
+.barra nav a { text-decoration: none; font-weight: 600; }
+.panel .cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-top: var(--linea); }
+.panel .cifras > div { padding: var(--e2) var(--e2) var(--e2) 0; border-bottom: 1px solid var(--gris-300); }
+.panel .cifras b { display: block; font-family: var(--titulos); font-weight: 400; font-size: 2rem; line-height: 1.05; }
+.panel .cifras span { display: block; font-size: 0.85rem; color: var(--gris-700); margin-top: 4px; }
+.negra .cifras { border-top-color: var(--blanco); }
+.negra .cifras > div { border-color: var(--gris-700); }
+.negra .cifras b, .negra .cifras span { color: var(--blanco); }
+.panel .botones .boton { min-height: 56px; }
+.panel .boton.ancho { width: 100%; }
+.panel .tenue { color: var(--gris-500); font-size: 0.9rem; }
+.negra .tenue { color: var(--gris-300); }
+
+/* Pedir */
+.renglones { border-top: var(--linea); }
+.renglon { display: grid; grid-template-columns: 1fr auto; gap: var(--e2); align-items: center; padding: var(--e2) 0; border-bottom: 1px solid var(--gris-300); }
+.renglon b { display: block; font-family: var(--titulos); font-weight: 400; font-size: 1.2rem; line-height: 1.2; }
+.renglon small { display: block; color: var(--gris-500); font-size: 0.85rem; }
+.mas { display: flex; align-items: center; }
+.mas button { width: 48px; height: 48px; border: 2px solid var(--tinta); background: var(--blanco); font-size: 1.4rem; cursor: pointer; color: var(--tinta); }
+.mas input { width: 60px; height: 48px; border: 2px solid var(--tinta); border-left: 0; border-right: 0; text-align: center; font: 600 1.1rem var(--texto); border-radius: 0; -moz-appearance: textfield; }
+.mas input::-webkit-outer-spin-button, .mas input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.cuenta { border-top: var(--linea); }
+.cuenta div { display: flex; justify-content: space-between; gap: var(--e2); padding: 8px 0; border-bottom: 1px solid var(--gris-300); }
+.cuenta .total { font-family: var(--titulos); font-size: 1.5rem; }
+.cuenta .gana { background: var(--tinta); color: var(--blanco); padding: var(--e2); margin-top: var(--e2); border: 0; font-weight: 600; }
+.panel label { display: block; font-weight: 600; font-size: 0.9rem; }
+.panel label > span { display: block; margin-bottom: 6px; }
+.panel input[type="date"], .panel input[type="text"], .panel textarea, .panel select { width: 100%; min-height: 48px; border: 2px solid var(--tinta); padding: 8px 12px; font: 1rem var(--texto); border-radius: 0; background: var(--blanco); color: var(--tinta); }
+.panel textarea { min-height: 72px; }
+.temporadas { display: flex; flex-wrap: wrap; gap: 8px; }
+.temporadas button { border: 1.5px solid var(--tinta); background: var(--blanco); padding: 8px 12px; font: 600 0.85rem var(--texto); cursor: pointer; color: var(--tinta); }
+.temporadas button[aria-pressed="true"] { background: var(--tinta); color: var(--blanco); }
+.casillas { display: grid; gap: 8px; }
+.casillas label { display: flex; gap: 12px; align-items: flex-start; font-weight: 400; padding: 10px 0; border-bottom: 1px solid var(--gris-300); }
+.casillas input { width: 22px; height: 22px; margin-top: 3px; accent-color: var(--tinta); flex: none; }
+.casillas b { display: block; }
+.casillas small { color: var(--gris-500); font-size: 0.85rem; }
+.casillas .mas { margin-left: auto; }
+.casillas .mas button, .casillas .mas input { height: 40px; }
+.casillas .mas button { width: 40px; font-size: 1.1rem; }
+
+/* Cómo va cada pedido */
+.pedidos { display: grid; gap: var(--e2); }
+.pedido { border: 2px solid var(--tinta); padding: var(--e2); }
+.pedido header { display: flex; justify-content: space-between; gap: var(--e2); align-items: baseline; flex-wrap: wrap; }
+.pedido header b { font-family: var(--titulos); font-weight: 400; font-size: 1.4rem; }
+.pedido .chip { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border: 1.5px solid var(--tinta); }
+.pedido .chip.negro { background: var(--tinta); color: var(--blanco); }
+.pedido .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.pasos { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin: var(--e2) 0 8px; list-style: none; padding: 0; }
+.pasos li { height: 10px; background: var(--gris-100); position: relative; }
+.pasos li.hecho { background: var(--tinta); }
+.pasos li.aqui { background: var(--tinta); outline: 2px solid var(--tinta); outline-offset: 2px; }
+.pedido .donde { font-weight: 600; }
+.pedido .detalle { color: var(--gris-700); font-size: 0.9rem; }
+.pedido .historia { font-size: 0.82rem; color: var(--gris-500); margin-top: 8px; }
+.pedido .historia li { padding: 2px 0; }
+.pedido .pago { margin-top: var(--e2); padding-top: var(--e2); border-top: 1px solid var(--gris-300); }
+.pedido .pago .botones { margin-top: 8px; }
+.pedido .pago .boton { min-height: 48px; }
+.pedido .banco { background: var(--gris-100); padding: var(--e2); margin-top: 8px; font-size: 0.95rem; }
+.pedido .banco b { font-family: var(--texto); font-size: 1.1rem; letter-spacing: 0.04em; }
+.pedido .transferir { display: flex; gap: 8px; margin-top: 8px; }
+.pedido .transferir input { flex: 1; }
+.pedido .transferir .boton { min-height: 48px; }
+
+/* Ganancias y tabla */
+.tabla { width: 100%; border-collapse: collapse; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+.tabla th, .tabla td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--gris-300); vertical-align: top; }
+.tabla thead th { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gris-500); border-bottom: var(--linea); }
+.tabla td.n, .tabla th.n { text-align: right; }
+.tabla-caja { overflow-x: auto; }
+.promos { display: grid; gap: var(--e2); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.promo { border: 1.5px solid var(--tinta); padding: var(--e2); display: flex; flex-direction: column; gap: 8px; }
+.promo h3 { font-size: 1.1rem; }
+.promo .boton { min-height: 44px; align-self: flex-start; }
+.promo small { color: var(--gris-500); }
+
+#avisos { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 40; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; }
+.aviso-v { background: var(--tinta); color: var(--blanco); padding: 10px 18px; font-weight: 600; font-size: 0.95rem; }
+.aviso-v.malo { background: var(--blanco); color: var(--tinta); border: 2px solid var(--tinta); }
+.entrada { max-width: 520px; }
+.entrada > * + * { margin-top: var(--e3); }
+@media (max-width: 600px) { .renglon { grid-template-columns: 1fr; } .mas { justify-content: flex-start; } .pasos { grid-template-columns: repeat(4, 1fr); } }
+/* RLR */

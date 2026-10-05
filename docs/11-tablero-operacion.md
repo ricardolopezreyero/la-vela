@@ -36,6 +36,19 @@ Empaque: reja de 24 piezas (dos cajas de 12) y tarima de 32 rejas (768 piezas). 
 
 Acceso: con la cuenta de Google por el Login de CapitalTorreon (`/api/entrar-pase` verifica el pase con la llave pública) o con el enlace al correo. Solo entra quien esté en `usuarios`.
 
+### El panel del distribuidor (`/distribuidor/`)
+
+Entra con su cuenta de Google por el Login de CapitalTorreon; su correo se liga a su ficha desde el tablero (campo «Su cuenta de Google»). Lo que ve:
+
+- **Pedir en un clic:** «Repetir mi último pedido» crea el pedido al instante. «Llenar una tarima» arma 64 cajas con su mezcla. El formulario sugiere completar la reja y la tarima, muestra lo que gana con ese pedido y avisa si rebasa su crédito.
+- **Anticipados:** elige la fecha de entrega (botones de temporada: San Judas, Muertos, Guadalupe…); más de una semana después del plazo normal se marca como anticipado y se produce con tiempo.
+- **Cómo va cada pedido:** barra de ocho pasos, historia con fechas, cuándo sale la ruta, cuánto gana con él.
+- **Pagos:** con tarjeta (Stripe Checkout; al volver se le pregunta a Stripe si se pagó y el pedido pasa a Confirmado) o por transferencia (ve la CLABE de Ajustes, avisa con su referencia y el equipo la confirma en Pagos). También puede pagar al recibir.
+- **Lo que gana:** por pieza y por caja, con el margen de la tienda; estimación mensual por sus tiendas; lo ganado con lo entregado.
+- **Material de promoción:** exhibidor, cartel, calcomanía, lona y las hojas PDF; lo gratis va en su siguiente pedido.
+
+La liga privada `/pedir?d=…` sigue sirviendo para quien no tenga Google.
+
 Lo que se automatizó:
 
 - Una solicitud nueva o un pedido hecho desde la liga manda un correo a los administradores.
